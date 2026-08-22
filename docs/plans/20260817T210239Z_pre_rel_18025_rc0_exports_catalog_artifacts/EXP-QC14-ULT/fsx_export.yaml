@@ -1,0 +1,25 @@
+fsx_export:
+  schema_version: 4
+  status: success
+  phase: complete
+  cluster_name: pre-rel-18025
+  region: us-west-2
+  analysis_dir: pre-rel-18025/prerel18025_ultima_seq_qc_15014_live_20260817T1308Z
+  source_path: /analysis_results/pre-rel-18025/prerel18025_ultima_seq_qc_15014_live_20260817T1308Z/daylily-omics-analysis/
+  headnode_path: /fsx/analysis_results/pre-rel-18025/prerel18025_ultima_seq_qc_15014_live_20260817T1308Z/daylily-omics-analysis/
+  destination_s3_uri: s3://lsmc-ssf-sequencing-data/derived/pre-rel-18025/prerel18025_ultima_seq_qc_15014_live_20260817T1308Z/daylily-omics-analysis/
+  fsx_root: /fsx/analysis_results/pre-rel-18025/prerel18025_ultima_seq_qc_15014_live_20260817T1308Z/daylily-omics-analysis/
+  s3_root: s3://lsmc-ssf-sequencing-data/derived/pre-rel-18025/prerel18025_ultima_seq_qc_15014_live_20260817T1308Z/daylily-omics-analysis/
+  dayoa_analysis_root: /fsx/analysis_results/pre-rel-18025/prerel18025_ultima_seq_qc_15014_live_20260817T1308Z/daylily-omics-analysis/daylily-omics-analysis/
+  dayoa_s3_root: s3://lsmc-ssf-sequencing-data/derived/pre-rel-18025/prerel18025_ultima_seq_qc_15014_live_20260817T1308Z/daylily-omics-analysis/daylily-omics-analysis/
+  detached: true
+  delete_data_in_file_system: false
+  failure_details: {}
+  fsx_file_system_id: fs-0b1dadc673c44817f
+  file_system_path: /analysis_results/pre-rel-18025/prerel18025_ultima_seq_qc_15014_live_20260817T1308Z/daylily-omics-analysis/
+  association_id: dra-0c6bb70c485215b9b
+  lifecycle: AVAILABLE
+  task_id: task-083a8cb5715b182bb
+  task_lifecycle: SUCCEEDED
+  report_path: s3://lsmc-ssf-sequencing-data/derived/pre-rel-18025/prerel18025_ultima_seq_qc_15014_live_20260817T1308Z/daylily-omics-analysis/_daylily_monitor/fsx-export/20260817T233342Z/export-report/
+  detach_lifecycle: DELETED

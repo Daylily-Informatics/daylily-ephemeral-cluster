@@ -182,6 +182,7 @@ def test_runtime_cache_export_stages_then_calls_dra_workflow_only(
         assert export_options.destination_s3_uri == options.destination_s3_uri
         assert export_options.fsx_file_system_id == "fs-123"
         assert export_options.delete_data_in_file_system is False
+        assert export_options.export_kind == "runtime_cache"
         export_options.output_dir.mkdir(parents=True)
         (export_options.output_dir / export_data.STATUS_FILENAME).write_text(
             yaml.safe_dump(

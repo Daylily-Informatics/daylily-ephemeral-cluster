@@ -9,7 +9,8 @@ PAYLOAD = (
     REPO_ROOT
     / "daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml"
 )
-DAYOA_TARGET_TAG = "15.0.10"
+DAYOA_TARGET_TAG = "15.0.24"
+CURRENT_DAYOA_TARGET_TAG = "15.0.28"
 DAYOA_VALIDATED_TAGS = {"15.0.1", "15.0.3", "15.0.9"}
 HISTORICAL_DAYOA_TAG = "14.0.21"
 ONT_RUN_ID = "pc1703-ont-set4fc1-seqqc-17018-20260814"
@@ -19,14 +20,15 @@ ONT_EVIDENCE_PREFIX = (
     "results/runs/20260615_ONT_Set4-FC1/run_qc/ont/"
 )
 CURRENT_ONT_EVIDENCE_PREFIX = (
-    "s3://lsmc-ssf-sequencing-data/derived/pcand-18015/"
-    "pcand18015_ont_runqc_1509_live_20260816T1422Z/daylily-omics-analysis/"
+    "s3://lsmc-ssf-sequencing-data/derived/pcand-18022/"
+    "pcand18022_ont_seq_qc_15011_live_20260817T0752Z/daylily-omics-analysis/"
     "results/runs/20260615_ONT_Set4-FC1/run_qc/ont/"
 )
 CG_RUN_ID = "prod-cand-1703-cg-slim-20260814-1032"
 BJUICE_RUN_ID = (
     "prod-cand-1703-hg002-slim5x5x-hiomr2-ifx-bjuice-v02-20260814T080546Z"
 )
+BJUICE_CURRENT_EVIDENCE_RUN_ID = "pcand18022-hg002-slim5x5x-bjuice-ifx-20260817t0648z"
 
 
 def _run(command: dict, run_id: str) -> dict:
@@ -40,16 +42,18 @@ def test_current_catalog_promotion_preserves_17_0_28_evidence() -> None:
     active = {item["command_id"]: item for item in repo["analysis_commands"]}
     current = raw["dyec_builds"]["current"]
 
-    assert repo["default_ref"] == DAYOA_TARGET_TAG
+    assert repo["default_ref"] == CURRENT_DAYOA_TARGET_TAG
     assert current != raw["dyec_builds"]["17.0.28"]
     assert raw["dyec_builds"]["17.0.28"]["dayoa_git_tags"] == [HISTORICAL_DAYOA_TAG]
-    assert current["dayoa_git_tags"] == [DAYOA_TARGET_TAG]
+    assert current["dayoa_git_tags"] == [CURRENT_DAYOA_TARGET_TAG]
     assert {item["git_tag"] for item in active.values()} == {DAYOA_TARGET_TAG}
     assert {item["validated_version"] for item in active.values()} == DAYOA_VALIDATED_TAGS
-    assert {item["git_tag"] for item in current["commands"].values()} == {DAYOA_TARGET_TAG}
+    assert {item["git_tag"] for item in current["commands"].values()} == {
+        CURRENT_DAYOA_TARGET_TAG
+    }
     assert {
         item["validated_version"] for item in current["commands"].values()
-    } == DAYOA_VALIDATED_TAGS
+    } == DAYOA_VALIDATED_TAGS | {"unvalidated"}
 
     for command in (active["ont_run_qc"], current["commands"]["ont_run_qc"]):
         record = _run(command, ONT_RUN_ID)
@@ -73,4 +77,7 @@ def test_current_catalog_promotion_preserves_17_0_28_evidence() -> None:
     alias_runs = current["aliases"]["inflection-bjuice-product-v0.2"][
         "metadata_overrides"
     ]["validation_runs"]
-    assert [item["run_id"] for item in alias_runs] == [BJUICE_RUN_ID]
+    assert [item["run_id"] for item in alias_runs] == [
+        BJUICE_RUN_ID,
+        BJUICE_CURRENT_EVIDENCE_RUN_ID,
+    ]

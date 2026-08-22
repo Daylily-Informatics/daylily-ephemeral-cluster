@@ -7,8 +7,6 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
-import yaml
-
 from daylily_ec.aws.ssm import HeadNodeTarget, SsmError
 from daylily_ec.scripts.common import CommandError
 from daylily_ec.scripts.daylily_cfg_headnode import _load_repo_overrides
@@ -26,13 +24,14 @@ def _controller_target_marker(
 ) -> str:
     analysis_root = posixpath.dirname(repo_path)
     payload = {
-        "schema_version": "dyec.controller_target.v1",
+        "schema_version": "dyec.controller_target.v2",
         "controller_id": session_name,
         "pid": pid,
         "cwd": repo_path,
         "log_path": f"{repo_path}/.dyec/controller.log",
         "dag_path": f"{repo_path}/.dyec/controller-dag.png",
         "analysis_root": analysis_root,
+        "status_attempt_id": "00000000-0000-4000-8000-000000000001",
     }
     return "\n".join(
         [
@@ -68,8 +67,14 @@ def _assert_immutable_pinned_dayoa_controller(script: str) -> None:
     assert 'git -C "$repo_path" diff --cached --quiet --' in script
     assert 'git -C "$repo_path" ls-files --others --exclude-standard' in script
     assert "is_allowed_catalog_runtime_path()" in script
+    assert "PINNED_SOURCE_TEST_OVERRIDE=" in script
+    assert "pinned-source-test-override-$evidence_phase" in script
+    assert "Explicit pinned-source test override active" in script
     for allowed_path in (
         ".dyec/controller.log",
+        ".dyec/status.json.lock",
+        ".dyec/status.json.tmp-*",
+        "status.json",
         "analysis_artifacts.tsv",
         "artifact_lineage.tsv",
         "pipeline_details.md",
@@ -88,6 +93,7 @@ def _assert_immutable_pinned_dayoa_controller(script: str) -> None:
         "config/analysis_units.tsv",
         "config/analysis_unit_inputs.tsv",
         "config/dyec_manifest_stage_receipt.json",
+        "config/dyec_runtime_config.yaml",
         "config/day_profiles/slurm/.template-source.sha256",
     ):
         assert allowed_path in script
@@ -280,9 +286,13 @@ class TestRunOmicsAnalysisHeadnodeScript:
     @pytest.mark.parametrize(
         ("updates", "match"),
         [
-            ({"schema_version": "dyec.controller_target.v2"}, "schema must be"),
+            ({"schema_version": "dyec.controller_target.v1"}, "schema must be"),
             ({"pid": 0}, "positive integer"),
             ({"cwd": "relative/path"}, "canonical absolute path"),
+            (
+                {"cwd": "/fsx/analysis_results/johnm/dayoa/not-the-dayoa-clone"},
+                "must be the daylily-omics-analysis clone",
+            ),
             (
                 {"log_path": "/home/ubuntu/daylily-runs/controller.log"},
                 "log_path must be within cwd",
@@ -612,24 +622,29 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'controller_target_file="$run_dir/controller_target.json"' in script
         assert 'controller_log_path="$repo_path/.dyec/controller.log"' in script
         assert 'controller_dag_path="$repo_path/.dyec/controller-dag.png"' in script
-        assert 'STATUS_FILE="${DAYLILY_RUN_DIR}/status.json"' in script
+        assert 'STATUS_FILE="${DAYLILY_REPO_PATH}/status.json"' in script
+        assert 'STATUS_HELPER="${DAYLILY_REPO_PATH}/bin/util/analysis_status.py"' in script
+        assert "STATUS_ATTEMPT_ID=" in script
+        assert "status_v2 start-controller" in script
+        assert "status_v2 finish-controller" in script
+        assert "status_v2 record-snakemake-log" in script
         assert 'export DAYLILY_CONTROLLER_PID="$BASHPID"' in script
-        assert 'export DAYLILY_STATUS_SNAKEMAKE_LOG_PATH=""' in script
-        assert 'export DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION=""' in script
-        assert 'export DAYLILY_STATUS_WORKFLOW_COMPLETED_AT=""' in script
-        assert 'export DAYLILY_STATUS_WORKFLOW_EXIT_CODE="__PENDING__"' in script
-        assert 'export DAYLILY_STATUS_WORKFLOW_EXIT_CODE="$workflow_status"' in script
-        assert script.index(
-            'export DAYLILY_STATUS_WORKFLOW_EXIT_CODE="$workflow_status"'
-        ) < script.index('wait "$controller_dag_monitor_pid"')
+        assert 'export DAYLILY_STATUS_ATTEMPT_ID="$STATUS_ATTEMPT_ID"' in script
+        assert 'status_file="$repo_path/status.json"' in script
+        assert 'status_file="$run_dir/status.json"' not in script
         assert "os.replace(temporary, path)" in script
         assert 'snakemake_log_baseline="$DAYLILY_RUN_DIR/snakemake-log-baseline.txt"' in script
         assert "-name '*.snakemake.log'" in script
         assert 'comm -13 "$snakemake_log_baseline" "$snakemake_log_current"' in script
-        assert 'DAYLILY_STATUS_SNAKEMAKE_LOG_PATH="${invocation_snakemake_logs[0]}"' in script
-        assert 'DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION="exact invocation file-set difference"' in script
-        assert "dyec.controller_target.v1" in script
+        assert '--log-path "${invocation_snakemake_logs[0]}"' in script
+        assert '--log-attribution "exact invocation file-set difference"' in script
+        assert "dyec.controller_target.v2" in script
         assert "python3 -c " in script
+        assert "if ! day-clone" in script
+        assert "__DAYLILY_ERROR__=analysis_clone_failed" in script
+        assert script.index("status_v2 start-controller") < script.index(
+            "python3 -c 'import json, os, pathlib; path = pathlib.Path(os.environ"
+        )
         assert "DAYLILY_RUN_DIR=%q" in script
         assert "DAYLILY_REPO_PATH=%q" in script
         assert "DAYLILY_TMUX_LOG=%q" in script
@@ -879,7 +894,68 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'if [[ "$expected_commit" != "$REUSE_LOCAL_GIT_COMMIT" ]]; then' in local_ref_branch
         assert 'git -C "$repo_path" fetch --quiet --tags origin "$DAYOA_GIT_REF"' not in local_ref_branch
 
+        mock_run_shell.reset_mock()
+        rc = run_omics_module.main(
+            [
+                "--profile",
+                "dev",
+                "--git-tag",
+                "13.0.42",
+                "--input-contract",
+                "none",
+                "--no-input-staging",
+                "--analysis-id",
+                "analysis",
+                "--executing-entity",
+                "johnm",
+                "--session-name",
+                "analysis-pinned-source-test",
+                "--reuse-existing-analysis-dir",
+                "--reuse-local-git-ref",
+                "--reuse-local-git-commit",
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "--pinned-source-test-override",
+                "approved dyoainit initialization test",
+                "--dry-run",
+                "--dy-command",
+                "dy-r produce_sentdhiomr2_kitchensink -p -k -j 6 -n",
+            ]
+        )
+        assert rc == 0
+        override_script = mock_run_shell.call_args.args[2]
+        assert "PINNED_SOURCE_TEST_OVERRIDE='approved dyoainit initialization test'" in override_script
+        assert "DRY_RUN_MODE=true" in override_script
+        assert '"$evidence_prefix.status.txt"' in override_script
+        assert '"$evidence_prefix.worktree.patch"' in override_script
+        assert '"$evidence_prefix.index.patch"' in override_script
+        assert '"$evidence_prefix.untracked.txt"' in override_script
+        override_reuse_block = override_script.split(
+            'if [[ "$REUSE_EXISTING_ANALYSIS_DIR" == "true" ]]; then',
+            1,
+        )[1].split("else\n  if ! day-clone", 1)[0]
+        assert '&& -z "$PINNED_SOURCE_TEST_OVERRIDE"' in override_reuse_block
+        assert 'if [[ -n "$PINNED_SOURCE_TEST_OVERRIDE" ]]; then' in override_reuse_block
+        assert 'actual_commit="$(git -C "$repo_path" rev-parse HEAD)"' in override_reuse_block
+
     def test_main_rejects_unsafe_existing_analysis_continuation(self):
+        with pytest.raises(
+            run_omics_module.CommandError,
+            match="requires --reuse-existing-analysis-dir",
+        ):
+            run_omics_module.main(
+                [
+                    "--profile",
+                    "dev",
+                    "--git-tag",
+                    "13.0.42",
+                    "--analysis-id",
+                    "analysis",
+                    "--pinned-source-test-override",
+                    "approved source test",
+                    "--dry-run",
+                ]
+            )
+
         with pytest.raises(
             run_omics_module.CommandError,
             match="requires --input-contract none",
@@ -1759,7 +1835,18 @@ class TestCfgHeadnodeScript:
         override_file = tmp_path / "repos.txt"
         override_file.write_text("daylily-omics-analysis:release-1\n", encoding="utf-8")
 
-        rc = cfg_headnode_module.main(["--profile", "dev", "--repo-overrides", str(override_file)])
+        rc = cfg_headnode_module.main(
+            [
+                "--profile",
+                "dev",
+                "--repo-overrides",
+                str(override_file),
+                "--dyec-deploy-key-secret-arn",
+                "arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec-key",
+                "--dayoa-deploy-key-secret-arn",
+                "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayoa-key",
+            ]
+        )
 
         assert rc == 0
         mock_configure.assert_called_once_with(
@@ -1767,12 +1854,12 @@ class TestCfgHeadnodeScript:
             head_node_instance_id="i-abc123",
             region="us-west-2",
             profile="dev",
-            dyec_deploy_key_secret_arn="",
-            dyec_deploy_key_region="",
+            dyec_deploy_key_secret_arn="arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec-key",
+            dyec_deploy_key_region="us-west-2",
             dyec_repo_url="https://github.com/lsmc-bio/daylily-ephemeral-cluster.git",
             dyec_repo_ref="16.1.85",
-            dayoa_deploy_key_secret_arn="",
-            dayoa_deploy_key_region="",
+            dayoa_deploy_key_secret_arn="arn:aws:secretsmanager:us-west-2:123456789012:secret:dayoa-key",
+            dayoa_deploy_key_region="us-west-2",
             repo_overrides={"daylily-omics-analysis": "release-1"},
         )
         assert "Headnode configured via SSM" in capsys.readouterr().out
@@ -1780,6 +1867,39 @@ class TestCfgHeadnodeScript:
     def test_parser_does_not_offer_a_dyec_version_override(self):
         with pytest.raises(SystemExit):
             cfg_headnode_module.build_parser().parse_args(["--dyec-version", "16.1.84"])
+
+    def test_parser_requires_both_deploy_key_references(self):
+        parser = cfg_headnode_module.build_parser()
+        with pytest.raises(SystemExit):
+            parser.parse_args(["--profile", "dev"])
+        with pytest.raises(SystemExit):
+            parser.parse_args(
+                [
+                    "--profile",
+                    "dev",
+                    "--dyec-deploy-key-secret-arn",
+                    "arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec-key",
+                ]
+            )
+
+    def test_main_rejects_blank_deploy_key_reference_before_tools(self, monkeypatch):
+        monkeypatch.setattr(
+            cfg_headnode_module,
+            "need_cmd",
+            lambda *_args, **_kwargs: pytest.fail("blank key must fail before tool checks"),
+        )
+
+        with pytest.raises(CommandError, match="--dyec-deploy-key-secret-arn must be non-empty"):
+            cfg_headnode_module.main(
+                [
+                    "--profile",
+                    "dev",
+                    "--dyec-deploy-key-secret-arn",
+                    " ",
+                    "--dayoa-deploy-key-secret-arn",
+                    "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayoa-key",
+                ]
+            )
 
     @patch("daylily_ec.scripts.daylily_cfg_headnode.configure_headnode", return_value=False)
     @patch(
@@ -1808,7 +1928,16 @@ class TestCfgHeadnodeScript:
         _mock_configure,
     ):
         with pytest.raises(CommandError, match="Headnode configuration failed"):
-            cfg_headnode_module.main(["--profile", "dev"])
+            cfg_headnode_module.main(
+                [
+                    "--profile",
+                    "dev",
+                    "--dyec-deploy-key-secret-arn",
+                    "arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec-key",
+                    "--dayoa-deploy-key-secret-arn",
+                    "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayoa-key",
+                ]
+            )
 
 
 class TestRemoteTestsScript:

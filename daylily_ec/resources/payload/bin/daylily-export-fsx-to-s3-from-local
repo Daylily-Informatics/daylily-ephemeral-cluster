@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""Forward explicit DRA export invocations to ``daylily-ec export``."""
+"""Forward explicit DRA export invocations to ``dyec export``."""
 
 from __future__ import annotations
 
 import argparse
 import os
 import shutil
-import sys
 from pathlib import Path
 
 
@@ -24,16 +23,10 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def _resolve_entrypoint() -> list[str]:
-    cli = shutil.which("daylily-ec")
+    cli = shutil.which("dyec")
     if cli:
         return [cli]
-
-    repo_root = Path(__file__).resolve().parents[1]
-    if (repo_root / "daylily_ec" / "__main__.py").is_file():
-        os.chdir(repo_root)
-        return [sys.executable, "-m", "daylily_ec"]
-
-    raise SystemExit("Error: daylily-ec is not available. Run 'source ./activate' first.")
+    raise SystemExit("Error: dyec is not available. Run 'source ./activate' first.")
 
 
 def main(argv: list[str] | None = None) -> int:

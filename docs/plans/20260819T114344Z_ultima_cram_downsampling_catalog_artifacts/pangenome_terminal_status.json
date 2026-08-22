@@ -1,0 +1,58 @@
+{
+  "controller": {
+    "attributed": false,
+    "command": "bash -il",
+    "command_matches": false,
+    "expected_cwd": "/fsx/analysis_results/pclu-18045/pclu18045_u075_pang_18059_15038_20260819t130742z/daylily-omics-analysis",
+    "live": false,
+    "observed_cwd": "/fsx/analysis_results/pclu-18045/pclu18045_u075_pang_18059_15038_20260819t130742z/daylily-omics-analysis",
+    "pid": 3042727,
+    "pid_exists": true,
+    "pid_source": "/home/ubuntu/daylily-runs/pclu18045_u075_pang_18059_15038_20260819t130742z-dry/controller_target.json",
+    "tmux_correlated": true,
+    "tmux_session": "pclu18045_u075_pang_18059_15038_20260819t130742z-dry"
+  },
+  "jobs": {
+    "finished_count": 0,
+    "finished_job_ids": [],
+    "submitted": [],
+    "submitted_count": 0
+  },
+  "last_progress_at": null,
+  "last_progress_line": null,
+  "mode": "launched",
+  "repo_path": "/fsx/analysis_results/pclu-18045/pclu18045_u075_pang_18059_15038_20260819t130742z/daylily-omics-analysis",
+  "run_dir": "/home/ubuntu/daylily-runs/pclu18045_u075_pang_18059_15038_20260819t130742z-dry",
+  "schema_version": "dyec.workflow_observability.v1",
+  "semantics": {
+    "generic_error_text_is_terminal_failure": false,
+    "inspection_exit_code_is_workflow_exit_code": false,
+    "queue_emptiness_is_success": false
+  },
+  "session": "pclu18045_u075_pang_18059_15038_20260819t130742z-dry",
+  "slurm": {
+    "available": true,
+    "state_counts": {},
+    "states": []
+  },
+  "snakemake_log": {
+    "open_candidates": [],
+    "path": "/fsx/analysis_results/pclu-18045/pclu18045_u075_pang_18059_15038_20260819t130742z/daylily-omics-analysis/.snakemake/log/2026-08-19T132118.436645.snakemake.log",
+    "problem": null,
+    "source": "/fsx/analysis_results/pclu-18045/pclu18045_u075_pang_18059_15038_20260819t130742z/daylily-omics-analysis/status.json"
+  },
+  "state": "SUCCEEDED",
+  "status": {
+    "attempt_id": "2a04df0e-56ff-4b42-ad1d-d72bc2deddfb",
+    "path": "/fsx/analysis_results/pclu-18045/pclu18045_u075_pang_18059_15038_20260819t130742z/daylily-omics-analysis/status.json",
+    "schema_version": "daylily.analysis_status.v2"
+  },
+  "terminal": {
+    "controller_exit_code": 0,
+    "controller_exit_code_attributed": true,
+    "controller_exit_code_source": "/fsx/analysis_results/pclu-18045/pclu18045_u075_pang_18059_15038_20260819t130742z/daylily-omics-analysis/status.json#attempts/2a04df0e-56ff-4b42-ad1d-d72bc2deddfb/controller/exit_code",
+    "day_run_exit_code": 0,
+    "failure_markers": [],
+    "snakemake_exit_code": 0
+  }
+}

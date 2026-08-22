@@ -102,11 +102,15 @@ cost and accounting coverage includes:
   `secretsmanager:DescribeSecret` and `secretsmanager:GetSecretValue` on the
   configured secret ARN
 - private LSMC Bio repositories: operator metadata reads for the explicit
-  deploy-key or managed GitHub-token secret and its managed policy; the policy
-  must contain exactly `secretsmanager:DescribeSecret` and
-  `secretsmanager:GetSecretValue` on the relevant secret ARN. DYEC attaches the
-  policy only to the headnode. Compute queues receive no GitHub credential
-  permissions, and preflight never reads a private-key or token value.
+  deploy-key secret and its managed policy. The policy has exactly one
+  deploy-key statement and may have exactly one statement for the designated
+  managed two-repository GitHub token. Each statement grants only
+  `secretsmanager:DescribeSecret` and `secretsmanager:GetSecretValue`; it is
+  restricted to the LSMC Bio account and secret-name contract. The policy may
+  wildcard only the Secrets Manager region so explicitly configured regional
+  secret ARNs work across supported Region-AZs. DYEC attaches the policy only
+  to the headnode. Compute queues receive no GitHub credential permissions,
+  and preflight never reads a private-key or token value.
 
 The operator simulation is separate from `iam.runtime_cost_policy`. That check
 reads the exact managed policy selected by `iam_policy_arn` for the headnode and

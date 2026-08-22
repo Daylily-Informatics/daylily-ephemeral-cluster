@@ -15,7 +15,6 @@ import textwrap
 from collections.abc import Sequence
 from typing import Any
 
-
 REMOTE_USER = "ubuntu"
 DEFAULT_MAX_OUTPUT_BYTES = 20 * 1024
 MAX_ALLOWED_OUTPUT_BYTES = 20 * 1024
@@ -24,6 +23,10 @@ DEFAULT_MAX_TMUX_PANES = 40
 DEFAULT_MAX_SLURM_JOBS = 100
 DEFAULT_MAX_SLURM_JOB_ACTIONS = 64
 MAX_ALLOWED_LIST_ITEMS = 256
+CONTROLLER_ENTRYPOINT_NAMES = (
+    "dy-r",
+    "dyec-controller-launch.sh",
+)
 
 CONTROLLER_INVENTORY_MARKER = "__DYEC_HEADNODE_CONTROLLER_INVENTORY__="
 CONTROLLER_ACTION_MARKER = "__DYEC_HEADNODE_CONTROLLER_ACTION__="
@@ -202,10 +205,7 @@ def build_controller_inventory_script(
             r"^/fsx/analysis_results/[A-Za-z0-9][A-Za-z0-9._-]*/"
             r"[A-Za-z0-9][A-Za-z0-9._-]*$"
         )
-        CONTROLLER_ENTRYPOINT_NAMES = (
-            "dy-r",
-            "dayoa-controller-launch.sh",
-        )
+        CONTROLLER_ENTRYPOINT_NAMES = {CONTROLLER_ENTRYPOINT_NAMES!r}
 
         def run(argv):
             try:
@@ -514,10 +514,7 @@ def build_controller_action_script(
         SIGNAL_NAME = {resolved_signal!r}
         MAX_OUTPUT_BYTES = {output_limit}
         REMOTE_USER = {REMOTE_USER!r}
-        CONTROLLER_ENTRYPOINT_NAMES = (
-            "dy-r",
-            "dayoa-controller-launch.sh",
-        )
+        CONTROLLER_ENTRYPOINT_NAMES = {CONTROLLER_ENTRYPOINT_NAMES!r}
 
         def emit(payload):
             encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"))

@@ -4,6 +4,9 @@ This is the current public-safe operator path. It uses the DRA-backed FSx model,
 explicit config, a platform-resolved SSM headnode user, catalog-backed DayOA
 commands, and explicit export receipts.
 
+For the concise agent/operator route map and DayOA tmux contract, read
+[agent_cli_guide.md](agent_cli_guide.md) before starting a controller.
+
 ## 1. Activate The Checkout
 
 ```bash
@@ -104,11 +107,12 @@ Do not run `pcluster create-cluster`, `pcluster update-cluster`, or `pcluster de
 dyec create \
   --profile "$AWS_PROFILE" \
   --region-az "$REGION_AZ" \
-  --config "$DAY_EX_CFG" \
-  --global-spot-max-cost 9.99 \
-  --spot-cost-limit-pct 1.7 \
-  --write-spot-pricing-warn-threshold 6.00
+  --cluster-type intel
 ```
+
+The shipped config and spot-price defaults are resolved automatically. Add
+`--config "$DAY_EX_CFG"` or the documented spot-price flags only when this
+create intentionally overrides them.
 
 For one create, `--admin-email oncall@example.org` overrides the AWS Budget
 notification recipient. The create YAML `budget_email` otherwise takes
@@ -162,7 +166,7 @@ workflow. For a `six_manifest` row, first validate the local manifest directory
 and use `dyec catalog render`/`launch --manifest-dir DIR` instead. Export is a
 separate post-controller DYEC DRA operation.
 
-The current catalog targets DayOA `15.0.10`. `dyec --json catalog list` and
+The `19.0.6` catalog targets DayOA `16.0.3`. `dyec --json catalog list` and
 `catalog show` include `validation_pending`; `true` means the target tag is
 different from the command's recorded `validated_version`. It does not block a
 launch or rewrite historical validation receipts.
@@ -220,7 +224,7 @@ dyec workflow launch \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --repository daylily-omics-analysis \
-  --git-tag 15.0.10 \
+  --git-tag 16.0.3 \
   --input-contract run_context \
   --run-context-file ./runs.tsv \
   --analysis-id run-qc \
@@ -266,16 +270,24 @@ Do not cancel, requeue, drain, resume, or restart Slurm components without separ
 
 ## 8. Export Completed Analysis Directory
 
-Export directly from the completed analysis directory on FSx:
+Record the no-delete export visit, then export directly from the completed
+analysis directory on FSx. Keep `$EXPORT_S3_URI` empty before this sequence; do
+not use `--s3-visit-uri` for that intended destination.
 
 ```bash
+dyec analysis visit \
+  --analysis-root "/fsx/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID" \
+  --mode export \
+  --intent "export completed analysis root without FSx deletion"
+
 dyec export \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --source-path "/fsx/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID" \
   --destination-s3-uri "$EXPORT_S3_URI" \
-  --output-dir "$EXPORT_DIR"
+  --output-dir "$EXPORT_DIR" \
+  --wait --timeout-seconds 5400
 
 cat "$EXPORT_DIR/fsx_export.yaml"
 ```
@@ -286,9 +298,9 @@ Expected receipt values:
 - `detached: true`
 - `delete_data_in_file_system: false`
 - `source_path: /fsx/analysis_results/<executing_entity>/<analysis_id>/`
-- `destination_s3_uri` ending in `<cluster>/<analysis_id>/` for launch auto-export, or `<executing_entity>/<analysis_id>/` for explicit direct export
+- `destination_s3_uri` ending in the exact `<executing_entity>/<analysis_id>/` destination selected for the complete analysis root
 - `fsx_root: /fsx/analysis_results/<executing_entity>/<analysis_id>/`
-- `s3_root: s3://.../<cluster>/<analysis_id>/` for launch auto-export, or `s3://.../<executing_entity>/<analysis_id>/` for explicit direct export
+- `s3_root: s3://.../<executing_entity>/<analysis_id>/` for the explicit direct export
 - `dayoa_analysis_root` under `fsx_root` when exporting DayOA
 - `dayoa_s3_root` under `s3_root` when exporting DayOA
 

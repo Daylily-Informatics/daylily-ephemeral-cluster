@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import base64
 import gzip
+import hashlib
 import json
 import os
 import posixpath
@@ -46,7 +47,7 @@ from daylily_ec.workflow.dyr_preflight import (
 
 
 STAGE_CONFIG_DISCOVERY_TIMEOUT_SECONDS = 180
-CONTROLLER_TARGET_SCHEMA_VERSION = "dyec.controller_target.v1"
+CONTROLLER_TARGET_SCHEMA_VERSION = "dyec.controller_target.v2"
 
 
 def shlex_quote_compressed_python(source: str) -> str:
@@ -167,6 +168,7 @@ class ControllerTargetReceipt:
     log_path: str
     dag_path: str
     analysis_root: str
+    status_attempt_id: str
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -177,6 +179,7 @@ class ControllerTargetReceipt:
             "log_path": self.log_path,
             "dag_path": self.dag_path,
             "analysis_root": self.analysis_root,
+            "status_attempt_id": self.status_attempt_id,
         }
 
 
@@ -259,6 +262,7 @@ def parse_controller_target(raw: str) -> ControllerTargetReceipt:
         "log_path",
         "dag_path",
         "analysis_root",
+        "status_attempt_id",
     }
     if set(payload) != required:
         missing = sorted(required.difference(payload))
@@ -287,14 +291,23 @@ def parse_controller_target(raw: str) -> ControllerTargetReceipt:
     cwd = _controller_target_path(payload["cwd"], field="cwd")
     log_path = _controller_target_path(payload["log_path"], field="log_path")
     dag_path = _controller_target_path(payload["dag_path"], field="dag_path")
-    if not _path_within(cwd, analysis_root):
-        raise CommandError("controller target cwd must be within analysis_root")
+    if cwd != f"{analysis_root}/daylily-omics-analysis":
+        raise CommandError(
+            "controller target cwd must be the daylily-omics-analysis clone at analysis_root"
+        )
     if not _path_within(log_path, cwd):
         raise CommandError("controller target log_path must be within cwd")
     if not _path_within(dag_path, cwd):
         raise CommandError("controller target dag_path must be within cwd")
     if log_path == dag_path:
         raise CommandError("controller target log_path and dag_path must be different")
+    status_attempt_id = payload["status_attempt_id"]
+    if not isinstance(status_attempt_id, str):
+        raise CommandError("controller target status_attempt_id must be a UUID")
+    try:
+        uuid.UUID(status_attempt_id)
+    except (ValueError, AttributeError) as exc:
+        raise CommandError("controller target status_attempt_id must be a UUID") from exc
     return ControllerTargetReceipt(
         schema_version=CONTROLLER_TARGET_SCHEMA_VERSION,
         controller_id=controller_id,
@@ -303,6 +316,7 @@ def parse_controller_target(raw: str) -> ControllerTargetReceipt:
         log_path=log_path,
         dag_path=dag_path,
         analysis_root=analysis_root,
+        status_attempt_id=status_attempt_id,
     )
 
 
@@ -538,6 +552,20 @@ def build_default_command(
         raise CommandError(str(exc)) from exc
 
 
+def dy_command_has_dry_run_flag(command: str) -> bool:
+    """Return whether a normalized dy-r command includes a dry-run flag."""
+
+    try:
+        tokens = shlex.split(command)
+    except ValueError:
+        return False
+    return any(
+        token == "--dry-run"
+        or (token.startswith("-") and not token.startswith("--") and "n" in token[1:])
+        for token in tokens
+    )
+
+
 def _normalize_payload_staging_s3_uri(value: str) -> str:
     cleaned = str(value or "").strip().rstrip("/")
     if not cleaned.startswith("s3://"):
@@ -566,6 +594,8 @@ def stage_workflow_launch_payload(
     units_content: Optional[str],
     six_manifest_contents: Mapping[str, str],
     six_manifest_receipt: Optional[Mapping[str, object]],
+    runtime_config_content: Optional[str],
+    runtime_config_sha256: Optional[str],
 ) -> str:
     """Upload a workflow launch payload tarball and return its S3 URI."""
 
@@ -592,6 +622,10 @@ def stage_workflow_launch_payload(
             _write_text_payload(payload_root / "inputs" / "units.tsv", units_content)
         for name, content in six_manifest_contents.items():
             _write_text_payload(payload_root / "inputs" / name, content)
+        if runtime_config_content is not None:
+            _write_text_payload(
+                payload_root / "inputs" / "dyec_runtime_config.yaml", runtime_config_content
+            )
         if six_manifest_receipt is not None:
             _write_text_payload(
                 payload_root / "inputs" / "dyec_manifest_stage_receipt.json",
@@ -605,6 +639,14 @@ def stage_workflow_launch_payload(
             "git_tag": args.git_tag,
             "input_contract": args.input_contract,
             "dy_command": args.dy_command,
+            "runtime_config": (
+                {
+                    "target": "config/dyec_runtime_config.yaml",
+                    "sha256": runtime_config_sha256,
+                }
+                if runtime_config_content is not None
+                else None
+            ),
             "files": sorted(
                 str(path.relative_to(payload_root))
                 for path in payload_root.rglob("*")
@@ -640,6 +682,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--manifest-dir",
         help="Local directory containing exactly the six DayOA 13 manifests",
+    )
+    parser.add_argument(
+        "--runtime-config-file",
+        help=(
+            "Explicit YAML staged only as config/dyec_runtime_config.yaml beside a "
+            "six-manifest contract; its SHA-256 is verified in the clone."
+        ),
     )
     parser.add_argument(
         "--payload-staging-s3-uri",
@@ -843,6 +892,15 @@ def build_parser() -> argparse.ArgumentParser:
             "--reuse-existing-analysis-dir and --reuse-local-git-ref."
         ),
     )
+    parser.add_argument(
+        "--pinned-source-test-override",
+        metavar="REASON",
+        help=(
+            "Explicit test-only waiver for one already-dirty reused DayOA checkout. "
+            "Requires a non-secret reason, --reuse-existing-analysis-dir, "
+            "--reuse-local-git-ref, --reuse-local-git-commit, --dry-run, and no export."
+        ),
+    )
     parser.add_argument("--dry-run", action="store_true")
     parser.set_defaults(
         skip_project_check=True,
@@ -914,6 +972,34 @@ def main(argv: Optional[List[str]] = None) -> int:
             raise CommandError(
                 "--reuse-local-git-commit must be a lowercase 40-character commit SHA."
             )
+    if args.pinned_source_test_override is not None:
+        args.pinned_source_test_override = args.pinned_source_test_override.strip()
+        if not args.pinned_source_test_override:
+            raise CommandError("--pinned-source-test-override requires a non-empty reason.")
+        if "\n" in args.pinned_source_test_override or "\r" in args.pinned_source_test_override:
+            raise CommandError("--pinned-source-test-override reason must be single-line.")
+        if not args.reuse_existing_analysis_dir:
+            raise CommandError(
+                "--pinned-source-test-override requires --reuse-existing-analysis-dir."
+            )
+        if not args.reuse_local_git_ref:
+            raise CommandError(
+                "--pinned-source-test-override requires --reuse-local-git-ref."
+            )
+        if args.reuse_local_git_commit is None:
+            raise CommandError(
+                "--pinned-source-test-override requires --reuse-local-git-commit."
+            )
+        if not args.dry_run:
+            raise CommandError("--pinned-source-test-override requires --dry-run.")
+        if (
+            args.export_destination_s3_uri
+            or args.export_trigger != "none"
+            or args.delete_on_export_success
+        ):
+            raise CommandError(
+                "--pinned-source-test-override cannot be combined with export or deletion."
+            )
     if args.cost_center is not None:
         try:
             from daylily_ec.aws.cost_centers import CostCenterError, validate_cost_center_name
@@ -978,6 +1064,22 @@ def main(argv: Optional[List[str]] = None) -> int:
     units_content: Optional[str] = None
     six_manifest_contents: dict[str, str] = {}
     six_manifest_receipt: dict[str, object] | None = None
+    runtime_config_content: str | None = None
+    runtime_config_sha256: str | None = None
+    if args.runtime_config_file:
+        if args.input_contract != "six_manifest" or not args.input_staging:
+            raise CommandError(
+                "--runtime-config-file requires staged --input-contract six_manifest."
+            )
+        runtime_config_path = Path(args.runtime_config_file).expanduser()
+        if not runtime_config_path.is_file():
+            raise CommandError(f"Runtime config file not found: {runtime_config_path}")
+        runtime_config_bytes = runtime_config_path.read_bytes()
+        try:
+            runtime_config_content = runtime_config_bytes.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise CommandError("--runtime-config-file must be UTF-8 YAML text") from exc
+        runtime_config_sha256 = hashlib.sha256(runtime_config_bytes).hexdigest()
     if args.run_context_file:
         if not args.input_staging:
             raise CommandError("--run-context-file cannot be used with --no-input-staging.")
@@ -1112,6 +1214,13 @@ def main(argv: Optional[List[str]] = None) -> int:
         dy_command,
         max_runtime_minutes=args.max_runtime_minutes,
     )
+    if (
+        args.pinned_source_test_override is not None
+        and not dy_command_has_dry_run_flag(dy_command)
+    ):
+        raise CommandError(
+            "--pinned-source-test-override requires the effective --dy-command to include -n."
+        )
 
     project_arg = shlex.quote(args.project) if args.project else ""
     cost_center_arg = shlex.quote(args.cost_center) if args.cost_center else ""
@@ -1157,12 +1266,16 @@ def main(argv: Optional[List[str]] = None) -> int:
         if six_manifest_receipt
         else ""
     )
+    runtime_config_payload = shlex.quote(runtime_config_content or "")
+    runtime_config_sha256_literal = shlex.quote(runtime_config_sha256 or "")
     export_destination_literal = shlex.quote(args.export_destination_s3_uri or "")
     delete_on_export_success = "true" if args.delete_on_export_success else "false"
     replace_existing_analysis_dir = "true" if args.replace_existing_analysis_dir else "false"
     reuse_existing_analysis_dir = "true" if args.reuse_existing_analysis_dir else "false"
     reuse_local_git_ref = "true" if args.reuse_local_git_ref else "false"
     reuse_local_git_commit = args.reuse_local_git_commit or ""
+    pinned_source_test_override = args.pinned_source_test_override or ""
+    dry_run_mode = "true" if args.dry_run else "false"
     if stage_config is None:
         stage_specimens_path = ""
         stage_samples_path = ""
@@ -1173,34 +1286,6 @@ def main(argv: Optional[List[str]] = None) -> int:
         stage_samples_path = stage_config.samples_path
         stage_libraries_path = stage_config.libraries_path
         stage_units_path = stage_config.units_path
-    write_status_python = shlex.quote(
-        "import json, os, pathlib; "
-        "path = pathlib.Path(os.environ['DAYLILY_STATUS_FILE']); "
-        "exit_code_raw = os.environ.get('DAYLILY_STATUS_EXIT_CODE', ''); "
-        "exit_code = None if exit_code_raw in ('', '__PENDING__') else "
-        "(int(exit_code_raw) if exit_code_raw.lstrip('-').isdigit() else exit_code_raw); "
-        "workflow_exit_code_raw = os.environ.get('DAYLILY_STATUS_WORKFLOW_EXIT_CODE', ''); "
-        "workflow_exit_code = None if workflow_exit_code_raw in ('', '__PENDING__') else "
-        "(int(workflow_exit_code_raw) if workflow_exit_code_raw.lstrip('-').isdigit() "
-        "else workflow_exit_code_raw); "
-        "payload = dict("
-        "session_name=os.environ['DAYLILY_STATUS_SESSION'], "
-        "repo_path=os.environ['DAYLILY_STATUS_REPO_PATH'], "
-        "started_at=os.environ.get('DAYLILY_STATUS_STARTED_AT') or None, "
-        "workflow_completed_at=os.environ.get('DAYLILY_STATUS_WORKFLOW_COMPLETED_AT') "
-        "or None, "
-        "workflow_exit_code=workflow_exit_code, "
-        "completed_at=os.environ.get('DAYLILY_STATUS_COMPLETED_AT') or None, "
-        "exit_code=exit_code, "
-        "snakemake_log_path=os.environ.get('DAYLILY_STATUS_SNAKEMAKE_LOG_PATH') or None, "
-        "snakemake_log_attribution=os.environ.get('DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION') or None, "
-        "command=os.environ['DAYLILY_STATUS_COMMAND']); "
-        "path.parent.mkdir(parents=True, exist_ok=True); "
-        "temporary = path.with_name(path.name + '.tmp'); "
-        "temporary.write_text(json.dumps(payload, indent=2, sort_keys=True) + '\\n', "
-        "encoding='utf-8'); "
-        "os.replace(temporary, path)"
-    )
     write_controller_target_python = shlex.quote(
         "import json, os, pathlib; "
         "path = pathlib.Path(os.environ['DAYLILY_CONTROLLER_TARGET_FILE']); "
@@ -1211,7 +1296,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         "cwd=os.environ['DAYLILY_REPO_PATH'], "
         "log_path=os.environ['DAYLILY_CONTROLLER_LOG_PATH'], "
         "dag_path=os.environ['DAYLILY_CONTROLLER_DAG_PATH'], "
-        "analysis_root=str(pathlib.PurePosixPath(os.environ['DAYLILY_REPO_PATH']).parent)); "
+        "analysis_root=str(pathlib.PurePosixPath(os.environ['DAYLILY_REPO_PATH']).parent), "
+        "status_attempt_id=os.environ['DAYLILY_STATUS_ATTEMPT_ID']); "
         "temporary = path.with_name(path.name + '.tmp'); "
         "temporary.write_text(json.dumps(payload, indent=2, sort_keys=True) + '\\n', "
         "encoding='utf-8'); "
@@ -1258,6 +1344,8 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
 	ANALYSIS_UNITS_PAYLOAD={six_manifest_payloads['analysis_units.tsv']}
 	ANALYSIS_UNIT_INPUTS_PAYLOAD={six_manifest_payloads['analysis_unit_inputs.tsv']}
 	SIX_MANIFEST_RECEIPT_PAYLOAD={six_manifest_receipt_payload}
+	RUNTIME_CONFIG_PAYLOAD={runtime_config_payload}
+	RUNTIME_CONFIG_SHA256={runtime_config_sha256_literal}
 	STAGE_SPECIMENS={shlex.quote(stage_specimens_path)}
 	STAGE_SAMPLES={shlex.quote(stage_samples_path)}
 	STAGE_LIBRARIES={shlex.quote(stage_libraries_path)}
@@ -1274,24 +1362,60 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
 	REUSE_EXISTING_ANALYSIS_DIR={reuse_existing_analysis_dir}
 	REUSE_LOCAL_GIT_REF={reuse_local_git_ref}
 	REUSE_LOCAL_GIT_COMMIT={shlex.quote(reuse_local_git_commit)}
+	PINNED_SOURCE_TEST_OVERRIDE={shlex.quote(pinned_source_test_override)}
+	DRY_RUN_MODE={dry_run_mode}
 	DAYOA_GIT_REF={shlex.quote(args.git_tag)}
 	REPO_KEY={shlex.quote(args.repository)}
-STATUS_FILE="${{DAYLILY_RUN_DIR}}/status.json"
+STATUS_FILE="${{DAYLILY_REPO_PATH}}/status.json"
+STATUS_HELPER="${{DAYLILY_REPO_PATH}}/bin/util/analysis_status.py"
 TMUX_LOG="${{DAYLILY_TMUX_LOG}}"
 CONTROLLER_TARGET_FILE="${{DAYLILY_CONTROLLER_TARGET_FILE}}"
 CONTROLLER_LOG_PATH="${{DAYLILY_CONTROLLER_LOG_PATH}}"
 CONTROLLER_DAG_PATH="${{DAYLILY_CONTROLLER_DAG_PATH}}"
+STATUS_ATTEMPT_ID="$(python3 -c 'import uuid; print(uuid.uuid4())')"
+if [[ -z "$STATUS_ATTEMPT_ID" ]]; then
+  echo "[ERROR] Could not generate execution-status attempt ID."
+  exit 25
+fi
+if [[ "$DRY_RUN_MODE" == "true" ]]; then
+  STATUS_MODE=dry_run
+else
+  STATUS_MODE=live
+fi
 
-write_status() {{
-  python3 -c {write_status_python}
+status_v2() {{
+  local action="$1"
+  shift
+  if [[ ! -f "$STATUS_HELPER" ]]; then
+    echo "[ERROR] DayOA execution-status v2 helper is missing: $STATUS_HELPER"
+    return 25
+  fi
+  python3 "$STATUS_HELPER" "$action" \
+    --status-path "$STATUS_FILE" \
+    --repo-path "$repo_path" \
+    --analysis-root "$clone_root" \
+    --attempt-id "$STATUS_ATTEMPT_ID" \
+    --quiet \
+    "$@"
 }}
 
 export DAYLILY_STATUS_FILE="$STATUS_FILE"
-export DAYLILY_STATUS_SESSION="$SESSION_NAME"
-export DAYLILY_STATUS_REPO_PATH="${{DAYLILY_REPO_PATH}}"
-export DAYLILY_STATUS_COMMAND="$DY_COMMAND"
+export DAYLILY_STATUS_ATTEMPT_ID="$STATUS_ATTEMPT_ID"
 export DAYLILY_CONTROLLER_PID="$BASHPID"
-python3 -c {write_controller_target_python}
+if [[ -n "$PINNED_SOURCE_TEST_OVERRIDE" ]]; then
+  if [[ "$REUSE_EXISTING_ANALYSIS_DIR" != "true" \
+    || "$REUSE_LOCAL_GIT_REF" != "true" \
+    || -z "$REUSE_LOCAL_GIT_COMMIT" \
+    || "$INPUT_CONTRACT" != "none" \
+    || "$INPUT_STAGING_MODE" != "false" \
+    || "$DRY_RUN_MODE" != "true" \
+    || "$EXPORT_TRIGGER" != "none" \
+    || -n "$EXPORT_DESTINATION_S3_URI" \
+    || "$DELETE_ON_EXPORT_SUCCESS" != "false" ]]; then
+    echo "[ERROR] Pinned-source test override runtime contract is invalid."
+    exit 25
+  fi
+fi
 runtime_tmp_name="${{SESSION_NAME//[^A-Za-z0-9_-]/_}}"
 if [[ -z "$runtime_tmp_name" ]]; then
   echo "__DAYLILY_ERROR__=invalid_runtime_tmp_name"
@@ -1313,16 +1437,8 @@ export DAYOA_AGENT_KIND="${{DAYOA_AGENT_KIND:-dyec-cli}}"
 export DAYOA_HUMAN_REQUESTOR="${{DAYOA_HUMAN_REQUESTOR:-${{USER:-ubuntu}}}}"
 export DAYOA_TMUX_SESSION="${{DAYLILY_TMUX_SESSION}}"
 export DAYOA_LEDGER_PATH="${{DAYOA_LEDGER_PATH:-${{DAYLILY_RUN_DIR}}/workflow-launch-ledger.md}}"
-export DAYLILY_STATUS_STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-export DAYLILY_STATUS_WORKFLOW_COMPLETED_AT=""
-export DAYLILY_STATUS_WORKFLOW_EXIT_CODE="__PENDING__"
-export DAYLILY_STATUS_COMPLETED_AT=""
-export DAYLILY_STATUS_EXIT_CODE="__PENDING__"
-export DAYLILY_STATUS_SNAKEMAKE_LOG_PATH=""
-export DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION=""
-write_status
-
 analysis_lock_acquired=0
+status_attempt_created=0
 release_analysis_lock_on_exit() {{
   local status="$1"
   if [[ "$analysis_lock_acquired" == "1" ]]; then
@@ -1339,7 +1455,16 @@ release_analysis_lock_on_exit() {{
   fi
 }}
 
-trap 'status=$?; release_analysis_lock_on_exit "$status"; if [[ "${{DAYLILY_STATUS_FINALIZED:-0}}" != "1" ]]; then export DAYLILY_STATUS_COMPLETED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"; export DAYLILY_STATUS_EXIT_CODE="$status"; write_status; fi' EXIT
+finalize_status_attempt_on_exit() {{
+  local status="$1"
+  if [[ "$status_attempt_created" == "1" && "${{DAYLILY_STATUS_FINALIZED:-0}}" != "1" ]]; then
+    if ! status_v2 finish-controller --exit-code "$status"; then
+      echo "[ERROR] Failed to finalize clone-resident controller status (rc=$status)."
+    fi
+  fi
+}}
+
+trap 'status=$?; release_analysis_lock_on_exit "$status"; finalize_status_attempt_on_exit "$status"' EXIT
 
 clone_root="$(dirname "${{DAYLILY_REPO_PATH}}")"
 repo_path="${{DAYLILY_REPO_PATH}}"
@@ -1403,7 +1528,8 @@ if [[ "$REUSE_EXISTING_ANALYSIS_DIR" == "true" ]]; then
     echo "__DAYLILY_ERROR__=existing_analysis_repo_invalid"
     exit 8
   fi
-  if [[ -n "$(git -C "$repo_path" status --porcelain --untracked-files=no)" ]]; then
+  if [[ -n "$(git -C "$repo_path" status --porcelain --untracked-files=no)" \
+    && -z "$PINNED_SOURCE_TEST_OVERRIDE" ]]; then
     echo "__DAYLILY_ERROR__=existing_analysis_repo_dirty"
     exit 8
   fi
@@ -1433,8 +1559,18 @@ if [[ "$REUSE_EXISTING_ANALYSIS_DIR" == "true" ]]; then
       exit 8
     }}
   fi
-  git -C "$repo_path" checkout --detach "$expected_commit"
-  actual_commit="$(git -C "$repo_path" rev-parse HEAD)"
+  if [[ -n "$PINNED_SOURCE_TEST_OVERRIDE" ]]; then
+    actual_commit="$(git -C "$repo_path" rev-parse HEAD)" || {{
+      echo "__DAYLILY_ERROR__=existing_analysis_ref_checkout_mismatch"
+      exit 8
+    }}
+  else
+    if ! git -C "$repo_path" checkout --detach "$expected_commit"; then
+      echo "__DAYLILY_ERROR__=existing_analysis_ref_checkout_mismatch"
+      exit 8
+    fi
+    actual_commit="$(git -C "$repo_path" rev-parse HEAD)"
+  fi
   if [[ "$actual_commit" != "$expected_commit" ]]; then
     echo "__DAYLILY_ERROR__=existing_analysis_ref_checkout_mismatch"
     exit 8
@@ -1443,11 +1579,14 @@ if [[ "$REUSE_EXISTING_ANALYSIS_DIR" == "true" ]]; then
   echo "__DAYLILY_GIT_REF__=$DAYOA_GIT_REF"
   echo "__DAYLILY_GIT_COMMIT__=$actual_commit"
 else
-  day-clone \
+  if ! day-clone \
     --destination "$ANALYSIS_ID" \
     --executing-entity "$EXECUTING_ENTITY" \
     --repository {shlex.quote(args.repository)} \
-    --git-tag {shlex.quote(args.git_tag)}
+    --git-tag {shlex.quote(args.git_tag)}; then
+    echo "__DAYLILY_ERROR__=analysis_clone_failed"
+    exit 8
+  fi
 fi
 mkdir -p "$clone_root/bin"
 if [[ -n "${{BASH_SOURCE[0]:-}}" && -f "${{BASH_SOURCE[0]}}" ]]; then
@@ -1455,12 +1594,33 @@ if [[ -n "${{BASH_SOURCE[0]:-}}" && -f "${{BASH_SOURCE[0]}}" ]]; then
   chmod 0700 "$clone_root/bin/dyec-controller-launch.sh"
 fi
 cd "$repo_path"
+export DAYLILY_STATUS_REPO_PATH="$repo_path"
+export DAYLILY_STATUS_ANALYSIS_ROOT="$clone_root"
+export DAYLILY_STATUS_MODE="$STATUS_MODE"
+if ! status_v2 start-controller \
+  --session-name "$SESSION_NAME" \
+  --pid "$BASHPID" \
+  --command "$DY_COMMAND" \
+  --mode "$STATUS_MODE"; then
+  exit 25
+fi
+status_attempt_created=1
+python3 -c {write_controller_target_python}
 mkdir -p "$(dirname "$CONTROLLER_LOG_PATH")" "$(dirname "$CONTROLLER_DAG_PATH")"
 # Keep controller output on a regular file. A tee/process-substitution pipe can
 # remain open when workflow descendants inherit it, delaying foreground shell
 # completion and terminal receipt persistence until those descendants exit.
 exec >> "$CONTROLLER_LOG_PATH" 2>&1
 mkdir -p config
+if [[ -n "$RUNTIME_CONFIG_SHA256" ]]; then
+  printf '%s' "$RUNTIME_CONFIG_PAYLOAD" > config/dyec_runtime_config.yaml
+  observed_runtime_config_sha256="$(sha256sum config/dyec_runtime_config.yaml | awk '{{print $1}}')"
+  if [[ "$observed_runtime_config_sha256" != "$RUNTIME_CONFIG_SHA256" ]]; then
+    echo "[ERROR] staged runtime config SHA-256 mismatch"
+    exit 12
+  fi
+  echo "[INFO] Verified runtime config SHA-256: $observed_runtime_config_sha256"
+fi
 
 extract_runtime_config_path() {{
   local key="$1"
@@ -1727,6 +1887,8 @@ verify_pinned_dayoa_checkout() {{
   local unexpected_paths
   local disallowed_paths
   local runtime_path
+  local evidence_phase
+  local evidence_prefix
 
   # These are the only untracked runtime files that the catalog controller is
   # permitted to materialize in a pinned DayOA checkout.  Keep this list exact:
@@ -1734,7 +1896,7 @@ verify_pinned_dayoa_checkout() {{
   # a source-mutation bypass.
   is_allowed_catalog_runtime_path() {{
     case "$1" in
-      .dyec/controller.log|analysis_artifacts.tsv|artifact_lineage.tsv|pipeline_details.md|pipeline_workflow_planned.mmd|pipeline_workflow_planned.pdf|pipeline_workflow_checkpoint_*.mmd|pipeline_workflow_checkpoint_*.pdf|pipeline_workflow_final_success.mmd|pipeline_workflow_final_success.pdf|pipeline_workflow_final_failed.mmd|pipeline_workflow_final_failed.pdf|config/specimens.tsv|config/samples.tsv|config/libraries.tsv|config/sequencing_inputs.tsv|config/analysis_units.tsv|config/analysis_unit_inputs.tsv|config/dyec_manifest_stage_receipt.json|config/day_profiles/slurm/.template-source.sha256)
+      .dyec/controller.log|.dyec/status.json.lock|.dyec/status.json.tmp-*|status.json|analysis_artifacts.tsv|artifact_lineage.tsv|pipeline_details.md|pipeline_workflow_planned.mmd|pipeline_workflow_planned.pdf|pipeline_workflow_checkpoint_*.mmd|pipeline_workflow_checkpoint_*.pdf|pipeline_workflow_final_success.mmd|pipeline_workflow_final_success.pdf|pipeline_workflow_final_failed.mmd|pipeline_workflow_final_failed.pdf|config/specimens.tsv|config/samples.tsv|config/libraries.tsv|config/sequencing_inputs.tsv|config/analysis_units.tsv|config/analysis_unit_inputs.tsv|config/dyec_manifest_stage_receipt.json|config/dyec_runtime_config.yaml|config/day_profiles/slurm/.template-source.sha256)
         return 0
         ;;
       *)
@@ -1757,6 +1919,23 @@ verify_pinned_dayoa_checkout() {{
   if [[ "$actual_commit" != "$expected_commit" ]]; then
     echo "[ERROR] DayOA HEAD differs from selected ref during $phase: expected=$expected_commit actual=$actual_commit"
     return 25
+  fi
+  if [[ -n "$PINNED_SOURCE_TEST_OVERRIDE" ]]; then
+    evidence_phase="${{phase// /_}}"
+    evidence_prefix="$DAYLILY_RUN_DIR/pinned-source-test-override-$evidence_phase"
+    {{
+      printf 'reason=%s\n' "$PINNED_SOURCE_TEST_OVERRIDE"
+      printf 'phase=%s\n' "$phase"
+      printf 'requested_ref=%s\n' "$DAYOA_GIT_REF"
+      printf 'expected_commit=%s\n' "$expected_commit"
+      printf 'actual_commit=%s\n' "$actual_commit"
+      git -C "$repo_path" status --short --untracked-files=all
+    }} > "$evidence_prefix.status.txt"
+    git -C "$repo_path" diff --binary -- > "$evidence_prefix.worktree.patch"
+    git -C "$repo_path" diff --cached --binary -- > "$evidence_prefix.index.patch"
+    git -C "$repo_path" ls-files --others --exclude-standard > "$evidence_prefix.untracked.txt"
+    echo "[WARN] Explicit pinned-source test override active during $phase; source evidence recorded at $evidence_prefix.*"
+    return 0
   fi
   if ! git -C "$repo_path" diff --quiet --; then
     echo "[ERROR] DayOA tracked source is modified during $phase; controller mutation is forbidden."
@@ -1949,9 +2128,10 @@ fi
 	else
 	  : > "$snakemake_log_baseline"
 	fi
-	set +e
+set +e
 run_dy_command "$DY_COMMAND"
-workflow_status=$?
+day_run_status=$?
+workflow_status=$day_run_status
 post_integrity_status=0
 verify_pinned_dayoa_checkout "after workflow return" || post_integrity_status=$?
 if [[ "$post_integrity_status" -ne 0 ]]; then
@@ -1960,9 +2140,6 @@ if [[ "$post_integrity_status" -ne 0 ]]; then
     workflow_status="$post_integrity_status"
   fi
 fi
-	export DAYLILY_STATUS_WORKFLOW_COMPLETED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-	export DAYLILY_STATUS_WORKFLOW_EXIT_CODE="$workflow_status"
-	write_status
 	if [[ -d "$repo_path/.snakemake/log" ]]; then
 	  find "$repo_path/.snakemake/log" -maxdepth 1 -type f -name '*.snakemake.log' -print \
 	    | sort > "$snakemake_log_current"
@@ -1973,15 +2150,22 @@ fi
 	  comm -13 "$snakemake_log_baseline" "$snakemake_log_current"
 	)
 	rm -f -- "$snakemake_log_baseline" "$snakemake_log_current"
+	status_log_status=0
 	if [[ "${{#invocation_snakemake_logs[@]}}" -eq 1 ]]; then
-	  export DAYLILY_STATUS_SNAKEMAKE_LOG_PATH="${{invocation_snakemake_logs[0]}}"
-	  export DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION="exact invocation file-set difference"
+	  status_v2 record-snakemake-log \
+	    --log-path "${{invocation_snakemake_logs[0]}}" \
+	    --log-attribution "exact invocation file-set difference" || status_log_status=$?
 	elif [[ "${{#invocation_snakemake_logs[@]}}" -gt 1 ]]; then
-	  export DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION="ambiguous: multiple invocation logs"
+	  status_v2 record-snakemake-log \
+	    --log-attribution "ambiguous: multiple invocation logs" || status_log_status=$?
 	else
-	  export DAYLILY_STATUS_SNAKEMAKE_LOG_ATTRIBUTION="unavailable: no invocation log"
+	  status_v2 record-snakemake-log \
+	    --log-attribution "unavailable: no invocation log" || status_log_status=$?
 	fi
-	write_status
+	if [[ "$status_log_status" -ne 0 ]]; then
+	  echo "[ERROR] Failed to persist Snakemake log attribution in clone-resident status."
+	  [[ "$workflow_status" -ne 0 ]] || workflow_status=25
+	fi
 	touch "$controller_dag_stop"
 	set +e
 	wait "$controller_dag_monitor_pid"
@@ -1996,9 +2180,10 @@ fi
 	  [[ "$workflow_status" -ne 0 ]] || workflow_status=24
 	fi
 export DAYLILY_STATUS_FINALIZED=1
-export DAYLILY_STATUS_COMPLETED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-export DAYLILY_STATUS_EXIT_CODE="$workflow_status"
-write_status
+if ! status_v2 finish-controller --exit-code "$workflow_status"; then
+  echo "[ERROR] Failed to finalize clone-resident controller status (rc=$workflow_status)."
+  [[ "$workflow_status" -ne 0 ]] || workflow_status=25
+fi
 echo "[INFO] Workflow exited with status $workflow_status"
 if [[ ! -d "$clone_root" ]]; then
   exit "$workflow_status"
@@ -2020,6 +2205,8 @@ exec bash -il
             units_content=units_content,
             six_manifest_contents=six_manifest_contents,
             six_manifest_receipt=six_manifest_receipt,
+            runtime_config_content=runtime_config_content,
+            runtime_config_sha256=runtime_config_sha256,
         )
 
     if payload_s3_uri:
@@ -2097,7 +2284,7 @@ work_script="$run_dir/dyec-controller-launch.sh"
 tmux_entrypoint="$run_dir/dyec-controller-entrypoint.sh"
 tmux_log="$run_dir/tmux.log"
 bootstrap_log="$run_dir/tmux-bootstrap.log"
-status_file="$run_dir/status.json"
+status_file="$repo_path/status.json"
 controller_target_file="$run_dir/controller_target.json"
 controller_log_path="$repo_path/.dyec/controller.log"
 controller_dag_path="$repo_path/.dyec/controller-dag.png"
@@ -2223,16 +2410,23 @@ while true; do
     break
   fi
   if [[ -f "$status_file" ]]; then
-    if quick_status="$(python3 - "$status_file" <<'PYQUICK'
+    if quick_status="$(python3 - "$status_file" "$controller_target_file" <<'PYQUICK'
 import json
 import sys
 from pathlib import Path
 
 payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-exit_code = payload.get("exit_code")
-if exit_code is None:
+target = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+attempt_id = target.get("status_attempt_id")
+attempt = next(
+    (item for item in payload.get("attempts", []) if item.get("attempt_id") == attempt_id),
+    None,
+)
+controller = attempt.get("controller") if isinstance(attempt, dict) else None
+exit_code = controller.get("exit_code") if isinstance(controller, dict) else None
+if isinstance(exit_code, bool) or not isinstance(exit_code, int):
     raise SystemExit(1)
-print(f"exit_code={{exit_code}}")
+print(f"controller_exit_code={{exit_code}}")
 PYQUICK
 )"; then
       break

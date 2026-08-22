@@ -1,0 +1,13 @@
+LIBRARY_ID	LIBRARY_EUID	SAMPLEID	LIBPREP	AMPLIFICATION_TYPE	LIBRARY_COMMENT
+HG002-ILMN	M-BNQ-BM	HG002	UNKNOWN	WGS	HG002 ILMN library from reviewed matrix; source library EUID M-BNQ-BM
+HG002-ONT	M-BNQ-10H	HG002	UNKNOWN	WGS	HG002 ONT library from reviewed matrix; source library EUID M-BNQ-10H
+HG003-ILMN	M-BNQ-CJ	HG003	UNKNOWN	WGS	HG003 ILMN library from reviewed matrix; source library EUID M-BNQ-CJ
+HG003-ONT	M-BNQ-11F	HG003	UNKNOWN	WGS	HG003 ONT library from reviewed matrix; source library EUID M-BNQ-11F
+HG004-ILMN	M-BNQ-DG	HG004	UNKNOWN	WGS	HG004 ILMN library from reviewed matrix; source library EUID M-BNQ-DG
+HG004-ONT	M-BNQ-12D	HG004	UNKNOWN	WGS	HG004 ONT library from reviewed matrix; source library EUID M-BNQ-12D
+NA19235-ILMN	M-BNQ-SQ	NA19235	UNKNOWN	WGS	NA19235 ILMN library from reviewed matrix; source library EUID M-BNQ-SQ
+NA19235-ONT	M-BNQ-1EN	NA19235	UNKNOWN	WGS	NA19235 ONT library from reviewed matrix; source library EUID M-BNQ-1EN
+NA20775-ILMN	M-BNQ-WH	NA20775	UNKNOWN	WGS	NA20775 ILMN library from reviewed matrix; source library EUID M-BNQ-WH
+NA20775-ONT	M-BNQ-1HE	NA20775	UNKNOWN	WGS	NA20775 ONT library from reviewed matrix; source library EUID M-BNQ-1HE
+NA23687-ILMN	M-BNQ-XF	NA23687	UNKNOWN	WGS	NA23687 ILMN library from reviewed matrix; source library EUID M-BNQ-XF
+NA23687-ONT	M-BNQ-1JC	NA23687	UNKNOWN	WGS	NA23687 ONT library from reviewed matrix; source library EUID M-BNQ-1JC

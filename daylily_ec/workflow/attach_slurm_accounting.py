@@ -3,19 +3,25 @@
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Any, Callable
 
 import yaml
 
 from daylily_ec.aws.context import AWSContext
 from daylily_ec.aws.slurm_accounting import (
+    ACCOUNTING_VPC_TAG_KEY,
     DEFAULT_ACCOUNTING_DATABASE_NAME,
+    DEFAULT_ACCOUNTING_INSTANCE_TYPE,
     DEFAULT_ACCOUNTING_USERNAME,
     SlurmAccountingDb,
     SlurmAccountingError,
+    create_slurm_accounting_stack,
+    discover_slurm_accounting_dbs,
     list_regional_slurm_accounting_stacks,
     resolve_slurm_accounting_db,
 )
@@ -56,8 +62,71 @@ class PreparedSlurmAccountingUpdate:
     cluster_name: str
     region: str
     accounting_stack_name: str
+    provider_accounting_stack_name: str
+    privatelink_stack_name: str | None
+    consumer_vpc_id: str
     update_config_path: Path
     service_created: bool
+    database_name: str = ""
+    db_username: str = ""
+    provider_instance_type: str = ""
+
+
+@dataclass(frozen=True)
+class ClusterAccountingNetworkIdentity:
+    """Exact cluster subnet/VPC/AZ identity used before accounting preparation."""
+
+    subnet_id: str
+    vpc_id: str
+    region_az: str
+
+
+def _resolve_exact_provider_instance_type(
+    aws_ctx: Any,
+    *,
+    instance_id: str,
+    expected_instance_type: str,
+) -> str:
+    """Resolve one exact accounting host type without alternate discovery."""
+
+    instance_id = str(instance_id or "").strip()
+    expected_instance_type = str(expected_instance_type or "").strip()
+    if not instance_id or not expected_instance_type:
+        raise SlurmAccountingPreparationError(
+            "The exact accounting provider instance identity is incomplete.",
+            stage="service_resolution",
+            reason_code="exact_instance_identity_missing",
+        )
+    try:
+        response = aws_ctx.client("ec2").describe_instances(InstanceIds=[instance_id])
+    except Exception:  # noqa: BLE001 - provider detail is normalized here
+        raise SlurmAccountingPreparationError(
+            "The exact accounting provider instance type could not be inspected safely.",
+            stage="service_resolution",
+            reason_code="exact_instance_inventory_failed",
+        ) from None
+    instances: list[dict[str, Any]] = []
+    reservations = response.get("Reservations")
+    if isinstance(reservations, list):
+        for reservation in reservations:
+            if isinstance(reservation, dict) and isinstance(reservation.get("Instances"), list):
+                instances.extend(
+                    item for item in reservation["Instances"] if isinstance(item, dict)
+                )
+    if len(instances) != 1 or str(instances[0].get("InstanceId") or "") != instance_id:
+        raise SlurmAccountingPreparationError(
+            "The exact accounting provider instance inventory is incomplete or ambiguous.",
+            stage="service_resolution",
+            reason_code="exact_instance_inventory_invalid",
+        )
+    observed = str(instances[0].get("InstanceType") or "").strip()
+    if observed != expected_instance_type:
+        raise SlurmAccountingPreparationError(
+            "The exact accounting provider instance type does not match the request.",
+            stage="service_resolution",
+            reason_code="exact_instance_type_mismatch",
+        )
+    return observed
 
 
 @dataclass(frozen=True)
@@ -76,7 +145,7 @@ def _latest_cluster_config(
     cluster_name: str,
     region: str,
     *,
-    profile: Optional[str],
+    profile: str | None,
 ) -> Path:
     """Return the newest persisted create config for an exact cluster identity."""
     matches: list[tuple[str, Path]] = []
@@ -132,6 +201,74 @@ def _headnode_subnet_id(payload: dict) -> str:
             "ParallelCluster HeadNode.Networking.SubnetId must be a non-empty string."
         )
     return subnet_id.strip()
+
+
+def inspect_cluster_accounting_network(
+    *,
+    source_config: Path,
+    region: str,
+    profile: str | None,
+    expected_region_az: str = "",
+    aws_ctx: Any | None = None,
+) -> ClusterAccountingNetworkIdentity:
+    """Resolve the exact source-config headnode subnet without mutating AWS."""
+
+    try:
+        source_payload = _load_cluster_config(source_config)
+        headnode_subnet_id = _headnode_subnet_id(source_payload)
+    except SlurmAccountingAttachError:
+        raise SlurmAccountingPreparationError(
+            "The ParallelCluster source configuration is missing or invalid for "
+            "accounting preparation.",
+            stage="source_config",
+            reason_code="invalid_source_config",
+        ) from None
+
+    try:
+        aws_ctx = aws_ctx or AWSContext.build_region(region, profile=profile)
+        subnet_response = aws_ctx.client("ec2").describe_subnets(SubnetIds=[headnode_subnet_id])
+        subnets = subnet_response.get("Subnets", [])
+        if len(subnets) != 1:
+            raise SlurmAccountingPreparationError(
+                "Expected exactly one EC2 subnet for the cluster head node.",
+                stage="network",
+                reason_code="subnet_not_unique",
+            )
+        subnet = subnets[0]
+        vpc_id = subnet.get("VpcId")
+        region_az = subnet.get("AvailabilityZone")
+        if not isinstance(vpc_id, str) or not vpc_id:
+            raise SlurmAccountingPreparationError(
+                "The cluster head-node subnet is missing its VPC identity.",
+                stage="network",
+                reason_code="subnet_missing_vpc",
+            )
+        if not isinstance(region_az, str) or not region_az:
+            raise SlurmAccountingPreparationError(
+                "The cluster head-node subnet is missing its availability zone.",
+                stage="network",
+                reason_code="subnet_missing_az",
+            )
+        if expected_region_az and region_az != expected_region_az:
+            raise SlurmAccountingPreparationError(
+                "The cluster head-node subnet availability zone does not match "
+                "the explicitly requested recovery availability zone.",
+                stage="network",
+                reason_code="subnet_az_mismatch",
+            )
+    except SlurmAccountingPreparationError:
+        raise
+    except Exception:  # noqa: BLE001 - SDK exceptions are normalized at this boundary
+        raise SlurmAccountingPreparationError(
+            "The cluster head-node subnet could not be inspected safely.",
+            stage="network",
+            reason_code="subnet_inspection_failed",
+        ) from None
+    return ClusterAccountingNetworkIdentity(
+        subnet_id=headnode_subnet_id,
+        vpc_id=vpc_id,
+        region_az=region_az,
+    )
 
 
 def render_slurm_accounting_update_config(
@@ -194,11 +331,23 @@ def render_slurm_accounting_update_config(
         "DatabaseName": db.database_name,
     }
 
+    rendered = yaml.safe_dump(payload, sort_keys=False)
     destination_config.parent.mkdir(parents=True, exist_ok=True)
-    destination_config.write_text(
-        yaml.safe_dump(payload, sort_keys=False),
-        encoding="utf-8",
+    fd, temporary_name = tempfile.mkstemp(
+        dir=str(destination_config.parent),
+        prefix=f".{destination_config.name}.tmp-",
+        text=True,
     )
+    temporary_path = Path(temporary_name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(rendered)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary_path, destination_config)
+    except Exception:
+        temporary_path.unlink(missing_ok=True)
+        raise
     return destination_config
 
 
@@ -206,14 +355,18 @@ def prepare_slurm_accounting_update(
     *,
     cluster_name: str,
     region: str,
-    profile: Optional[str] = None,
-    cluster_configuration: Optional[Path] = None,
+    profile: str | None = None,
+    cluster_configuration: Path | None = None,
     stack_name: str = "",
     privatelink_stack_name: str = "",
     database_name: str = DEFAULT_ACCOUNTING_DATABASE_NAME,
     db_username: str = DEFAULT_ACCOUNTING_USERNAME,
+    instance_type: str = DEFAULT_ACCOUNTING_INSTANCE_TYPE,
     create_if_missing: bool,
-    output_dir: Optional[Path] = None,
+    output_dir: Path | None = None,
+    destination_config: Path | None = None,
+    expected_region_az: str = "",
+    exact_target_only: bool = False,
     warning_callback: Callable[[str], None] | None = None,
     sleep_fn: Callable[[float], None] | None = None,
 ) -> PreparedSlurmAccountingUpdate:
@@ -238,64 +391,258 @@ def prepare_slurm_accounting_update(
             reason_code="invalid_region",
         )
 
-    try:
-        source_config = (
-            cluster_configuration.expanduser()
-            if cluster_configuration is not None
-            else _latest_cluster_config(cluster_name, region, profile=profile)
-        )
-        if not source_config.is_file():
-            raise SlurmAccountingAttachError(
-                f"ParallelCluster configuration does not exist: {source_config}"
-            )
-        source_payload = _load_cluster_config(source_config)
-        headnode_subnet_id = _headnode_subnet_id(source_payload)
-    except SlurmAccountingAttachError:
+    source_config = (
+        cluster_configuration.expanduser()
+        if cluster_configuration is not None
+        else _latest_cluster_config(cluster_name, region, profile=profile)
+    )
+    if not source_config.is_file():
         raise SlurmAccountingPreparationError(
             "The ParallelCluster source configuration is missing or invalid for "
             "accounting preparation.",
             stage="source_config",
             reason_code="invalid_source_config",
         ) from None
-
     try:
         aws_ctx = AWSContext.build_region(region, profile=profile)
-        ec2 = aws_ctx.client("ec2")
-        subnet_response = ec2.describe_subnets(SubnetIds=[headnode_subnet_id])
-        subnets = subnet_response.get("Subnets", [])
-        if len(subnets) != 1:
-            raise SlurmAccountingPreparationError(
-                "Expected exactly one EC2 subnet for the cluster head node.",
-                stage="network",
-                reason_code="subnet_not_unique",
-            )
-        subnet = subnets[0]
-        vpc_id = subnet.get("VpcId")
-        region_az = subnet.get("AvailabilityZone")
-        if not isinstance(vpc_id, str) or not vpc_id:
-            raise SlurmAccountingPreparationError(
-                "The cluster head-node subnet is missing its VPC identity.",
-                stage="network",
-                reason_code="subnet_missing_vpc",
-            )
-        if not isinstance(region_az, str) or not region_az:
-            raise SlurmAccountingPreparationError(
-                "The cluster head-node subnet is missing its availability zone.",
-                stage="network",
-                reason_code="subnet_missing_az",
-            )
-    except SlurmAccountingPreparationError:
-        raise
-    except Exception:
+    except Exception:  # noqa: BLE001 - SDK/session text is normalized here
         raise SlurmAccountingPreparationError(
             "The cluster head-node subnet could not be inspected safely.",
             stage="network",
             reason_code="subnet_inspection_failed",
         ) from None
+    network = inspect_cluster_accounting_network(
+        source_config=source_config,
+        region=region,
+        profile=profile,
+        expected_region_az=expected_region_az,
+        aws_ctx=aws_ctx,
+    )
+    headnode_subnet_id = network.subnet_id
+    vpc_id = network.vpc_id
+    region_az = network.region_az
 
     regional_stack_count: int | None = None
     regional_stacks: list[dict] = []
-    if privatelink_stack_name.strip():
+    exact_stack_name = stack_name.strip()
+    provider_accounting_stack_name = ""
+    resolved_privatelink_stack_name: str | None = None
+    provider_instance_type = ""
+    if exact_target_only:
+        if not exact_stack_name:
+            raise SlurmAccountingPreparationError(
+                "Exact accounting preparation requires an explicit stack name.",
+                stage="service_resolution",
+                reason_code="exact_stack_required",
+            )
+        exact_privatelink_stack_name = privatelink_stack_name.strip()
+        if exact_privatelink_stack_name and create_if_missing:
+            raise SlurmAccountingPreparationError(
+                "Exact PrivateLink recovery cannot create an accounting provider or bridge.",
+                stage="service_resolution",
+                reason_code="exact_privatelink_creation_forbidden",
+            )
+        try:
+            exact_regional_stacks = list_regional_slurm_accounting_stacks(
+                aws_ctx,
+                region_az=region_az,
+            )
+            exact_regional_names = [
+                str(item.get("StackName") or "").strip() for item in exact_regional_stacks
+            ]
+        except Exception:  # noqa: BLE001 - provider text is normalized here
+            raise SlurmAccountingPreparationError(
+                "The regional accounting singleton inventory could not be read safely.",
+                stage="service_resolution",
+                reason_code="exact_regional_stack_inventory_failed",
+            ) from None
+        if len(exact_regional_names) > 1 or (
+            exact_regional_names and exact_regional_names != [exact_stack_name]
+        ):
+            raise SlurmAccountingPreparationError(
+                "The regional accounting singleton inventory conflicts with the exact "
+                "requested stack.",
+                stage="service_resolution",
+                reason_code="exact_regional_stack_conflict",
+            )
+        provider_stack = exact_regional_stacks[0] if exact_regional_stacks else None
+        provider_vpc_id = ""
+        if provider_stack is not None:
+            provider_tags = {
+                str(item.get("Key") or ""): str(item.get("Value") or "")
+                for item in provider_stack.get("Tags", [])
+                if isinstance(item, dict)
+            }
+            provider_vpc_id = provider_tags.get(ACCOUNTING_VPC_TAG_KEY, "").strip()
+            if not provider_vpc_id:
+                raise SlurmAccountingPreparationError(
+                    "The exact regional accounting provider is missing its VPC identity.",
+                    stage="service_resolution",
+                    reason_code="exact_service_identity_mismatch",
+                )
+
+        if exact_privatelink_stack_name:
+            if provider_stack is None:
+                raise SlurmAccountingPreparationError(
+                    "The exact Slurm accounting provider stack is missing.",
+                    stage="service_resolution",
+                    reason_code="exact_stack_missing",
+                )
+            from daylily_ec.aws.slurm_accounting_privatelink import (
+                resolve_slurm_accounting_privatelink_bridge,
+            )
+
+            try:
+                bridge = resolve_slurm_accounting_privatelink_bridge(
+                    aws_ctx,
+                    stack_name=exact_privatelink_stack_name,
+                    require_healthy_target=True,
+                )
+            except Exception:  # noqa: BLE001 - bridge/provider text is normalized here
+                raise SlurmAccountingPreparationError(
+                    "The exact accounting PrivateLink bridge is unavailable or unhealthy.",
+                    stage="service_resolution",
+                    reason_code="exact_privatelink_unavailable",
+                ) from None
+            try:
+                bridge_identity_matches = (
+                    bridge.stack_name == exact_privatelink_stack_name
+                    and bridge.provider_accounting_stack_name == exact_stack_name
+                    and bridge.provider_vpc_id == provider_vpc_id
+                    and bridge.consumer_vpc_id == vpc_id
+                    and bridge.database_name == database_name
+                    and bridge.username == db_username
+                )
+            except Exception:  # noqa: BLE001 - malformed bridge result is normalized here
+                bridge_identity_matches = False
+            if not bridge_identity_matches:
+                raise SlurmAccountingPreparationError(
+                    "The exact accounting PrivateLink provider/consumer identity does not match.",
+                    stage="service_resolution",
+                    reason_code="exact_privatelink_identity_mismatch",
+                )
+            try:
+                exact_matches = discover_slurm_accounting_dbs(
+                    aws_ctx,
+                    region_az=region_az,
+                    vpc_id=provider_vpc_id,
+                    stack_name=exact_stack_name,
+                )
+            except Exception:  # noqa: BLE001 - provider text is normalized here
+                raise SlurmAccountingPreparationError(
+                    "The exact accounting provider database could not be verified safely.",
+                    stage="service_resolution",
+                    reason_code="exact_database_discovery_failed",
+                ) from None
+            if len(exact_matches) != 1:
+                raise SlurmAccountingPreparationError(
+                    "Exact accounting provider discovery did not return one target.",
+                    stage="service_resolution",
+                    reason_code=(
+                        "exact_database_multiple"
+                        if len(exact_matches) > 1
+                        else "exact_stack_missing"
+                    ),
+                )
+            provider_db = exact_matches[0]
+            try:
+                provider_binding_matches = (
+                    provider_db.stack_name == exact_stack_name
+                    and provider_db.database_name == database_name
+                    and provider_db.username == db_username
+                    and provider_db.instance_id == bridge.accounting_instance_id
+                    and provider_db.password_secret_arn == bridge.password_secret_arn
+                )
+            except Exception:  # noqa: BLE001 - malformed provider result is normalized here
+                provider_binding_matches = False
+            if not provider_binding_matches:
+                raise SlurmAccountingPreparationError(
+                    "The exact accounting provider and PrivateLink database bindings differ.",
+                    stage="service_resolution",
+                    reason_code="exact_privatelink_provider_binding_mismatch",
+                )
+            db = bridge.as_accounting_db()
+            provider_accounting_stack_name = exact_stack_name
+            resolved_privatelink_stack_name = exact_privatelink_stack_name
+            service_created = False
+        else:
+            if provider_stack is not None and provider_vpc_id != vpc_id:
+                raise SlurmAccountingPreparationError(
+                    "The exact accounting provider is in another VPC; an explicit exact "
+                    "PrivateLink bridge is required.",
+                    stage="service_resolution",
+                    reason_code="exact_direct_vpc_mismatch",
+                )
+            try:
+                exact_matches = discover_slurm_accounting_dbs(
+                    aws_ctx,
+                    region_az=region_az,
+                    vpc_id=vpc_id,
+                    stack_name=exact_stack_name,
+                )
+                exact_match_count = len(exact_matches)
+            except Exception:  # noqa: BLE001 - provider text is normalized here
+                raise SlurmAccountingPreparationError(
+                    "The exact accounting database target could not be discovered safely.",
+                    stage="service_resolution",
+                    reason_code="exact_database_discovery_failed",
+                ) from None
+            if exact_match_count > 1:
+                raise SlurmAccountingPreparationError(
+                    "Exact accounting database discovery returned more than one target.",
+                    stage="service_resolution",
+                    reason_code="exact_database_multiple",
+                )
+            if exact_match_count == 1:
+                db = exact_matches[0]
+                service_created = False
+            elif create_if_missing:
+                try:
+                    db = create_slurm_accounting_stack(
+                        aws_ctx,
+                        region_az=region_az,
+                        vpc_id=vpc_id,
+                        private_subnet_id=headnode_subnet_id,
+                        stack_name=exact_stack_name,
+                        database_name=database_name,
+                        username=db_username,
+                        instance_type=instance_type,
+                    )
+                except Exception:  # noqa: BLE001 - provider text is normalized here
+                    raise SlurmAccountingPreparationError(
+                        "The exact Slurm accounting stack could not be created safely.",
+                        stage="service_resolution",
+                        reason_code="exact_stack_create_failed",
+                    ) from None
+                service_created = True
+            else:
+                raise SlurmAccountingPreparationError(
+                    "The exact Slurm accounting stack is missing and creation was not approved.",
+                    stage="service_resolution",
+                    reason_code="exact_stack_missing",
+                )
+            try:
+                exact_identity_matches = (
+                    db.stack_name == exact_stack_name
+                    and db.database_name == database_name
+                    and db.username == db_username
+                )
+            except Exception:  # noqa: BLE001 - malformed provider result is normalized here
+                exact_identity_matches = False
+            if not exact_identity_matches:
+                raise SlurmAccountingPreparationError(
+                    "The resolved Slurm accounting stack/database/user identity does not "
+                    "match the explicitly requested target.",
+                    stage="service_resolution",
+                    reason_code="exact_service_identity_mismatch",
+                )
+            provider_accounting_stack_name = exact_stack_name
+        provider_instance_type = _resolve_exact_provider_instance_type(
+            aws_ctx,
+            instance_id=db.instance_id,
+            expected_instance_type=instance_type,
+        )
+    elif privatelink_stack_name.strip():
         from daylily_ec.aws.slurm_accounting_privatelink import (
             SlurmAccountingPrivateLinkError,
             resolve_slurm_accounting_privatelink_bridge,
@@ -315,6 +662,8 @@ def prepare_slurm_accounting_update(
                     "PrivateLink provider stack does not match --stack-name."
                 )
             db = bridge.as_accounting_db()
+            provider_accounting_stack_name = bridge.provider_accounting_stack_name
+            resolved_privatelink_stack_name = bridge.stack_name
             service_created = False
         except SlurmAccountingPrivateLinkError:
             raise SlurmAccountingPreparationError(
@@ -347,10 +696,12 @@ def prepare_slurm_accounting_update(
                 stack_name=stack_name.strip(),
                 database_name=database_name,
                 username=db_username,
+                instance_type=instance_type,
                 warning_callback=warning_callback,
                 sleep_fn=sleep_fn,
             )
             db = resolution.db
+            provider_accounting_stack_name = db.stack_name
             service_created = resolution.service_created
         except SlurmAccountingError:
             bridge = None
@@ -362,9 +713,9 @@ def prepare_slurm_accounting_update(
                 )
 
                 try:
-                    provider_stack_name = stack_name.strip() or str(
-                        regional_stacks[0].get("StackName") or ""
-                    ).strip()
+                    provider_stack_name = (
+                        stack_name.strip() or str(regional_stacks[0].get("StackName") or "").strip()
+                    )
                     if not provider_stack_name:
                         raise SlurmAccountingPrivateLinkError(
                             "The regional accounting stack is missing its identity."
@@ -396,11 +747,18 @@ def prepare_slurm_accounting_update(
                     regional_stack_count=regional_stack_count,
                 ) from None
             db = bridge.as_accounting_db()
+            provider_accounting_stack_name = bridge.provider_accounting_stack_name
+            resolved_privatelink_stack_name = bridge.stack_name
             service_created = False
 
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
-    destination_dir = output_dir.expanduser() if output_dir else config_dir()
-    update_config = destination_dir / (f"{cluster_name}_slurm_accounting_update_{timestamp}.yaml")
+    if destination_config is not None:
+        update_config = destination_config.expanduser()
+    else:
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
+        destination_dir = output_dir.expanduser() if output_dir else config_dir()
+        update_config = destination_dir / (
+            f"{cluster_name}_slurm_accounting_update_{timestamp}.yaml"
+        )
     try:
         render_slurm_accounting_update_config(source_config, update_config, db)
     except (OSError, SlurmAccountingAttachError, SlurmAccountingError, yaml.YAMLError):
@@ -416,8 +774,14 @@ def prepare_slurm_accounting_update(
         cluster_name=cluster_name,
         region=region,
         accounting_stack_name=db.stack_name,
+        provider_accounting_stack_name=provider_accounting_stack_name,
+        privatelink_stack_name=resolved_privatelink_stack_name,
+        consumer_vpc_id=vpc_id,
         update_config_path=update_config,
         service_created=service_created,
+        database_name=db.database_name,
+        db_username=db.username,
+        provider_instance_type=provider_instance_type,
     )
 
 
@@ -425,14 +789,14 @@ def attach_slurm_accounting(
     *,
     cluster_name: str,
     region: str,
-    profile: Optional[str] = None,
-    cluster_configuration: Optional[Path] = None,
+    profile: str | None = None,
+    cluster_configuration: Path | None = None,
     stack_name: str = "",
     privatelink_stack_name: str = "",
     database_name: str = DEFAULT_ACCOUNTING_DATABASE_NAME,
     db_username: str = DEFAULT_ACCOUNTING_USERNAME,
     dry_run_only: bool = False,
-    output_dir: Optional[Path] = None,
+    output_dir: Path | None = None,
     pcluster_executable: str = "pcluster",
 ) -> SlurmAccountingAttachResult:
     """Attach a direct or PrivateLink accounting service to a stopped cluster.

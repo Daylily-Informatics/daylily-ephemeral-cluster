@@ -19,7 +19,16 @@ from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any, Optional
 
-CONTROLLER_TARGET_SCHEMA = "dyec.controller_target.v1"
+from daylily_ec.execution_status import (
+    ExecutionStatusError,
+    STATUS_SCHEMA_VERSION,
+    attempt_exit_codes,
+    controller_attempt,
+    read_execution_status,
+    status_path_for_repo,
+)
+
+CONTROLLER_TARGET_SCHEMA = "dyec.controller_target.v2"
 WORKFLOW_OBSERVABILITY_SCHEMA = "dyec.workflow_observability.v1"
 SNAKEMAKE_LOG_SUFFIX = ".snakemake.log"
 SNAKEMAKE_TAIL_ENCODING = "zlib+base64"
@@ -51,9 +60,20 @@ def build_remote_probe_command(arguments: Sequence[str]) -> str:
     """Build a compressed self-contained probe; do not depend on headnode DYEC version."""
 
     source = Path(__file__).read_bytes()
+    execution_status_source = Path(__file__).with_name("execution_status.py").read_bytes()
     encoded = base64.b64encode(zlib.compress(source, level=9)).decode("ascii")
+    execution_status_encoded = base64.b64encode(
+        zlib.compress(execution_status_source, level=9)
+    ).decode("ascii")
     bootstrap = (
-        "import base64,zlib;"
+        "import base64,sys,types,zlib;"
+        "package=sys.modules.setdefault('daylily_ec',types.ModuleType('daylily_ec'));"
+        "package.__path__=getattr(package,'__path__',[]);"
+        "dependency=types.ModuleType('daylily_ec.execution_status');"
+        "exec(compile(zlib.decompress(base64.b64decode("
+        + repr(execution_status_encoded)
+        + ")), '<dyec-execution-status>', 'exec'), dependency.__dict__);"
+        "sys.modules['daylily_ec.execution_status']=dependency;"
         "exec(compile(zlib.decompress(base64.b64decode(" + repr(encoded) + ")),"
         "'<dyec-workflow-observability>','exec'))"
     )
@@ -391,32 +411,55 @@ def _slurm_states(external_job_ids: Sequence[str]) -> dict[str, Any]:
     }
 
 
-def _validate_status_receipt(
-    payload: dict[str, Any], *, session: str, repo_path: str, path: Path
-) -> tuple[Optional[int], bool, Optional[str]]:
-    if payload.get("session_name") != session or payload.get("repo_path") != repo_path:
+def _read_controller_target(path: Path) -> dict[str, Any]:
+    """Read the v2 target that names one immutable clone-resident attempt."""
+
+    target = _read_json_object(path, label="controller target receipt")
+    required = {
+        "schema_version",
+        "controller_id",
+        "pid",
+        "cwd",
+        "log_path",
+        "dag_path",
+        "analysis_root",
+        "status_attempt_id",
+    }
+    if set(target) != required:
+        raise WorkflowObservabilityError(f"controller target fields are invalid: {path}")
+    if target["schema_version"] != CONTROLLER_TARGET_SCHEMA:
         raise WorkflowObservabilityError(
-            f"workflow status receipt does not match controller target: {path}"
+            f"controller target has an unsupported schema version: {path}"
         )
-    result_pairs = (
-        ("completed_at", "exit_code"),
-        ("workflow_completed_at", "workflow_exit_code"),
-    )
-    for completed_field, exit_code_field in result_pairs:
-        completed_at = payload.get(completed_field)
-        exit_code = payload.get(exit_code_field)
-        if completed_at is None and exit_code is None:
-            continue
-        if not isinstance(completed_at, str) or not completed_at.strip():
+    session = target["controller_id"]
+    pid = target["pid"]
+    target_repo = target["cwd"]
+    analysis_root = target["analysis_root"]
+    attempt_id = target["status_attempt_id"]
+    if (
+        not isinstance(session, str)
+        or not session
+        or isinstance(pid, bool)
+        or not isinstance(pid, int)
+        or pid < 1
+        or not isinstance(target_repo, str)
+        or not isinstance(analysis_root, str)
+        or not isinstance(attempt_id, str)
+        or not attempt_id
+    ):
+        raise WorkflowObservabilityError(f"controller target fields are invalid: {path}")
+    repo_path = normalize_repo_path(target_repo)
+    if analysis_root != str(PurePosixPath(repo_path).parent):
+        raise WorkflowObservabilityError(
+            f"controller target analysis_root does not match its clone path: {path}"
+        )
+    for named_path in ("log_path", "dag_path"):
+        value = target[named_path]
+        if not isinstance(value, str) or not value.startswith(repo_path + "/"):
             raise WorkflowObservabilityError(
-                f"workflow status receipt has an unattributable {exit_code_field}: {path}"
+                f"controller target {named_path} is not within its clone path: {path}"
             )
-        if isinstance(exit_code, bool) or not isinstance(exit_code, int):
-            raise WorkflowObservabilityError(
-                f"workflow status receipt has a non-integer {exit_code_field}: {path}"
-            )
-        return exit_code, True, exit_code_field
-    return None, False, None
+    return target
 
 
 def collect_workflow_observability(
@@ -434,6 +477,7 @@ def collect_workflow_observability(
     if mode not in {"launched", "manual"}:
         raise WorkflowObservabilityError("mode must be launched or manual")
     status_payload: Optional[dict[str, Any]] = None
+    status_attempt: Optional[dict[str, Any]] = None
     status_path: Optional[Path] = None
     controller_source: str
     tmux_session = session
@@ -443,39 +487,33 @@ def collect_workflow_observability(
                 "launched inspection requires run_dir and no manual attribution options"
             )
         run_path = Path(run_dir)
-        status_path = run_path / "status.json"
         target_path = run_path / "controller_target.json"
-        status_payload = _read_json_object(status_path, label="workflow status receipt")
-        target = _read_json_object(target_path, label="controller target receipt")
-        if target.get("schema_version") != CONTROLLER_TARGET_SCHEMA:
+        target = _read_controller_target(target_path)
+        target_session = target["controller_id"]
+        target_pid = target["pid"]
+        target_repo = target["cwd"]
+        if session and target_session != session:
             raise WorkflowObservabilityError(
-                f"controller target has an unsupported schema version: {target_path}"
+                f"controller target does not match requested session: {target_path}"
             )
-        target_session = target.get("controller_id")
-        target_pid = target.get("pid")
-        target_repo = target.get("cwd")
-        if (
-            not isinstance(target_session, str)
-            or not target_session
-            or isinstance(target_pid, bool)
-            or not isinstance(target_pid, int)
-            or target_pid < 1
-            or not isinstance(target_repo, str)
-        ):
-            raise WorkflowObservabilityError(f"controller target fields are invalid: {target_path}")
-        status_session = status_payload.get("session_name")
-        if not isinstance(status_session, str) or not status_session:
-            raise WorkflowObservabilityError(
-                f"workflow status receipt has an invalid session name: {status_path}"
-            )
-        if session and status_session != session:
-            raise WorkflowObservabilityError(
-                f"workflow status receipt does not match requested session: {status_path}"
-            )
-        session = status_session
+        session = target_session
         tmux_session = target_session
         controller_pid = target_pid
         repo_path = normalize_repo_path(target_repo)
+        status_path = status_path_for_repo(repo_path)
+        try:
+            status_payload = read_execution_status(
+                status_path,
+                repo_path=repo_path,
+                analysis_root=target["analysis_root"],
+            )
+            status_attempt = controller_attempt(
+                status_payload,
+                attempt_id=target["status_attempt_id"],
+                session_name=target_session,
+            )
+        except ExecutionStatusError as exc:
+            raise WorkflowObservabilityError(str(exc)) from exc
         controller_source = target_path.as_posix()
     else:
         if not repo_path or controller_pid is None or run_dir is not None:
@@ -529,9 +567,14 @@ def collect_workflow_observability(
     elif len(open_logs) > 1:
         log_problem = "multiple Snakemake logs are open by the attributed controller process tree"
     else:
-        receipt_log = status_payload.get("snakemake_log_path") if status_payload else None
-        if isinstance(receipt_log, str) and receipt_log and status_payload is not None:
-            receipt_attribution = status_payload.get("snakemake_log_attribution")
+        snakemake_receipt = status_attempt["snakemake"] if status_attempt else None
+        receipt_log = (
+            snakemake_receipt.get("log_path")
+            if isinstance(snakemake_receipt, dict)
+            else None
+        )
+        if isinstance(receipt_log, str) and receipt_log and snakemake_receipt is not None:
+            receipt_attribution = snakemake_receipt.get("log_attribution")
             if receipt_attribution != "exact invocation file-set difference":
                 log_problem = "status receipt log lacks exact invocation attribution"
             else:
@@ -557,18 +600,22 @@ def collect_workflow_observability(
         }
     slurm = _slurm_states([item["external_job_id"] for item in log["submitted"]])
 
+    terminal_codes = {
+        "controller_exit_code": None,
+        "day_run_exit_code": None,
+        "snakemake_exit_code": None,
+    }
     terminal_rc: Optional[int] = None
     terminal_rc_attributed = False
     terminal_rc_source: Optional[str] = None
-    if status_payload is not None and status_path is not None and session is not None:
-        terminal_rc, terminal_rc_attributed, terminal_rc_field = _validate_status_receipt(
-            status_payload,
-            session=session,
-            repo_path=repo_path,
-            path=status_path,
-        )
-        if terminal_rc_attributed and terminal_rc_field is not None:
-            terminal_rc_source = f"{status_path.as_posix()}#{terminal_rc_field}"
+    if status_attempt is not None and status_path is not None:
+        terminal_codes = attempt_exit_codes(status_attempt)
+        terminal_rc = terminal_codes["controller_exit_code"]
+        terminal_rc_attributed = terminal_rc is not None
+        if terminal_rc_attributed:
+            terminal_rc_source = (
+                f"{status_path.as_posix()}#attempts/{status_attempt['attempt_id']}/controller/exit_code"
+            )
     state = derive_state(
         controller_live=pid_exists,
         controller_attributed=attributed,
@@ -594,6 +641,15 @@ def collect_workflow_observability(
         "session": session,
         "run_dir": run_dir,
         "repo_path": repo_path,
+        "status": (
+            {
+                "path": status_path.as_posix(),
+                "schema_version": STATUS_SCHEMA_VERSION,
+                "attempt_id": status_attempt["attempt_id"],
+            }
+            if status_path is not None and status_attempt is not None
+            else None
+        ),
         "controller": {
             "pid": controller_pid,
             "pid_source": controller_source,
@@ -618,9 +674,9 @@ def collect_workflow_observability(
         },
         "slurm": slurm,
         "terminal": {
-            "exit_code": terminal_rc,
-            "exit_code_attributed": terminal_rc_attributed,
-            "exit_code_source": terminal_rc_source,
+            **terminal_codes,
+            "controller_exit_code_attributed": terminal_rc_attributed,
+            "controller_exit_code_source": terminal_rc_source,
             "failure_markers": log["failure_markers"],
         },
         "semantics": {

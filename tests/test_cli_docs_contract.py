@@ -15,6 +15,7 @@ CURRENT_OPERATOR_DOCS = (
     REPO_ROOT / "README.md",
     REPO_ROOT / "README.md.bland",
     REPO_ROOT / "docs" / "DAY_EC_ENVIRONMENT.md",
+    REPO_ROOT / "docs" / "agent_cli_guide.md",
     REPO_ROOT / "docs" / "aws_setup.md",
     REPO_ROOT / "docs" / "cli_reference.md",
     REPO_ROOT / "docs" / "dra_fsx_strategy.md",
@@ -51,21 +52,12 @@ RETIRED_CURRENT_DOC_TERMS = (
     "--dewey-url",
     "--dewey-token-env",
 )
-RUN_CONTEXT_HEADER = "\t".join(
-    (
-        "RUNID",
-        "PLATFORM",
-        "RUN_DIR",
-        "SOURCE_S3_URI",
-        "MOUNT_ID",
-        "SAMPLE_SHEET",
-        "BASECALLING_STATE",
-        "RUN_STATUS",
-        "OUTPUT_ROOT",
-        "REGION",
-        "PROFILE",
-    )
+RUN_CONTEXT_HEADER = (
+    "RUNID\tPLATFORM\tRUN_DIR\tSOURCE_S3_URI\tMOUNT_ID\tSAMPLE_SHEET\t"
+    "BASECALLING_STATE\tRUN_STATUS\tOUTPUT_ROOT\tREGION\tPROFILE"
 )
+DOCUMENTED_DYEC_RELEASE = "18.0.57"
+PRETAG_SOURCE_RELEASE = "18.0.56"
 
 
 def _current_docs_text() -> str:
@@ -79,9 +71,9 @@ def test_current_operator_docs_state_the_shipped_cli_and_catalog_versions() -> N
 
     # A release branch describes the next tag before that tag exists; an exact
     # release checkout reports the new tag once it has been created.
-    assert release_version in {"18.0.19", "18.0.20"}
-    assert "`18.0.20`" in text
-    assert dayoa_tag == "15.0.10"
+    assert release_version in {PRETAG_SOURCE_RELEASE, DOCUMENTED_DYEC_RELEASE}
+    assert f"`{DOCUMENTED_DYEC_RELEASE}`" in text
+    assert dayoa_tag == "15.0.37"
     assert f"`{dayoa_tag}`" in text
     assert "dyec set-vars" in text
     assert "dyec unset-vars" in text

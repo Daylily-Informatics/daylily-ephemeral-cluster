@@ -6,14 +6,14 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 _OLD_ORG = "Daylily-" + "Informatics"
-DAYOA_DEFAULT_TAG = "15.0.10"
+DAYOA_DEFAULT_TAG = "15.0.28"
 DAYOA_VALIDATED_TAG = "15.0.1"
-BJUICE_V2_DAYOA_TARGET_TAG = "15.0.10"
+BJUICE_V2_DAYOA_TARGET_TAG = "15.0.28"
 BJUICE_V2_DAYOA_VALIDATED_TAG = "15.0.3"
-DAYOA_HIGHEST_RELEASE_COMMIT = "d99e61d9b8839e4392931ec6604ad768d971973f"
-ONT_DAYOA_TAG = "15.0.10"
+DAYOA_HIGHEST_RELEASE_COMMIT = "bb73f4e68f4eb80481e98eb228ed614dc7f47411"
+ONT_DAYOA_TAG = "15.0.28"
 ONT_DAYOA_VALIDATED_TAG = "15.0.9"
-ONT_DAYOA_RELEASE_COMMIT = "d99e61d9b8839e4392931ec6604ad768d971973f"
+ONT_DAYOA_RELEASE_COMMIT = "bb73f4e68f4eb80481e98eb228ed614dc7f47411"
 
 FORBIDDEN_ACTIVE_REFERENCES = (
     f"{_OLD_ORG}/daylily-omics-analysis",
@@ -98,15 +98,11 @@ def test_catalogs_and_dyec_repository_config_are_lsmc_bio_pinned() -> None:
             commands["package_inflection_hybrid_data"]["validated_version"] == DAYOA_VALIDATED_TAG
         )
         assert (
-            commands[
-                "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical"
-            ]["git_tag"]
+            commands["inflection-bjuice-product-v0.9"]["git_tag"]
             == BJUICE_V2_DAYOA_TARGET_TAG
         )
         assert (
-            commands[
-                "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical"
-            ]["validated_version"]
+            commands["inflection-bjuice-product-v0.9"]["validated_version"]
             == BJUICE_V2_DAYOA_VALIDATED_TAG
         )
         assert data["dyec_builds"]["16.1.82"]["dayoa_git_tags"] == ["13.4.31"]
@@ -140,7 +136,15 @@ def test_catalogs_and_dyec_repository_config_are_lsmc_bio_pinned() -> None:
         assert data["dyec_builds"]["17.0.29"]["dayoa_git_tags"] == ["14.0.22"]
         assert data["dyec_builds"]["current"] != data["dyec_builds"]["17.0.29"]
         current = data["dyec_builds"]["current"]
-        assert set(current["commands"]) | set(current["aliases"]) == set(commands)
+        current_only_id = "bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega"
+        assert set(current["commands"]) | set(current["aliases"]) == set(commands) | {
+            current_only_id
+        }
+        assert current["commands"][current_only_id]["git_tag"] == BJUICE_V2_DAYOA_TARGET_TAG
+        assert (
+            current["commands"][current_only_id]["validated_version"]
+            == BJUICE_V2_DAYOA_VALIDATED_TAG
+        )
         assert "hiomr2_slim_kitchensink_mega_inflection_analytical" not in commands
         alias = current["aliases"]["inflection-bjuice-product-v0.2"]
         assert alias["alias_of"] == "hiomr2_slim_kitchensink_mega"
@@ -167,7 +171,8 @@ def test_dayoa_commands_use_the_scoped_release_pins() -> None:
                 "illumina_run_qc",
                 "ont_run_qc",
                 "ultima_run_qc",
-                "bjuice-v2-hg002-multi-analysis-unit-hiomr2-kitchensink-mega-inflection-analytical",
+                "inflection-bjuice-product-v0.9",
+                "bjuice-v2-hg002-custom-multi-analysis-unit-hiomr2-kitchensink-mega",
             }
         ]
 

@@ -12,8 +12,7 @@ This is the current DayEC data-plane model. FSx for Lustre is the high-performan
 | Staging | `/fsx/staging/staged_external_sequencing_data/...` | `/staging/staged_external_sequencing_data/...` | `<raw-seq-bucket>/staged_external_data/...` | Created on demand |
 | Run inputs | `/fsx/run_dir_mounts/<mount_id>/` | `/run_dir_mounts/<mount_id>/` | selected run prefix | Created and deleted on demand |
 | Workflow outputs | `/fsx/analysis_results/...` | `/analysis_results/...` | none by default | Local to the FSx filesystem until exported |
-| Launch auto-export | `/fsx/analysis_results/<executing_entity>/<analysis_id>/` | `/analysis_results/<executing_entity>/<analysis_id>/` | `s3://bucket/prefix/<cluster>/<analysis_id>/` when an export root is supplied | Temporary output DRA after workflow exit |
-| Direct analysis export | `/fsx/analysis_results/<executing_entity>/<analysis_id>/` | `/analysis_results/<executing_entity>/<analysis_id>/` | Explicit `s3://bucket/prefix/<executing_entity>/<analysis_id>/` or `<cluster>/<analysis_id>/` | Temporary output DRA |
+| Post-controller analysis export | `/fsx/analysis_results/<executing_entity>/<analysis_id>/` | `/analysis_results/<executing_entity>/<analysis_id>/` | Explicit empty `s3://bucket/prefix/<executing_entity>/<analysis_id>/` | Temporary output DRA after terminal controller success |
 
 Run-directory DRAs are read-oriented by default. They configure AutoImport events and no AutoExport policy. Export DRAs are created directly on one completed analysis directory, run one explicit FSx export task, and are detached after the task completes.
 
@@ -94,7 +93,7 @@ flowchart LR
 `config/daylily_pipeline_command_catalog.yaml` defines repositories and launch
 profiles. Its packaged copy under
 `daylily_ec/resources/payload/config/` must remain identical. The active DayOA
-repository and active command targets are pinned to `15.0.10`; older
+repository and active command targets are pinned to `16.0.3`; older
 `validated_version` values remain historical evidence and appear as
 `validation_pending: true` when they differ from a current target.
 
@@ -109,7 +108,7 @@ set.
 
 ```mermaid
 flowchart TB
-  Catalog["Repository catalog v6"] --> Repo["daylily-omics-analysis @ 15.0.10"]
+  Catalog["Repository catalog v6"] --> Repo["daylily-omics-analysis @ 16.0.3"]
   Repo --> Sample["sample_analysis"]
   Repo --> Run["run_analysis"]
 
@@ -133,8 +132,13 @@ flowchart TB
 Export is not automatic writeback from the run mount or reference mount. The supported export flow is:
 
 1. choose one completed directory under `/fsx/analysis_results/<executing_entity>/<analysis_id>`
-2. run `dyec export --source-path /fsx/analysis_results/<executing_entity>/<analysis_id> --destination-s3-uri s3://bucket/prefix/<executing_entity>/<analysis_id>/`
-3. keep `fsx_export.yaml`
-4. delete the cluster only after the receipt shows `status: success`, `task_lifecycle: SUCCEEDED`, and `detached: true`
+2. record `dyec analysis visit --mode export` for that root without writing a marker into the destination prefix
+3. run `dyec export --source-path /fsx/analysis_results/<executing_entity>/<analysis_id> --destination-s3-uri s3://bucket/prefix/<executing_entity>/<analysis_id>/ --output-dir ./export-receipts/<analysis-id> --wait --timeout-seconds 5400`
+4. keep `fsx_export.yaml`
+5. delete the cluster only after the receipt shows `status: success`, `task_lifecycle: SUCCEEDED`, and `detached: true`
 
-The bucket and parent prefix are always explicit. DayEC validates that the S3 key suffix matches the normalized source analysis directory and writes FSx task reports under `_daylily_monitor/fsx-export/...` inside the requested export prefix.
+The bucket and parent prefix are always explicit. The requested destination must
+be empty before export; an S3 visit marker in that exact prefix causes the
+fail-closed preflight to reject it. DayEC validates that the S3 key suffix
+matches the normalized source analysis directory and writes FSx task reports
+under `_daylily_monitor/fsx-export/...` inside the requested export prefix.

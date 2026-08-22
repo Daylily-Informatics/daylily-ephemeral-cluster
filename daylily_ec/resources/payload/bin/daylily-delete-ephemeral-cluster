@@ -9,8 +9,8 @@ resolve_daylily_res_dir() {
         echo "${DAYLILY_EC_RESOURCES_DIR}"
         return 0
     fi
-    if command -v daylily-ec >/dev/null 2>&1; then
-        daylily-ec resources-dir
+    if command -v dyec >/dev/null 2>&1; then
+        dyec resources-dir
         return 0
     fi
     # Dev fallback: repo checkout.

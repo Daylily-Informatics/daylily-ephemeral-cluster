@@ -63,15 +63,18 @@ dyec analysis visit \
   --note "no writes"
 ```
 
-Record a no-delete export visit, optionally mirrored to the S3 report/export prefix:
+Record a no-delete export visit:
 
 ```bash
 dyec analysis visit \
   --analysis-root /fsx/analysis_results/ubuntu/<analysis_id> \
   --mode export \
-  --intent "S3 snapshot export without FSx cleanup" \
-  --s3-visit-uri s3://bucket/prefix/for/export/
+  --intent "S3 snapshot export without FSx cleanup"
 ```
+
+`--s3-visit-uri` is optional only for a separate audit/report prefix. Do not
+write a visit marker into the exact S3 destination that `dyec export` must prove
+empty before it creates its temporary DRA.
 
 Acquire a write lock before a live controller:
 

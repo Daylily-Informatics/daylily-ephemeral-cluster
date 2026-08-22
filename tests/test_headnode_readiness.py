@@ -26,7 +26,7 @@ def test_readiness_script_requires_day_ec_tools_and_fsx_reference_assets():
     assert "CONDA_DEFAULT_ENV:-}" in script
     assert "= DAY-EC" in script
     assert 'test "${SENTIEON_LICENSE:-}" = license.sentieon.lsmc.bio:8990' in script
-    assert "command -v daylily-ec" in script
+    assert "command -v dyec" in script
     assert "command -v day-clone" in script
     assert "day-clone --list >/dev/null" in script
     assert "day-clone --check-auth --repository daylily-omics-analysis" in script

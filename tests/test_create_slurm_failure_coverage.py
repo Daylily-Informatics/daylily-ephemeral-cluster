@@ -384,7 +384,14 @@ def test_attach_rejects_dry_run_and_submit_failures(tmp_path, monkeypatch):
         attach,
         "prepare_slurm_accounting_update",
         lambda **_k: attach.PreparedSlurmAccountingUpdate(
-            "cluster", "us-west-2", "stack", tmp_path / "update.yaml", False
+            cluster_name="cluster",
+            region="us-west-2",
+            accounting_stack_name="stack",
+            provider_accounting_stack_name="stack",
+            privatelink_stack_name=None,
+            consumer_vpc_id="vpc-cluster",
+            update_config_path=tmp_path / "update.yaml",
+            service_created=False,
         ),
     )
     monkeypatch.setattr(

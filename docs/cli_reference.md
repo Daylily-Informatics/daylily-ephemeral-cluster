@@ -1,6 +1,6 @@
 # DYEC CLI Reference
 
-This document is the operator-facing reference for the `18.0.20` `dyec` command surface. It favors explicit commands and receipts over implicit state. `daylily-ec` is an installed compatibility entrypoint for the same CLI, but current docs and ledgers use `dyec`.
+This document is the operator-facing reference for the `19.0.6` `dyec` command surface. It favors explicit commands and receipts over implicit state. Operators and upstream services use the installed literal `dyec` console script.
 
 ## Conventions
 
@@ -124,12 +124,16 @@ It covers:
 - local activation;
 - SSM/headnode access;
 - DayOA controller rules;
+- same-analysis-root dry-to-live continuation;
 - analysis-root visit/lock safety;
 - headnode upload/download syntax;
 - the DRA-only runtime-cache export boundary;
 - monitoring commands and Slurm queue format.
 
 Use this when an operator or agent needs a concise reminder of the safe path.
+For the prominent task-by-task route map—including catalog versus manual DayOA
+work, same-root continuation, and no-delete export—read
+[agent_cli_guide.md](agent_cli_guide.md).
 
 ## Cluster lifecycle
 
@@ -138,18 +142,40 @@ Preflight:
 ```bash
 dyec preflight \
   --profile "$AWS_PROFILE" \
-  --region-az "$REGION_AZ" \
-  --config ~/.config/daylily/daylily_ephemeral_cluster.yaml
+  --region-az "$REGION_AZ"
 ```
 
-Create:
+Create with the restored 19.0.4 entrypoint:
 
 ```bash
 dyec create \
   --profile "$AWS_PROFILE" \
   --region-az "$REGION_AZ" \
+  --cluster-type intel
+```
+
+That command resolves the shipped/default config and owns the complete create
+workflow. Spot bids are calculated from live EC2 `DescribeSpotPriceHistory`
+calls during every create; saved summaries and previous bids are evidence only
+and are never reused. AWS can retain a current Spot price without changing it
+for longer than an hour, so DYEC records the live query capture as
+`observed_at` and the AWS price-effective timestamp separately as
+`provider_effective_at`. It does not reject a current live response merely
+because that provider-effective timestamp is old.
+
+An explicit config is still supported when desired:
+
+```bash
+dyec create \
+  --profile "$AWS_PROFILE" \
+  --region-az "$REGION_AZ" \
+  --cluster-type intel \
   --config ~/.config/daylily/daylily_ephemeral_cluster.yaml
 ```
+
+Root create does not require `--config`, `--output-dir`, a preparation receipt,
+or a recovery flow. It does not call `create-request`, `cluster compute-fleet`,
+`slurm-accounting inspect`, or `slurm-accounting recover`.
 
 When create is explicitly approved to prepare missing Slurm-accounting
 infrastructure and the regional database is reached through an existing
@@ -166,6 +192,13 @@ not change heartbeat email behavior:
 ```bash
 dyec create --admin-email oncall@example.org --region-az us-west-2d
 ```
+
+### Standalone request tools
+
+`dyec create-request render` and `dyec create-request prepare` remain available
+for callers that independently need protected request or admission artifacts.
+They are standalone commands, not steps that root create invokes or requires.
+Use `dyec create-request --help` for their current option contracts.
 
 Inspect:
 
@@ -190,6 +223,333 @@ dyec cluster wait \
   --region "$REGION" \
   --cluster "$CLUSTER"
 ```
+
+### Guarded compute-fleet lifecycle
+
+`cluster compute-fleet` is the public automation boundary for stopping or
+starting one exact ParallelCluster compute fleet. Upstream services must invoke
+the installed `dyec` console script; they must not invoke `pcluster`, import
+`daylily_ec.pcluster`, or call a DYEC Python module entrypoint.
+
+The only accepted request/terminal pairs are:
+
+| `--status` | `--wait-for` |
+|---|---|
+| `STOP_REQUESTED` | `STOPPED` |
+| `START_REQUESTED` | `RUNNING` |
+
+The spellings are case-sensitive. A mismatch fails before a provider call.
+
+```bash
+dyec --json cluster compute-fleet \
+  --cluster "$CLUSTER" \
+  --region "$REGION" \
+  --profile "$AWS_PROFILE" \
+  --status STOP_REQUESTED \
+  --wait-for STOPPED \
+  --timeout-seconds 1200 \
+  --poll-interval-seconds 30
+```
+
+Every stop first obtains an authoritative, bounded headnode proof that no
+DayOA controller and no Slurm job remains. Without `--drain`, active work fails
+the command immediately. With `--drain`, DYEC waits for the work to finish
+naturally before submitting the stop request. `--drain` never cancels a job,
+signals a controller, changes a Slurm node state, or otherwise drains scheduler
+work. It is invalid with `START_REQUESTED`.
+
+The command is idempotent when the fleet is already at the requested terminal
+state. It reclaims a same-direction transition without submitting a duplicate;
+an opposite-direction transition fails closed. A successful JSON response has
+schema `dyec.cluster_compute_fleet.v1` and these fields:
+
+```json
+{
+  "schema_version": "dyec.cluster_compute_fleet.v1",
+  "ok": true,
+  "cluster": "<cluster>",
+  "region": "<region>",
+  "request_status": "STOP_REQUESTED",
+  "wait_for_status": "STOPPED",
+  "drain_requested": false,
+  "initial_status": "RUNNING",
+  "final_status": "STOPPED",
+  "request_submitted": true,
+  "resumed_existing_request": false,
+  "idle_proof": {
+    "authoritative": true,
+    "controller_count": 0,
+    "slurm_job_count": 0,
+    "observed_at": "<UTC timestamp>",
+    "instance_id": "<headnode instance id>",
+    "ssm_command_ids": ["<controller probe>", "<queue probe>"]
+  },
+  "started_at": "<UTC timestamp>",
+  "completed_at": "<UTC timestamp>",
+  "elapsed_seconds": 0.0
+}
+```
+
+`idle_proof` is `null` for a start or an already-`STOPPED` no-op. A callback
+failure in JSON mode returns the same schema with `ok: false`,
+`error_code: compute_fleet_operation_failed` (or `internal_error`), and a
+bounded `error` string.
+
+### Standalone Slurm-accounting recovery command
+
+This newer command remains registered for callers that explicitly choose its
+specialized contract. It is not part of root create and root create never
+invokes it.
+
+Before recovery, inspect the regional provider singleton and, when applicable,
+one exact existing PrivateLink bridge without changing AWS:
+
+```bash
+dyec --json slurm-accounting inspect \
+  --profile "$AWS_PROFILE" \
+  --region-az "$REGION_AZ" \
+  --stack-name <exact-regional-provider-stack> \
+  --privatelink-stack-name <exact-existing-bridge-stack>
+```
+
+Both expected names are optional inspection filters; omitting the bridge name
+does not trigger bridge discovery. The command lists at most 100 bounded
+regional provider identities and reports the exact bridge only when that name
+was supplied. It is read-only and never creates, updates, reconciles, or
+selects infrastructure. Its `dyec.slurm_accounting_inspection.v1` JSON includes
+the explicit profile/account/region/AZ, provider names/status/VPC/DB/user and
+contract-health evidence, plus bridge provider/consumer VPC binding and target
+health. `bridge_provider_binding_matches_regional_provider` compares the exact
+bridge with the singleton's provider VPC, database, user, and instance evidence.
+Database endpoints, private IPs, password-secret ARNs, IAM policy ARNs,
+and raw provider errors are excluded. An unhealthy exact target can still
+return its bounded bridge identity with `contract_healthy: false` and
+`exact_bridge_error_code: exact_bridge_target_unhealthy_or_unverified`.
+
+```json
+{
+  "schema_version": "dyec.slurm_accounting_inspection.v1",
+  "ok": true,
+  "read_only": true,
+  "aws_profile": "<trimmed profile>",
+  "aws_account_id": "<resolved account id>",
+  "region": "us-west-2",
+  "region_az": "us-west-2d",
+  "expected_accounting_stack_name": "<provider or null>",
+  "expected_privatelink_stack_name": "<bridge or null>",
+  "regional_provider_count": 1,
+  "regional_singleton": true,
+  "regional_provider_matches_expected": true,
+  "regional_providers": [
+    {
+      "stack_name": "<provider>",
+      "status": "CREATE_COMPLETE",
+      "region": "us-west-2",
+      "region_az": "us-west-2c",
+      "vpc_id": "<provider VPC>",
+      "database_name": "<database>",
+      "db_username": "<user>",
+      "instance_id": "<accounting instance>",
+      "instance_type": "<accounting instance type>",
+      "required_outputs_present": true,
+      "contract_healthy": true
+    }
+  ],
+  "exact_bridge": {
+    "stack_name": "<bridge>",
+    "status": "UPDATE_COMPLETE",
+    "provider_accounting_stack_name": "<provider>",
+    "provider_vpc_id": "<provider VPC>",
+    "consumer_vpc_id": "<consumer VPC>",
+    "database_name": "<database>",
+    "db_username": "<user>",
+    "accounting_instance_id": "<accounting instance>",
+    "accounting_instance_type": "<accounting instance type>",
+    "contract_healthy": true
+  },
+  "exact_bridge_resolved": true,
+  "exact_bridge_error_code": null,
+  "bridge_provider_matches_expected": true,
+  "bridge_provider_binding_matches_regional_provider": true
+}
+```
+
+`slurm-accounting recover` repairs the incomplete post-create accounting phase
+without rerunning `dyec create`. It accepts only the exact persisted cluster
+identity and pre-accounting configuration. The supported initial cluster
+states are `CREATE_COMPLETE`, `UPDATE_IN_PROGRESS`,
+`UPDATE_COMPLETE_CLEANUP_IN_PROGRESS`, and `UPDATE_COMPLETE`.
+
+```bash
+dyec --json slurm-accounting recover \
+  --cluster "$CLUSTER" \
+  --region "$REGION" \
+  --region-az "$REGION_AZ" \
+  --profile "$AWS_PROFILE" \
+  --cluster-configuration <exact-persisted-cluster.yaml> \
+  --output-dir <stable-per-cluster-recovery-directory> \
+  --stack-name <exact-regional-provider-stack> \
+  --privatelink-stack-name <exact-existing-bridge-stack> \
+  --database-name <exact-database-name> \
+  --db-username <exact-database-user> \
+  --instance-type <exact-accounting-instance-type> \
+  --timeout-seconds 5400 \
+  --poll-interval-seconds 30
+```
+
+For direct same-VPC recovery that is explicitly authorized to create a missing
+provider singleton and accept its ongoing cost, omit the bridge and supply the
+paired creation/cost flags:
+
+```bash
+dyec --json slurm-accounting recover \
+  --cluster "$CLUSTER" \
+  --region "$REGION" \
+  --region-az "$REGION_AZ" \
+  --profile "$AWS_PROFILE" \
+  --cluster-configuration <exact-persisted-cluster.yaml> \
+  --output-dir <stable-per-cluster-recovery-directory> \
+  --stack-name <exact-regional-provider-stack> \
+  --database-name <exact-database-name> \
+  --db-username <exact-database-user> \
+  --instance-type <exact-accounting-instance-type> \
+  --create-slurm-accounting-if-missing \
+  --acknowledge-slurm-accounting-create-cost \
+  --timeout-seconds 5400 \
+  --poll-interval-seconds 30
+```
+
+The two creation/cost flags must be supplied together. Omit both when recovery
+may reuse only existing infrastructure. They are invalid when
+`--privatelink-stack-name` is supplied because recovery never creates or
+reconciles a bridge or its provider.
+
+For `CREATE_COMPLETE`, DYEC proves the cluster idle, prepares the exact regional
+accounting service and update YAML before changing capacity, stops the fleet,
+dry-runs and submits the accounting update, waits for `UPDATE_COMPLETE`, starts
+the fleet, and verifies accounting. An already-running update is reclaimed and
+never submitted again. `UPDATE_COMPLETE` proceeds only to fleet restoration and
+verification. `--stack-name` always names the regional provider singleton. With
+no bridge flag, direct attachment is allowed only when that provider and the
+cluster headnode subnet are in the same VPC; cross-VPC direct attachment fails
+with `exact_direct_vpc_mismatch`. With `--privatelink-stack-name`, recovery
+requires the region to contain exactly the named provider and resolves only the
+named existing healthy bridge. Its provider stack, provider VPC, consumer VPC,
+database, user, accounting instance, and secret binding must match the exact
+provider and request. Automatic alternate-stack or bridge selection and all
+bridge creation/reconciliation are disabled.
+DYEC repeats its authoritative controller/job proof after service preparation
+and before update handling, even if the fleet was already stopped; work that
+appeared during preparation fails the recovery before any update or restart.
+
+The recovery receipt is a write-ahead identity/phase record. Before rendering,
+DYEC atomically records the trimmed AWS profile, resolved AWS account, cluster,
+region/AZ, source path and hash, deterministic update path, exact provider
+stack, exact bridge name (or JSON `null` for direct mode), consumer VPC,
+database/user, instance type, and creation/cost flags. An interrupted
+`render_intent` may resume whether or not the update file appeared. After
+rendering, DYEC rehashes the source and binds the rendered update hash before
+any fleet mutation. Every resumed update revalidates the receipt plus both
+current file hashes and re-renders against the exact singleton before fleet
+start.
+
+Immediately before the non-dry-run update call, DYEC writes
+`update_submission_intent`. If that invocation is interrupted, a retry polls
+provider state for up to 300 seconds. A visible update is reclaimed. If the
+cluster remains `CREATE_COMPLETE`, the intent is intrinsically ambiguous, so
+recovery fails closed for operator review and never resubmits it. A terminal
+receipt is accepted only while the provider reports `UPDATE_COMPLETE`.
+
+Recovery also enforces an explicit provider-state/receipt-phase matrix.
+`CREATE_COMPLETE` accepts only pre-update phases or the two submission phases;
+either submission phase is treated as ambiguous and resolved without
+resubmission. `UPDATE_IN_PROGRESS` and
+`UPDATE_COMPLETE_CLEANUP_IN_PROGRESS` accept only
+`update_submission_intent` or `update_submission`. `UPDATE_COMPLETE` accepts
+only those submission phases or `update_complete`,
+`post_update_exact_target_verified`, `fleet_running`, and
+`accounting_verified`. Unknown phases and every impossible state/phase pair
+fail before fleet or update mutation.
+
+`--output-dir` may already exist and may contain unrelated artifacts. Use one
+stable directory for one exact recovery identity; a profile/account, identity,
+path, or hash mismatch fails closed. DYEC atomically replaces only:
+
+- `slurm-accounting-update.yaml`
+- `slurm-accounting-recovery.json`
+
+The final verification proves `slurmdbd` and `slurmctld` active, the Slurm
+accounting storage configuration enabled, the exact cluster registered through
+`sacctmgr`, and a bounded `sacct -X` query working. Therefore
+`accounting_verified: true` is sufficient proof of working `sacct`; callers do
+not need a second headnode probe.
+
+A successful JSON response has schema
+`dyec.slurm_accounting_recovery.v1` and these fields:
+
+```json
+{
+  "schema_version": "dyec.slurm_accounting_recovery.v1",
+  "ok": true,
+  "terminal": true,
+  "status": "complete",
+  "cluster": "<cluster>",
+  "region": "<region>",
+  "region_az": "<availability zone>",
+  "aws_profile": "<trimmed profile>",
+  "aws_account_id": "<resolved account id>",
+  "accounting_stack_name": "<regional provider stack>",
+  "privatelink_stack_name": "<exact bridge stack or null>",
+  "consumer_vpc_id": "<cluster headnode VPC>",
+  "database_name": "<database>",
+  "db_username": "<database user>",
+  "instance_type": "<requested accounting instance type>",
+  "create_slurm_accounting_if_missing": false,
+  "acknowledge_slurm_accounting_create_cost": false,
+  "service_created": false,
+  "cluster_configuration_path": "<absolute source path>",
+  "cluster_configuration_sha256": "<sha256>",
+  "update_configuration_path": "<absolute rendered path>",
+  "update_configuration_sha256": "<sha256>",
+  "initial_cluster_state": "CREATE_COMPLETE",
+  "initial_fleet_state": "RUNNING",
+  "final_cluster_state": "UPDATE_COMPLETE",
+  "final_fleet_state": "RUNNING",
+  "update_submitted": true,
+  "update_reclaimed": false,
+  "fleet_stop_submitted": true,
+  "fleet_start_submitted": true,
+  "accounting_verified": true,
+  "phase_receipts": [
+    {"phase": "accounting_verified", "status": "complete", "observed_at": "<UTC>"}
+  ],
+  "started_at": "<UTC timestamp>",
+  "completed_at": "<UTC timestamp>",
+  "elapsed_seconds": 0.0,
+  "recovery_receipt_path": "<absolute receipt path>",
+  "recovery_receipt_sha256": "<sha256>"
+}
+```
+
+During recovery, the persisted file uses the same schema with `ok: false`,
+`terminal: false`, `status: in_progress`, a stable `phase`, and the bound
+identity/hashes available at that phase. The JSON and persisted receipt exclude
+database endpoints, passwords, secret ARNs, raw provider output, and raw
+exception text. A callback failure in JSON mode returns the same schema with `ok: false`,
+`error_code: slurm_accounting_recovery_failed` (or `internal_error`), and a
+bounded `error` string. A normalized accounting-preparation failure also returns
+bounded lowercase machine tokens in `stage` and `reason_code`. Exact-target
+`service_resolution` distinguishes
+`exact_regional_stack_inventory_failed`, `exact_regional_stack_conflict`,
+`exact_database_discovery_failed`, `exact_database_multiple`,
+`exact_stack_missing`, `exact_stack_create_failed`, and
+`exact_service_identity_mismatch`. Explicit bridge recovery additionally uses
+`exact_privatelink_creation_forbidden`, `exact_privatelink_unavailable`,
+`exact_privatelink_identity_mismatch`,
+`exact_privatelink_provider_binding_mismatch`, and
+`exact_direct_vpc_mismatch`. Provider/SDK text and credentials are never
+copied into those fields or the generic public error message; other recovery
+failures omit the two preparation fields.
 
 Tags:
 
@@ -286,8 +646,15 @@ Configure/repair the headnode:
 dyec headnode configure \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster "$CLUSTER"
+  --cluster "$CLUSTER" \
+  --state-file "$DYEC_STATE_FILE"
 ```
+
+Credential authority must be explicit. Supply `--state-file <state.json>`; its exact saved
+next-run config supplies both deploy-key references. The two direct deploy-key options are
+an all-or-nothing recovery override. A missing authority source, partial pair, mixed
+state/direct inputs, malformed state, missing config, wrong cluster, or wrong region fails
+before an SSM command is sent.
 
 Run this after a DYEC upgrade when the headnode is missing new commands such as `dyec analysis status`, `dyec headnode run`, or current `dy-r` analysis-lock support.
 
@@ -547,8 +914,8 @@ Show one command:
 
 ```bash
 dyec --json catalog show hybrid_ilmn_ont_hiomr_kitchensink
-dyec --json catalog show package_inflection_hybrid_data
-dyec --json catalog show illumina_run_qc
+dyec --json catalog show package_inflection_hybrid_data --dyec-version 19.0.6
+dyec --json catalog show illumina_run_qc --dyec-version 19.0.6
 ```
 
 The catalog exposes:
@@ -558,12 +925,11 @@ The catalog exposes:
 - repository and DayOA git tag;
 - `validated_version` and derived `validation_pending` state;
 - input contract;
-- exact `dy-r` or `bin/day_run` command string;
-- dry-run command string;
+- resolved command digest and immutable repository/runtime identities;
 - targets, callers, aligners, dedupers, jobs, and keep-going settings;
 - validated version metadata when present.
 
-The active catalog targets DayOA `15.0.10`. `validation_pending: true` means a
+The `19.0.6` catalog targets DayOA `16.0.3`. `validation_pending: true` means a
 command's launch `git_tag` differs from its recorded `validated_version`; it is
 an honest pending-validation indicator, not a launch block or a rewritten
 receipt. Existing validation runs and receipt tags remain historical evidence.
@@ -598,8 +964,7 @@ Useful options:
 | `--run-context-file` | Local run-context TSV for run-analysis commands. |
 | `--stage-dir` | Existing headnode/FSx staging directory. |
 | `--dy-config key=value` | Append one explicit DayOA/Snakemake config assignment. Repeatable. |
-| `--export-destination-s3-uri` | Optional auto-export root/destination. |
-| `--export-trigger none|on-success|on-fail|all` | Auto-export trigger. |
+| `--export-destination-s3-uri`, `--export-trigger`, `--delete-on-export-success` | Present for compatibility in help but rejected for standard catalog/workflow launch. Export separately after terminal controller success. |
 | `--replace-existing-analysis-dir` | Forward explicit replacement intent to workflow launch. |
 
 `--dy-config` accepts only explicit assignments like `key=value`; blank strings and free-form shell fragments fail.
@@ -638,20 +1003,12 @@ dyec --json catalog launch hybrid_ilmn_ont_hiomr_kitchensink \
   --dry-run
 ```
 
-Launch live after the dry-run plan is reviewed:
-
-```bash
-dyec --json catalog launch hybrid_ilmn_ont_hiomr_kitchensink \
-  --analysis-id "$ANALYSIS_ID" \
-  --executing-entity "$CLUSTER" \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER" \
-  --manifest-dir ./config \
-  --payload-staging-s3-uri "$STAGING_S3_URI" \
-  --session-name "$ANALYSIS_ID" \
-  --project "$PROJECT"
-```
+For a fresh live root, render and launch the approved live catalog command.
+When a dry controller has already created the exact analysis root and the
+contract requires same-root continuation, do **not** reissue `catalog launch`.
+Use `workflow launch --reuse-existing-analysis-dir --input-contract none
+--no-input-staging` with the exact dry command, ref, and commit, changing only
+the DayOA `-n` flag. See [agent_cli_guide.md](agent_cli_guide.md#5-preferred-path-catalog-render-dry-controller-and-live-controller).
 
 `catalog quick-launch` is an alias for `catalog launch`.
 
@@ -668,7 +1025,7 @@ dyec workflow launch \
   --cluster "$CLUSTER" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$CLUSTER" \
-  --git-tag 15.0.10 \
+  --git-tag 16.0.3 \
   --manifest-dir ./config \
   --payload-staging-s3-uri "$STAGING_S3_URI" \
   --session-name "$ANALYSIS_ID" \
@@ -709,6 +1066,44 @@ that the existing checkout is a clean Git work tree, fetches the explicit
 detached mode. It leaves the analysis root and its untracked runtime inputs
 intact; a missing root, dirty tracked checkout, absent source ref, or checkout
 mismatch fails closed.
+
+### Explicit pinned-source test override
+
+`--pinned-source-test-override "<reason>"` is the deliberately narrow
+exception for a human-approved test against one already-dirty existing DayOA
+checkout. It is not a normal retry or catalog option. The command requires all
+of the following: `--reuse-existing-analysis-dir`, `--reuse-local-git-ref`, a
+full `--reuse-local-git-commit`, `--input-contract none`,
+`--no-input-staging`, `--dry-run`, and an effective `dy-r` command containing
+`-n`. It refuses every export/delete option and retains source evidence in the
+headnode run directory before and after the test.
+
+The current-thread human approval must name the exact analysis root, selected
+ref/commit, intended source change, reason, and dry-run command. The controller
+does not patch, reset, or check out source in this path; it only verifies that
+the existing HEAD is the requested commit. This option only permits that
+explicit pre-existing change to be exercised; it never authorizes a live run,
+delivery, export, cleanup, or promotion.
+
+```bash
+dyec workflow launch \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER" \
+  --analysis-id "$ANALYSIS_ID" \
+  --executing-entity "$CLUSTER" \
+  --git-tag "$DAYOA_REF" \
+  --input-contract none \
+  --no-input-staging \
+  --reuse-existing-analysis-dir \
+  --reuse-local-git-ref \
+  --reuse-local-git-commit "$DAYOA_COMMIT" \
+  --pinned-source-test-override "approved dyoainit initialization test" \
+  --dry-run \
+  --export-trigger none \
+  --session-name "$TEST_SESSION" \
+  --dy-command "dy-r <exact-targets> -p -k -j 6 -n"
+```
 
 Read status and logs:
 
@@ -948,8 +1343,7 @@ Export one exact analysis root:
 dyec analysis visit \
   --analysis-root "$ANALYSIS_ROOT" \
   --mode export \
-  --intent "export completed pipeline results to $DESTINATION_S3_URI without FSx cleanup" \
-  --s3-visit-uri "$DESTINATION_S3_URI"
+  --intent "export completed pipeline results to $DESTINATION_S3_URI without FSx cleanup"
 
 dyec export \
   --profile "$AWS_PROFILE" \
@@ -965,7 +1359,9 @@ dyec export \
 The command catalog exposes this contract in the `result_export` object from
 `dyec catalog list`, `dyec catalog show`, and `dyec catalog render`. After the
 controller succeeds, run the displayed DYEC visit and DRA export commands from
-the analysis root. DayOA does not export results.
+the analysis root. DayOA does not export results. The destination prefix must
+remain empty for export's fail-closed preflight, so do not use
+`--s3-visit-uri` for that intended destination.
 
 Use export helpers for existing receipts or bulk operation surfaces:
 
@@ -1045,6 +1441,12 @@ Cost-center examples:
 
 ```bash
 dyec cost-centers ensure-registry --profile "$AWS_PROFILE"
+dyec --json cost-centers ensure-active project-a \
+  --monthly-cap-usd 200 \
+  --allowed-user ubuntu \
+  --owner-email owner@example.org \
+  --profile "$AWS_PROFILE" \
+  --home-region us-west-2
 dyec cost-centers create project-a --monthly-cap-usd 200 --allowed-user ubuntu
 dyec --json cost-centers show project-a
 dyec --json cost-centers list --status active
@@ -1055,6 +1457,17 @@ dyec --json cost-centers refresh-usage project-a \
   --profile "$AWS_PROFILE" \
   --dry-run
 ```
+
+`ensure-active` requires both registry tables to exist and be `ACTIVE`; it
+never bootstraps them. It conditionally creates one row or strongly consistently
+rereads an exact concurrent row, then compares status, cap, canonical sorted
+users/groups, the single canonical owner email, empty notes, and unset
+expiry/usage-age overrides. It never
+reactivates or edits a mismatched row. Its
+`dyec.cost_center_ensure_active.v1` response includes `created`, exact
+profile/account/home-region, name/status/cap, principal counts and SHA-256
+digests, `notes_empty`, and one controlled-fields digest. Raw user and owner
+values are not returned.
 
 Budget/cap changes require the workspace double-approval process before live mutation.
 For an existing fixed monthly USD AWS Budget, plan the exact change first:
@@ -1081,9 +1494,21 @@ AWS readiness and quota helpers:
 ```bash
 dyec aws --help
 dyec pricing --help
+
+dyec --json aws capacity-snapshot \
+  --region "$REGION" \
+  --profile "$AWS_PROFILE" \
+  --quota-family standard
 ```
 
-Use these before live cluster creation or quota-heavy launches.
+`dyec.aws_capacity_snapshot.v1` obtains each requested EC2 vCPU quota and uses
+that quota's own Service Quotas `UsageMetric` definition to query CloudWatch.
+Every quota row includes quota code/name/limit/unit, exact metric
+namespace/name/dimensions/statistic, observation timestamp/age, authoritative
+used vCPUs, headroom, and bounded non-authoritative EC2 inventory context.
+Missing metric metadata, query failure, no datapoint, or a stale/future
+datapoint yields `complete=false`, safe reason codes, and null authoritative
+used/headroom for every row. Callers must reject an incomplete snapshot.
 
 ## Tests and validation helpers
 
@@ -1093,6 +1518,15 @@ Local tests:
 dyec tests pytest
 dyec tests pytest --coverage
 python -m pytest tests/test_cli_registry_v2.py -q
+```
+
+The repository-catalog snapshot modules are optional and skipped by default.
+Opt in when catalog snapshot validation is needed:
+
+```bash
+python -m pytest --run-catalog-snapshot-tests \
+  tests/test_repository_catalog.py \
+  tests/test_repository_catalog_aliases.py
 ```
 
 Catalog validation:
@@ -1175,20 +1609,9 @@ dyec --json tests command-catalog-performance \
    dyec workflow logs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" --session "${ANALYSIS_ID}-dryrun" --lines 200
    ```
 
-7. Launch live only if the plan is correct:
-
-   ```bash
-   dyec --json catalog launch hybrid_ilmn_ont_hiomr_kitchensink \
-     --analysis-id "$ANALYSIS_ID" \
-     --executing-entity "$CLUSTER" \
-     --profile "$AWS_PROFILE" \
-     --region "$REGION" \
-     --cluster "$CLUSTER" \
-     --manifest-dir ./config \
-     --payload-staging-s3-uri "$STAGING_S3_URI" \
-     --session-name "$ANALYSIS_ID" \
-     --project "$PROJECT"
-   ```
+7. For a fresh live root, render and launch the live catalog command. For a
+   same-root dry-to-live controller, follow the explicit `workflow launch`
+   continuation in [agent_cli_guide.md](agent_cli_guide.md#5-preferred-path-catalog-render-dry-controller-and-live-controller); do not relaunch the catalog row onto the existing root.
 
 8. Monitor the exact analysis root:
 
@@ -1201,7 +1624,8 @@ dyec --json tests command-catalog-performance \
      --tail-lines 1000
    ```
 
-9. Export after success:
+9. Export after success. Record an `analysis visit --mode export` first, then
+   run the command below with a previously empty destination prefix:
 
    ```bash
    dyec export \
@@ -1210,7 +1634,8 @@ dyec --json tests command-catalog-performance \
      --cluster "$CLUSTER" \
      --source-path "$ANALYSIS_ROOT" \
      --destination-s3-uri s3://<analysis-results-bucket>/<prefix>/$CLUSTER/$ANALYSIS_ID/ \
-     --output-dir ./export-receipts/$ANALYSIS_ID
+     --output-dir ./export-receipts/$ANALYSIS_ID \
+     --wait --timeout-seconds 5400
    ```
 
 ## Release conventions

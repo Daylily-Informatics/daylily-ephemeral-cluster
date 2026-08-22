@@ -350,6 +350,25 @@ def evaluate_regional_cluster_cap(
     )
 
 
+def require_cluster_name_available(
+    *,
+    cluster_name: str,
+    records: Any,
+) -> None:
+    """Fail closed when any non-deleted provider record owns the exact name."""
+
+    decision = evaluate_regional_cluster_cap(
+        cluster_name=cluster_name,
+        records=records,
+        effective_cap=1,
+    )
+    matching = [status for name, status in decision.counted_records if name == cluster_name]
+    if matching:
+        raise ValueError(
+            f"Cluster name {cluster_name!r} already exists in provider state {matching[0]!r}."
+        )
+
+
 def register_preflight_step(step: PreflightStep) -> None:
     """Append a validator to the global preflight pipeline.
 
@@ -425,6 +444,205 @@ def resolve_configured_headnode_repo_spec(*, deploy_key_auth: bool) -> HeadnodeR
     )
 
 
+def resolve_configured_headnode_dayoa_repo_spec(
+    *,
+    deploy_key_auth: bool,
+    repo_overrides: Optional[Dict[str, str]] = None,
+) -> HeadnodeRepoSpec:
+    """Resolve the exact DayOA repository/ref that headnode configure must bootstrap."""
+    from daylily_ec.repositories import load_repository_catalog
+
+    repository_key = "daylily-omics-analysis"
+    catalog = load_repository_catalog(_repository_catalog_path())
+    repository = catalog.repositories.get(repository_key)
+    if repository is None:
+        raise RuntimeError(f"Repository catalog does not define {repository_key!r}.")
+
+    if repo_overrides:
+        unknown_repositories = sorted(set(repo_overrides) - set(catalog.repositories))
+        if unknown_repositories:
+            raise RuntimeError(
+                "Repository override keys are absent from the command catalog: "
+                + ", ".join(unknown_repositories)
+            )
+
+    requested_ref = ""
+    if repo_overrides and repository_key in repo_overrides:
+        requested_ref = str(repo_overrides[repository_key] or "").strip()
+        if not requested_ref:
+            raise RuntimeError(
+                f"Repository override for {repository_key!r} must name a non-empty Git ref."
+            )
+    dayoa_ref = requested_ref or str(repository.default_ref or "").strip()
+    if not dayoa_ref:
+        raise RuntimeError(f"Repository catalog {repository_key!r} has no default_ref.")
+
+    repository_url = repository.ssh_url if deploy_key_auth else repository.https_url
+    if not repository_url:
+        transport = "SSH" if deploy_key_auth else "HTTPS"
+        raise RuntimeError(f"Repository catalog {repository_key!r} has no {transport} clone URL.")
+    return HeadnodeRepoSpec(
+        url=_normalize_headnode_repo_url(repository_url, deploy_key_auth=deploy_key_auth),
+        ref=dayoa_ref,
+    )
+
+
+def _build_headnode_config_yaml_sync_command(repo_name: str) -> str:
+    """Copy the exact DYEC top-level YAML configuration into the headnode home config."""
+    repo_name_q = shlex.quote(repo_name)
+    return "\n".join(
+        (
+            "set -euo pipefail",
+            f"repo_name={repo_name_q}",
+            'repo_dir="$HOME/projects/$repo_name"',
+            'source_dir="$repo_dir/config"',
+            'destination_dir="$HOME/.config/daylily"',
+            'test -d "$source_dir"',
+            'set -- "$source_dir"/*.yaml',
+            'if [ ! -f "$1" ]; then',
+            '  echo "No DYEC config/*.yaml files found at $source_dir" >&2',
+            "  exit 1",
+            "fi",
+            'install -d -m 0700 "$destination_dir"',
+            'install -m 0644 "$@" "$destination_dir/"',
+        )
+    )
+
+
+def _build_headnode_conda_environment_reset_command() -> str:
+    """Return the explicit reset for the named environments and local Conda caches."""
+    return "\n".join(
+        (
+            "set -euo pipefail",
+            'source "$HOME/miniconda3/etc/profile.d/conda.sh"',
+            'case "${CONDA_DEFAULT_ENV:-}" in',
+            "  DAYOA|DAY-EC) conda deactivate ;;",
+            "esac",
+            "for env_name in DAYOA DAY-EC; do",
+            "  if conda env list | awk '{print $1}' | grep -Fx \"$env_name\" >/dev/null 2>&1; then",
+            '    conda env remove -n "$env_name"',
+            "  fi",
+            "done",
+            "conda clean --all --yes",
+            'rm -f "$HOME/.config/daylily/headnode_dayoa_bootstrap.tsv"',
+        )
+    )
+
+
+def _build_headnode_dayec_install_command(repo_name: str) -> str:
+    """Build or update the named DAY-EC environment without ambient confirmation settings."""
+    repo_name_q = shlex.quote(repo_name)
+    return "\n".join(
+        (
+            "set -euo pipefail",
+            f"repo_name={repo_name_q}",
+            'repo_dir="$HOME/projects/$repo_name"',
+            'cd "$repo_dir"',
+            'source "$HOME/miniconda3/etc/profile.d/conda.sh"',
+            "if conda env list | awk '{print $1}' | grep -Fx DAY-EC >/dev/null 2>&1; then",
+            "  conda env update --name DAY-EC --file environment.yaml --prune",
+            "else",
+            "  conda env create --name DAY-EC --file environment.yaml",
+            "fi",
+            "conda activate DAY-EC",
+            "python -m pip install --editable .",
+            "python -m pip install --upgrade 'pygraphviz==2.0.1'",
+            "python -c 'import pygraphviz; print(\"pygraphviz DAY-EC import OK\", pygraphviz.__version__)'",
+            'source "$repo_dir/activate"',
+            '"$repo_dir/bin/install-daylily-headnode-tools"',
+            'test -f "$repo_dir/config/day_cluster/sbatch"',
+            'sudo install -o root -g root -m 0755 "$repo_dir/config/day_cluster/sbatch" /opt/slurm/bin/sbatch',
+            'cmp --silent "$repo_dir/config/day_cluster/sbatch" /opt/slurm/bin/sbatch',
+        )
+    )
+
+
+def _build_headnode_dayoa_bootstrap_command(
+    *,
+    cluster_name: str,
+    dayoa_ref: str,
+    dyec_version: str,
+) -> str:
+    """Serialize first-use DayOA bootstrap in the required Ubuntu interactive login shell."""
+    body = "\n".join(
+        (
+            "set -euo pipefail",
+            'test "$(id -un)" = ubuntu',
+            'repo_dir="$HOME/projects/daylily-omics-analysis"',
+            'dayec_repo_dir="$HOME/projects/daylily-ephemeral-cluster"',
+            'receipt="$HOME/.config/daylily/headnode_dayoa_bootstrap.tsv"',
+            'lock_path="$HOME/.config/daylily/headnode_dayoa_bootstrap.lock"',
+            f"expected_ref={shlex.quote(dayoa_ref)}",
+            f"expected_dyec_version={shlex.quote(dyec_version)}",
+            f"project_name={shlex.quote(cluster_name)}",
+            'test -d "$repo_dir/.git"',
+            'test -f "$repo_dir/dyoainit"',
+            'test -x "$dayec_repo_dir/bin/init_dayec"',
+            "command -v flock >/dev/null 2>&1",
+            'source "$HOME/miniconda3/etc/profile.d/conda.sh"',
+            'install -d -m 0700 "$HOME/.config/daylily"',
+            'exec 9>"$lock_path"',
+            "flock -x 9",
+            'dayoa_commit="$(git -C "$repo_dir" rev-parse HEAD)"',
+            "daylily_env_exists() {",
+            "  conda env list | awk '{print $1}' | grep -Fx \"$1\" >/dev/null 2>&1",
+            "}",
+            "receipt_value() {",
+            '  receipt_key="$1"',
+            '  receipt_count="$(awk -F \'\\t\' -v key="$receipt_key" \'$1 == key {count += 1} END {print count + 0}\' "$receipt")"',
+            '  if [ "$receipt_count" != "1" ]; then',
+            '    echo "Malformed DayOA bootstrap receipt: expected one $receipt_key field" >&2',
+            "    exit 1",
+            "  fi",
+            "  awk -F '\\t' -v key=\"$receipt_key\" '$1 == key {print $2}' \"$receipt\"",
+            "}",
+            'if [ -e "$receipt" ]; then',
+            '  if [ ! -f "$receipt" ]; then',
+            '    echo "DayOA bootstrap receipt is not a regular file: $receipt" >&2',
+            "    exit 1",
+            "  fi",
+            '  stored_schema="$(receipt_value schema_version)"',
+            '  stored_ref="$(receipt_value dayoa_ref)"',
+            '  stored_commit="$(receipt_value dayoa_commit)"',
+            '  if [ "$stored_schema" != "1" ] || [ "$stored_ref" != "$expected_ref" ] || [ "$stored_commit" != "$dayoa_commit" ]; then',
+            '    printf "Refreshing stale DayOA bootstrap receipt for %s @ %s\\n" "$expected_ref" "$dayoa_commit"',
+            "  elif ! daylily_env_exists DAYOA; then",
+            '    printf "Refreshing missing DAYOA environment for %s @ %s\\n" "$expected_ref" "$dayoa_commit"',
+            "  else",
+            '    printf "Pinned DayOA bootstrap already complete: %s @ %s\\n" "$expected_ref" "$dayoa_commit"',
+            "    exit 0",
+            "  fi",
+            "fi",
+            'cd "$repo_dir"',
+            'source dyoainit --project "$project_name" --skip-project-check',
+            "shopt -s expand_aliases",
+            'alias dy-b="$dayec_repo_dir/bin/init_dayec"',
+            # A bash -c payload is parsed before its alias definition executes.
+            # Re-parse this fixed literal so the required DayOA/DYEC ``dy-b``
+            # interface is really used rather than calling the target path directly.
+            'eval "dy-b BUILD"',
+            "if ! daylily_env_exists DAYOA; then",
+            '  echo "dyoainit completed but DAYOA is absent" >&2',
+            "  exit 1",
+            "fi",
+            "if ! daylily_env_exists DAY-EC; then",
+            '  echo "dy-b BUILD completed but DAY-EC is absent" >&2',
+            "  exit 1",
+            "fi",
+            'receipt_stage="$(mktemp "${receipt}.tmp.XXXXXX")"',
+            "trap 'rm -f \"$receipt_stage\"' EXIT",
+            "printf 'schema_version\\t1\\n' > \"$receipt_stage\"",
+            'printf \'dyec_version\\t%s\\n\' "$expected_dyec_version" >> "$receipt_stage"',
+            'printf \'dayoa_ref\\t%s\\n\' "$expected_ref" >> "$receipt_stage"',
+            'printf \'dayoa_commit\\t%s\\n\' "$dayoa_commit" >> "$receipt_stage"',
+            'mv "$receipt_stage" "$receipt"',
+            "trap - EXIT",
+            'printf "Pinned DayOA bootstrap complete: %s @ %s\\n" "$expected_ref" "$dayoa_commit"',
+        )
+    )
+    return f"bash --login -i -c {shlex.quote(body)}"
+
+
 def _build_headnode_repo_sync_command(
     repo_name: str,
     repo_url: str,
@@ -495,7 +713,7 @@ def _build_headnode_github_token_setup_command() -> str:
     helper_stage = "$HOME/.config/daylily/daylily-github-credential.py"
     helper_path = "$HOME/.local/bin/daylily-github-credential"
     token_config = "$HOME/.config/daylily/github_token.json"
-    url_key = 'url.https://github.com/lsmc-bio/.insteadOf'
+    url_key = "url.https://github.com/lsmc-bio/.insteadOf"
     ssh_aliases = (
         "git@github.com:lsmc-bio/",
         "ssh://git@github.com/lsmc-bio/",
@@ -511,8 +729,8 @@ def _build_headnode_github_token_setup_command() -> str:
     return " && ".join(
         (
             "install -d -m 0700 ~/.config/daylily ~/.local/bin",
-            f"install -m 0755 \"{helper_stage}\" \"{helper_path}\"",
-            f"chmod 0600 \"{token_config}\"",
+            f'install -m 0755 "{helper_stage}" "{helper_path}"',
+            f'chmod 0600 "{token_config}"',
             "git config --global credential.useHttpPath true",
             "git config --global credential.interactive false",
             "git config --global "
@@ -1835,9 +2053,7 @@ def _resolve_fsx_choice(
         raise ValueError(f"Non-interactive cluster creation requires an explicit {key} set value.")
 
     default_value = (
-        get_effective_default(cfg, key, FSX_CHOICE_DEFAULTS.get(key, ""))
-        .strip()
-        .upper()
+        get_effective_default(cfg, key, FSX_CHOICE_DEFAULTS.get(key, "")).strip().upper()
     )
     if default_value and default_value not in choices:
         raise ValueError(
@@ -2471,9 +2687,7 @@ def _resolve_post_create_inputs(
         except (CostCenterError, InvalidOperation, ValueError) as exc:
             raise ValueError(f"Invalid cost-center input: {exc}") from exc
     heartbeat_default = (
-        budget_email
-        if configured_budget_email
-        else (heartbeat_email_default or budget_email)
+        budget_email if configured_budget_email else (heartbeat_email_default or budget_email)
     )
     heartbeat_email = (
         _resolve_config_value(
@@ -3414,7 +3628,8 @@ def run_create_workflow(
                     for value in post_create_inputs.cost_center_allowed_users.split(",")
                     if value.strip()
                 ),
-                notes=f"Provisioned by dyec create for cluster {cluster_name}.",
+                owner_emails=(post_create_inputs.budget_email,),
+                notes="",
                 actor_arn=aws_ctx.caller_arn,
                 table_name=DEFAULT_COST_CENTER_TABLE,
                 usage_table_name=DEFAULT_COST_CENTER_USAGE_TABLE,
@@ -4017,6 +4232,49 @@ def run_create_workflow(
 # ---------------------------------------------------------------------------
 
 
+def _resolve_headnode_cluster_cache_namespace(
+    cluster_name: str,
+    region: str,
+    profile: str,
+) -> str:
+    """Resolve the immutable cache namespace from the local cluster authority.
+
+    This deliberately runs on the DYEC controller rather than the headnode.
+    A forced configuration is the supported repair path for a broken remote
+    DAY-EC environment, so no pre-reset headnode step may depend on its
+    ``aws`` executable or Python interpreter.
+    """
+    from daylily_ec.aws.cluster_tags import ClusterTagError, stack_id_from_describe_cluster
+    from daylily_ec.pcluster.runner import describe_cluster
+
+    described = describe_cluster(cluster_name, region, profile=profile)
+    if not described.success:
+        detail = described.stderr or described.message or described.stdout or "no detail returned"
+        raise RuntimeError(
+            "Local pcluster describe-cluster failed while resolving the immutable "
+            f"CloudFormation generation for {cluster_name!r}: {detail}"
+        )
+    try:
+        stack_id = stack_id_from_describe_cluster(described.json_body)
+    except ClusterTagError as exc:
+        raise RuntimeError(str(exc)) from exc
+
+    expected_stack_path = f":stack/{cluster_name}/"
+    if not stack_id.startswith("arn:aws") or expected_stack_path not in stack_id:
+        raise RuntimeError(
+            "pcluster describe-cluster returned a CloudFormation stack identity "
+            f"that is not bound to cluster {cluster_name!r}: {stack_id!r}"
+        )
+    stack_generation = stack_id.rsplit("/", 1)[-1]
+    cache_namespace = f"{cluster_name}-{stack_generation}"
+    if not re.fullmatch(r"[a-z0-9-]+", cache_namespace):
+        raise RuntimeError(
+            "Derived DayOA cluster cache namespace is invalid: "
+            f"{cache_namespace!r}"
+        )
+    return cache_namespace
+
+
 def configure_headnode(
     cluster_name: str,
     head_node_instance_id: str,
@@ -4033,6 +4291,7 @@ def configure_headnode(
     github_token_region: str = "",
     repo_overrides: Optional[Dict[str, str]] = None,
     remote_user: str = "ubuntu",
+    force: bool = False,
 ) -> bool:
     """Configure the headnode after a successful cluster creation."""
     import yaml
@@ -4040,6 +4299,19 @@ def configure_headnode(
     from daylily_ec.aws.ssm import SsmCommandFailedError, run_shell, write_remote_text
     from daylily_ec.resources import resource_path
     from daylily_ec.versioning import get_release_version
+
+    def log_step_failure(label: str, exc: Exception) -> None:
+        """Log bounded remote evidence when an SSM-backed configure step fails."""
+        logger.error("  ✗ %s failed: %s", label, exc)
+        if not isinstance(exc, SsmCommandFailedError):
+            return
+        for stream_name, content in (("stderr", exc.result.stderr), ("stdout", exc.result.stdout)):
+            rendered = content.strip()
+            if not rendered:
+                continue
+            if len(rendered) > 4_000:
+                rendered = "[truncated to final 4000 characters]\n" + rendered[-4_000:]
+            logger.error("    remote %s:\n%s", stream_name, rendered)
 
     repo_name = "daylily-ephemeral-cluster"
     try:
@@ -4078,6 +4350,16 @@ def configure_headnode(
     if not CLUSTER_NAME_PATTERN.fullmatch(cluster_name):
         logger.error("  ✗ Invalid cluster name for the DayOA cache namespace: %s", cluster_name)
         return False
+    try:
+        cluster_cache_namespace = _resolve_headnode_cluster_cache_namespace(
+            cluster_name,
+            region,
+            profile,
+        )
+    except RuntimeError as exc:
+        logger.error("  ✗ Cannot resolve the immutable DayOA cache namespace locally: %s", exc)
+        return False
+    logger.info("  ▸ DayOA cluster cache namespace: %s", cluster_cache_namespace)
     if bool(github_token_secret_arn) != bool(github_token_region):
         logger.error("  ✗ GitHub token secret ARN and region must be provided together")
         return False
@@ -4095,10 +4377,26 @@ def configure_headnode(
         repo_ref,
     )
 
+    dayoa_repo_spec: Optional[HeadnodeRepoSpec] = None
+    if remote_user == "ubuntu":
+        try:
+            dayoa_repo_spec = resolve_configured_headnode_dayoa_repo_spec(
+                deploy_key_auth=bool(dayoa_deploy_key_secret_arn),
+                repo_overrides=repo_overrides,
+            )
+        except RuntimeError as exc:
+            logger.error("  ✗ Could not resolve the pinned DayOA release: %s", exc)
+            return False
+        logger.info(
+            "  ▸ Pinned DayOA bootstrap source: %s @ %s",
+            dayoa_repo_spec.url,
+            dayoa_repo_spec.ref,
+        )
+
     active_controller_guard = (
-        "active_controllers=\"$(pgrep -u \"$(id -u)\" -af "
+        'active_controllers="$(pgrep -u "$(id -u)" -af '
         "'([b]in/day_run|[s]nakemake .*--profile([= ]|$))' || true)\"; "
-        "if [ -n \"$active_controllers\" ]; then "
+        'if [ -n "$active_controllers" ]; then '
         "echo 'Refusing headnode configuration while a DayOA controller is active:' >&2; "
         "printf '%s\\n' \"$active_controllers\" >&2; "
         "exit 1; "
@@ -4209,39 +4507,45 @@ def configure_headnode(
             logger.error("  ✗ Managed GitHub token credential helper deployment failed: %s", exc)
             return False
 
-    cluster_name_q = shlex.quote(cluster_name)
-    steps = [
+    cluster_cache_namespace_q = shlex.quote(cluster_cache_namespace)
+    steps = []
+    if force:
+        # A forced configuration is the recovery path for a broken ambient
+        # DAY-EC shell.  It must precede every clone or bootstrap operation:
+        # Git credential helpers and repository activation can otherwise
+        # invoke the broken environment before it is removed.
+        steps.append(
+            (
+                "Remove requested DAYOA and DAY-EC environments and clean Conda caches",
+                _build_headnode_conda_environment_reset_command(),
+                None,
+            )
+        )
+    steps.extend(
+        [
         (
             "Configure cluster-scoped DayOA cache namespace",
             (
-                f"cluster_name={cluster_name_q}; "
-                f"stack_id=\"$(aws cloudformation describe-stacks --region {shlex.quote(region)} "
-                "--stack-name \"$cluster_name\" --query 'Stacks[0].StackId' --output text)\"; "
-                "case \"$stack_id\" in "
-                "arn:aws*:cloudformation:*:*:stack/\"$cluster_name\"/*) ;; "
-                "*) echo \"Unable to resolve immutable CloudFormation stack generation: $stack_id\" >&2; exit 1;; "
-                "esac; "
-                "stack_generation=\"${stack_id##*/}\"; "
-                "cluster_cache_namespace=\"$cluster_name-$stack_generation\"; "
-                "case \"$cluster_cache_namespace\" in "
+                f"cluster_cache_namespace={cluster_cache_namespace_q}; "
+                'case "$cluster_cache_namespace" in '
                 "*[!a-z0-9-]*|'') echo 'Invalid DayOA cluster cache namespace' >&2; exit 1;; "
                 "esac; "
                 "for cache_user in ubuntu daylily ec2-user; do "
                 "sudo install -d -m 1777 "
-                "\"/fsx/resources/environments/conda/$cache_user/$cluster_cache_namespace\" "
-                "\"/fsx/resources/environments/containers/$cache_user/$cluster_cache_namespace\"; "
-                "if find \"/fsx/resources/environments/conda/$cache_user/$cluster_cache_namespace\" "
+                '"/fsx/resources/environments/conda/$cache_user/$cluster_cache_namespace" '
+                '"/fsx/resources/environments/containers/$cache_user/$cluster_cache_namespace"; '
+                'if find "/fsx/resources/environments/conda/$cache_user/$cluster_cache_namespace" '
                 "-mindepth 1 -maxdepth 1 -type l -print -quit | grep -q .; then "
                 "echo 'Legacy linked Conda environments are forbidden in the cluster-scoped cache' >&2; "
                 "exit 1; "
                 "fi; "
                 "done; "
-                "namespace_profile=\"$(mktemp /tmp/daylily-cluster-cache-namespace.XXXXXX)\"; "
+                'namespace_profile="$(mktemp /tmp/daylily-cluster-cache-namespace.XXXXXX)"; '
                 "trap 'rm -f \"$namespace_profile\"' EXIT; "
                 "printf '%s\\n' '# Managed by DYEC headnode configure.' "
-                "\"export DAYOA_CLUSTER_CACHE_NAMESPACE=\\\"$cluster_cache_namespace\\\"\" "
-                " > \"$namespace_profile\"; "
-                "sudo install -o root -g root -m 0644 \"$namespace_profile\" "
+                '"export DAYOA_CLUSTER_CACHE_NAMESPACE=\\"$cluster_cache_namespace\\"" '
+                ' > "$namespace_profile"; '
+                'sudo install -o root -g root -m 0644 "$namespace_profile" '
                 "/etc/profile.d/daylily-cluster-cache-namespace.sh"
             ),
             None,
@@ -4267,8 +4571,9 @@ def configure_headnode(
             None,
         ),
         (
-            "Configure Ubuntu Conda Terms of Service",
+            "Configure Ubuntu Conda non-interactive policy and Terms of Service",
             (
+                "~/miniconda3/bin/conda config --set always_yes true && "
                 "~/miniconda3/bin/conda config --set plugins.auto_accept_tos true && "
                 "~/miniconda3/bin/conda tos accept --user "
                 "--override-channels --channel https://repo.anaconda.com/pkgs/main "
@@ -4276,26 +4581,45 @@ def configure_headnode(
             ),
             None,
         ),
+        ]
+    )
+    steps.append(
         (
             "Rebuild DAY-EC and install headnode tools",
-            (
-                f"cd ~/projects/{repo_name} && "
-                "source ~/miniconda3/etc/profile.d/conda.sh && "
-                "conda env update --name DAY-EC --file environment.yaml --prune && "
-                "conda activate DAY-EC && "
-                "python -m pip install --editable . && "
-                "python -m pip install --upgrade 'pygraphviz==2.0.1' && "
-                "python -c 'import pygraphviz; print(\"pygraphviz DAY-EC import OK\", pygraphviz.__version__)' && "
-                f"source ~/projects/{repo_name}/activate && "
-                "./bin/install-daylily-headnode-tools && "
-                f"test -f ~/projects/{repo_name}/config/day_cluster/sbatch && "
-                f"sudo install -o root -g root -m 0755 ~/projects/{repo_name}/config/day_cluster/sbatch "
-                "/opt/slurm/bin/sbatch && "
-                f"cmp --silent ~/projects/{repo_name}/config/day_cluster/sbatch /opt/slurm/bin/sbatch"
-            ),
+            _build_headnode_dayec_install_command(repo_name),
             None,
-        ),
-    ]
+        )
+    )
+    if dayoa_repo_spec is not None:
+        steps.extend(
+            (
+                (
+                    "Install DYEC YAML configuration",
+                    _build_headnode_config_yaml_sync_command(repo_name),
+                    None,
+                ),
+                (
+                    "Clone pinned DayOA repository to headnode",
+                    _build_headnode_repo_sync_command(
+                        "daylily-omics-analysis",
+                        dayoa_repo_spec.url,
+                        dayoa_repo_spec.ref,
+                        deploy_key_secret_arn=dayoa_deploy_key_secret_arn,
+                        deploy_key_region=dayoa_deploy_key_region,
+                    ),
+                    None,
+                ),
+                (
+                    "Bootstrap pinned DayOA in Ubuntu interactive login shell",
+                    _build_headnode_dayoa_bootstrap_command(
+                        cluster_name=cluster_name,
+                        dayoa_ref=dayoa_repo_spec.ref,
+                        dyec_version=expected_dyec_version,
+                    ),
+                    3600,
+                ),
+            )
+        )
 
     for label, remote_cmd, timeout in steps:
         logger.info("  ▸ %s ...", label)
@@ -4312,7 +4636,7 @@ def configure_headnode(
             )
             logger.info("  ✓ %s", label)
         except (SsmCommandFailedError, TimeoutError, RuntimeError) as exc:
-            logger.error("  ✗ %s failed: %s", label, exc)
+            log_step_failure(label, exc)
             return False
 
     expected_version_line = f"Daylily Ephemeral Cluster {expected_dyec_version}"

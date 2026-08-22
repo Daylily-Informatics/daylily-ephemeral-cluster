@@ -59,10 +59,16 @@ If the shell is incomplete:
 dyec headnode configure \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster "$CLUSTER_NAME"
+  --cluster "$CLUSTER_NAME" \
+  --state-file "$DYEC_STATE_FILE"
 ```
 
-If DayOA `dy-r` reports `No such command 'analysis'`, the headnode DYEC command surface is stale. Re-run `dyec headnode configure --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"` from the activated local DYEC checkout, reconnect, and verify `dyec analysis --help` before any workflow write.
+Configure requires an explicit `--state-file <state.json>` and uses that record's exact
+saved `*_next_run_*.yaml` deploy-key references. Direct
+`--dyec-deploy-key-secret-arn` and `--dayoa-deploy-key-secret-arn` are an all-or-nothing
+recovery override; do not mix them with `--state-file`.
+
+If DayOA `dy-r` reports `No such command 'analysis'`, the headnode DYEC command surface is stale. Re-run the state-backed `dyec headnode configure` command above from the activated local DYEC checkout, reconnect, and verify `dyec analysis --help` before any workflow write.
 
 ## 4. Reference DRA
 

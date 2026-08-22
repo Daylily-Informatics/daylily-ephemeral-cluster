@@ -1,0 +1,78 @@
+{
+  "analysis_unit_plan": {
+    "mode": "explicit_custom_analysis_unit_matrix",
+    "path": "docs/plans/20260817T150905Z_pre_rel_18025_downsample_slim_catalog_artifacts/bjuice_v09_hg002_5x5x_plan.json",
+    "schema": "dyec.bjuice_v2_hg002_custom_au_plan.v1",
+    "sha256": "59cbcdc0929d354db0500b0a4d388639085a75a6dab87e3b70980e0484a4c4af"
+  },
+  "analysis_units": [
+    {
+      "analysis_unit_uid": "HG002-5x5",
+      "label": "5x5",
+      "ont_fq_end_hour": 11,
+      "ont_fq_start_hour": 0,
+      "subsample_pct": "0.114337983077",
+      "target_ilmn_coverage_x": "5",
+      "target_ont_coverage_x": "5"
+    }
+  ],
+  "coverage_method": "direct_illumina_terminal_receipt",
+  "direct_ilmn_coverage_evidence": "docs/plans/20260814T103851Z_bjuice_v2_hg002_launch_inputs/direct_ilmn_coverage_receipt.json",
+  "direct_ilmn_coverage_evidence_sha256": "a8bd48276d3a0689d289f7763fe8117fb8bc6b8e66c037babf00c6a906092c0d",
+  "direct_ilmn_coverage_x": "43.73",
+  "fsx_run_mount_root": "/fsx/run_dir_mounts",
+  "legacy_units_tsv": "docs/plans/20260814T103851Z_bjuice_v2_hg002_launch_inputs/legacy_units.tsv",
+  "library_run_matrix_tsv": "docs/plans/20260814T103851Z_bjuice_v2_hg002_launch_inputs/library_run_matrix.tsv",
+  "manifest_hashes": {
+    "analysis_unit_inputs.tsv": "c5a422181e95590a2cac77b3a3f31de9d8efbbca7689731d6e8e59f491a8d722",
+    "analysis_units.tsv": "f7f390f9f89a968e4aa12a68a31c02f0ed383025beff1b51f9e92c7bc09ad903",
+    "libraries.tsv": "0a8ab721256e55e6a4a358adb305c3de723664e310a1bb070930e933bcabc1c8",
+    "samples.tsv": "2c035fd7ccf6bc26368d1cda62909c9fb8e255d5bcb0c85b3d1d6131de87f2b2",
+    "sequencing_inputs.tsv": "07704217887814164c6185c051801bed2acdf944703746ea9195d22b562204a5",
+    "specimens.tsv": "6e8bda59a851d797f9d8d9d137beae8dd76b2a04256b5bdf7f4f3ed37eb6c8e2"
+  },
+  "ont_fsx_root": "/fsx/run_dir_mounts/pca100-2026",
+  "retarget_plan": null,
+  "run_evidence_json": "docs/plans/20260814T103851Z_bjuice_v2_hg002_launch_inputs/run_evidence_v2.json",
+  "sample_id": "HG002",
+  "sample_metadata_tsv": "docs/plans/20260814T103851Z_bjuice_v2_hg002_launch_inputs/sample_metadata.tsv",
+  "schema": "dyec.bjuice_v2_hg002_multi_au_manifest_generation.v1",
+  "source_manifest_json": "docs/plans/20260814T103851Z_bjuice_v2_hg002_launch_inputs/source_manifest_resolved.json",
+  "source_observations": {
+    "ilmn_dayoa_run_label": "20260618-LH01106-0011-A23MFMCLT3",
+    "ilmn_fastq_r1_count": 8,
+    "ilmn_fastq_r2_count": 8,
+    "ilmn_prefix": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260618_LH01106_0011_A23MFMCLT3/Analysis/1/Data/BCLConvert/fastq/",
+    "ilmn_run_id": "20260618_LH01106_0011_A23MFMCLT3",
+    "ont_inputs": [
+      {
+        "barcode": "barcode15",
+        "dayoa_run_label": "20260616-0040-3B-PBK89197-822a87b5",
+        "fastq_count": 146,
+        "prefix_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260615_ONT_Set4-FC2/20260615_ONT_Set4-FC2/20260616_0040_3B_PBK89197_822a87b5/",
+        "run_id": "20260616_0040_3B_PBK89197_822a87b5",
+        "sequencing_input_uid": "HG002-ONT-20260616-0040-3B-PBK89197-822a87b5-barcode15"
+      },
+      {
+        "barcode": "barcode15",
+        "dayoa_run_label": "20260616-0041-3C-PBK89101-bd86eaac",
+        "fastq_count": 146,
+        "prefix_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260615_ONT_Set4-FC3/20260615_ONT_Set4-FC3/20260616_0041_3C_PBK89101_bd86eaac/",
+        "run_id": "20260616_0041_3C_PBK89101_bd86eaac",
+        "sequencing_input_uid": "HG002-ONT-20260616-0041-3C-PBK89101-bd86eaac-barcode15"
+      },
+      {
+        "barcode": "barcode15",
+        "dayoa_run_label": "20260616-0048-3A-PBM08268-14b096e3",
+        "fastq_count": 146,
+        "prefix_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260615_ONT_Set4-FC1/20260615_ONT_Set4-FC1/20260616_0048_3A_PBM08268_14b096e3/",
+        "run_id": "20260616_0048_3A_PBM08268_14b096e3",
+        "sequencing_input_uid": "HG002-ONT-20260616-0048-3A-PBM08268-14b096e3-barcode15"
+      }
+    ]
+  },
+  "subsample_rounding": {
+    "decimal_places": 12,
+    "mode": "ROUND_DOWN"
+  }
+}

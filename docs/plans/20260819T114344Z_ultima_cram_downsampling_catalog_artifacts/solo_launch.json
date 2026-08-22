@@ -1,0 +1,106 @@
+{
+  "analysis_id": "pclu18045_u075_solo_18059_15038_20260819t130742z",
+  "command": {
+    "command_class": "sample_analysis",
+    "command_id": "ultima_snv_alignstats_kitchensink",
+    "compatible_cluster_types": [
+      "daywgs"
+    ],
+    "compatible_data_modes": [
+      "ultima_solo"
+    ],
+    "compatible_platforms": [
+      "ULTIMA"
+    ],
+    "day_profile": "slurm",
+    "description": "Ultima CRAM/FASTQ Sentieon DNAscope, alignment statistics, relatedness, VEP annotation, Kraken2/Ganon2/sourmash metagenomics, and final MultiQC launch profile. Optional analysis_units.tsv ULTIMA_SUBSAMPLE_PCT values strictly inside (0,1) deterministically downsample the selected input CRAM with fixed samtools seed 33; an activating value with FASTQ input fails before DAG construction, and every other value runs full depth.",
+    "display_name": "Ultima SNV + Alignstats Kitchen Sink",
+    "dryrun_dy_command": "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=[\"ug\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\"]}' 'sentdug={\"hg38_sentdug_chrms\":\"1-25\"}' -j 333 -T 0 -p --rerun-triggers mtime -n",
+    "dy_command": "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=[\"ug\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\"]}' 'sentdug={\"hg38_sentdug_chrms\":\"1-25\"}' -j 333 -T 0 -p --rerun-triggers mtime",
+    "genome": "hg38",
+    "git_tag": "15.0.38",
+    "input_contract": "six_manifest",
+    "jobs": 333,
+    "repository": "daylily-omics-analysis",
+    "requires_run_mount": false,
+    "requires_staging": true,
+    "test_data_profile": "default_reads_slim",
+    "type": "prod",
+    "validated_version": "15.0.1",
+    "validation_evidence_s3_uri_prefix": "s3://lsmc-ssf-sequencing-data/derived/pclu-18045/pclu18045_rc0_18052_soloultima_20260819T004600Z/",
+    "validation_pending": true
+  },
+  "command_catalog_version": 6,
+  "cost_center": "pclu-18045-ccenter",
+  "dry_run": true,
+  "dy_command": "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=[\"ug\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\"]}' 'sentdug={\"hg38_sentdug_chrms\":\"1-25\"}' -j 333 -T 0 -p --rerun-triggers mtime -n --produce-analysis-artifact-manifest true --produce-rulegraph true --produce-filegraph false --produce-dag false",
+  "dy_config": [],
+  "dyec_version": "18.0.59",
+  "executing_entity": "pclu-18045",
+  "export_destination_s3_uri": null,
+  "git_tag": "15.0.38",
+  "payload_staging_s3_uri": null,
+  "result_export": {
+    "description": "DayOA runs pipeline work only. After the controller exits successfully, DYEC must separately record an export visit with explicit intent, create a no-delete DRA export from the analysis root, and verify the detached receipt and expected S3 objects.",
+    "manual_export_command": "dyec export \\\n  --profile \"$AWS_PROFILE\" \\\n  --region \"$REGION\" \\\n  --cluster \"$CLUSTER\" \\\n  --source-path \"$ANALYSIS_ROOT\" \\\n  --destination-s3-uri \"$DESTINATION_S3_URI\" \\\n  --output-dir \"$EXPORT_RECEIPT_DIR\" \\\n  --wait \\\n  --timeout-seconds 5400",
+    "manual_visit_command": "dyec analysis visit \\\n  --analysis-root \"$ANALYSIS_ROOT\" \\\n  --mode export \\\n  --intent \"export completed pipeline results to $DESTINATION_S3_URI without FSx cleanup\" \\\n  --s3-visit-uri \"$DESTINATION_S3_URI\"",
+    "post_controller_protocol": [
+      "DYEC must wait for a successful controller exit before export.",
+      "DYEC must run dyec analysis visit with --mode export and explicit --intent before dyec export.",
+      "DYEC must run dyec export from the analysis root, not the nested DayOA checkout."
+    ],
+    "preserves_fsx_by_default": true,
+    "success_checks": [
+      "The workflow controller exited successfully before export began.",
+      "fsx_export.yaml records fsx_export.status=success and fsx_export.phase=complete.",
+      "fsx_export.yaml records fsx_export.task_lifecycle=SUCCEEDED and fsx_export.detached=true.",
+      "The expected pipeline result objects, including final reports, are present at the exact destination S3 prefix."
+    ]
+  },
+  "workflow_argv": [
+    "workflow",
+    "launch",
+    "--repository",
+    "daylily-omics-analysis",
+    "--analysis-id",
+    "pclu18045_u075_solo_18059_15038_20260819t130742z",
+    "--executing-entity",
+    "pclu-18045",
+    "--git-tag",
+    "15.0.38",
+    "--genome",
+    "hg38",
+    "--dy-command",
+    "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=[\"ug\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\"]}' 'sentdug={\"hg38_sentdug_chrms\":\"1-25\"}' -j 333 -T 0 -p --rerun-triggers mtime -n --produce-analysis-artifact-manifest true --produce-rulegraph true --produce-filegraph false --produce-dag false",
+    "--profile",
+    "lsmc",
+    "--region",
+    "us-west-2",
+    "--cluster",
+    "pclu-18045",
+    "--manifest-dir",
+    "/Users/jmajor/.codex-worktrees/dyec-downsample-ultima-cram-in-config/docs/plans/20260819T114344Z_ultima_cram_downsampling_catalog_artifacts/manifest",
+    "--session-name",
+    "pclu18045_u075_solo_18059_15038_20260819t130742z-dry",
+    "--project",
+    "pclu-18045",
+    "--cost-center",
+    "pclu-18045-ccenter",
+    "--remote-user",
+    "auto",
+    "--skip-project-check",
+    "--input-contract",
+    "six_manifest",
+    "--dry-run",
+    "--max-runtime-minutes",
+    "100"
+  ],
+  "workflow_command": "dyec workflow launch --repository daylily-omics-analysis --analysis-id pclu18045_u075_solo_18059_15038_20260819t130742z --executing-entity pclu-18045 --git-tag 15.0.38 --genome hg38 --dy-command 'bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config '\"'\"'aligners=[\"ug\"]'\"'\"' '\"'\"'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\"]}'\"'\"' '\"'\"'sentdug={\"hg38_sentdug_chrms\":\"1-25\"}'\"'\"' -j 333 -T 0 -p --rerun-triggers mtime -n --produce-analysis-artifact-manifest true --produce-rulegraph true --produce-filegraph false --produce-dag false' --profile lsmc --region us-west-2 --cluster pclu-18045 --manifest-dir /Users/jmajor/.codex-worktrees/dyec-downsample-ultima-cram-in-config/docs/plans/20260819T114344Z_ultima_cram_downsampling_catalog_artifacts/manifest --session-name pclu18045_u075_solo_18059_15038_20260819t130742z-dry --project pclu-18045 --cost-center pclu-18045-ccenter --remote-user auto --skip-project-check --input-contract six_manifest --dry-run --max-runtime-minutes 100",
+  "workflow_launch": {
+    "cost_center": "pclu-18045-ccenter",
+    "dy_command": "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=[\"ug\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\"]}' 'sentdug={\"hg38_sentdug_chrms\":\"1-25\"}' -j 333 -T 0 -p --rerun-triggers mtime -n --produce-analysis-artifact-manifest true --produce-rulegraph true --produce-filegraph false --produce-dag false",
+    "repo_path": "/fsx/analysis_results/pclu-18045/pclu18045_u075_solo_18059_15038_20260819t130742z/daylily-omics-analysis",
+    "run_dir": "/home/ubuntu/daylily-runs/pclu18045_u075_solo_18059_15038_20260819t130742z-dry",
+    "session_name": "pclu18045_u075_solo_18059_15038_20260819t130742z-dry"
+  }
+}

@@ -7,6 +7,7 @@ from daylily_ec.manifest_set import load_manifest_set
 from daylily_ec.repositories import load_repository_catalog
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+HISTORICAL_BJUICE_BUILD = "18.0.50"
 SOURCE_CATALOG = REPO_ROOT / "config/daylily_pipeline_command_catalog.yaml"
 PACKAGED_CATALOG = (
     REPO_ROOT / "daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml"
@@ -21,8 +22,14 @@ FIXTURE_ROOT = (
 def test_hg002_bjuice_catalog_uses_verified_5x5x_fixture() -> None:
     assert SOURCE_CATALOG.read_bytes() == PACKAGED_CATALOG.read_bytes()
     catalog = load_repository_catalog(SOURCE_CATALOG)
-    command = catalog.get_command("inflection-bjuice-product-v0.2")
+    command = catalog.get_command_for_dyec_build(
+        "inflection-bjuice-product-v0.2", HISTORICAL_BJUICE_BUILD
+    )
     profile = catalog.test_data_profiles[command.test_data_profile]
+
+    assert "inflection-bjuice-product-v0.2" not in {
+        item.command_id for item in catalog.commands()
+    }
 
     assert command.test_data_profile == "hg002_bjuice_verified_5x5x_fastq"
     assert command.manifest_dir_template.endswith("/hg002_bjuice_verified_5x5x_fastq")
@@ -50,6 +57,30 @@ def test_hg002_bjuice_catalog_uses_verified_5x5x_fixture() -> None:
     assert "schema-2.2 analytical Inflection package" in command.description
     assert profile.source_s3_uri_template.endswith("/bjuice_preval_2026/HG002/")
     assert any("f35e79a5601271f6" in note for note in profile.source_notes)
+
+
+def test_inflection_v09_slim_clone_changes_only_the_input_contract() -> None:
+    catalog = load_repository_catalog(SOURCE_CATALOG)
+    full = catalog.get_command("inflection-bjuice-product-v0.9")
+    slim = catalog.get_command("inflection-bjuice-product-v0.9-slim-5x5x-validation")
+
+    assert slim.type == "test"
+    assert slim.validation_pending is True
+    assert slim.validated_version == "unvalidated"
+    assert slim.test_data_profile == "hg002_bjuice_verified_5x5x_fastq"
+    assert slim.manifest_dir_template == "examples/staging/hg002_bjuice_verified_5x5x_fastq"
+    assert slim.requires_run_mount is False
+    assert full.test_data_profile == "hg002_bjuice_v2_full_preval_run_mounts"
+    assert full.requires_run_mount is True
+
+    assert slim.targets == full.targets
+    assert slim.dy_command == full.dy_command
+    assert slim.dryrun_dy_command == full.dryrun_dy_command
+    assert slim.runtime_parameters == full.runtime_parameters
+    assert slim.git_tag == full.git_tag == "16.0.4"
+    assert slim.return_results is False
+    assert "schema" in slim.description
+    assert "identical calls" in slim.description
 
 
 def test_hg002_bjuice_fixture_topology_and_input_identities() -> None:

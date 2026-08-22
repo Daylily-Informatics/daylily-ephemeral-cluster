@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -21,6 +22,7 @@ from daylily_ec.aws.spot_pricing import (
     apply_spot_prices,
     apply_spot_to_queue,
     calculate_compute_resource_spot_price,
+    get_fresh_spot_price_observation,
     get_spot_price,
     process_slurm_queues,
     validate_spot_pricing_limits,
@@ -30,10 +32,17 @@ from daylily_ec.aws.spot_pricing import (
 def _mock_ec2(price: float = 1.5) -> MagicMock:
     client = MagicMock()
     client.describe_spot_price_history.return_value = {
-        "SpotPriceHistory": [{"SpotPrice": str(price)}],
+        "SpotPriceHistory": [_fresh_spot_row(price)],
     }
     _set_instance_vcpus(client, {})
     return client
+
+
+def _fresh_spot_row(price: float | str) -> dict[str, object]:
+    return {
+        "SpotPrice": str(price),
+        "Timestamp": datetime.now(timezone.utc),
+    }
 
 
 def _set_instance_vcpus(client: MagicMock, counts: dict[str, int], default: int = 128) -> None:
@@ -120,6 +129,80 @@ class TestGetSpotPrice:
             MaxResults=1,
         )
 
+
+class TestFreshSpotPriceObservation:
+    def test_records_live_capture_and_provider_effective_time(self) -> None:
+        captured_at = datetime(2026, 8, 20, 18, 5, tzinfo=timezone.utc)
+        provider_effective_at = captured_at - timedelta(seconds=90)
+        ec2 = MagicMock()
+        ec2.describe_spot_price_history.return_value = {
+            "SpotPriceHistory": [
+                {"SpotPrice": "1.25", "Timestamp": provider_effective_at}
+            ]
+        }
+
+        result = get_fresh_spot_price_observation(
+            ec2,
+            "r7i.2xlarge",
+            "us-west-2d",
+            captured_at=captured_at,
+        )
+
+        assert result["observed_at"] == "2026-08-20T18:05:00Z"
+        assert result["age_seconds"] == 0.0
+        assert result["provider_effective_at"] == "2026-08-20T18:03:30Z"
+
+    def test_accepts_long_lived_current_price(self) -> None:
+        captured_at = datetime(2026, 8, 20, 18, 5, tzinfo=timezone.utc)
+        provider_effective_at = captured_at - timedelta(days=30)
+        ec2 = MagicMock()
+        ec2.describe_spot_price_history.return_value = {
+            "SpotPriceHistory": [
+                {"SpotPrice": "1.25", "Timestamp": provider_effective_at}
+            ]
+        }
+
+        result = get_fresh_spot_price_observation(
+            ec2,
+            "r7i.2xlarge",
+            "us-west-2d",
+            captured_at=captured_at,
+        )
+
+        assert result["observed_at"] == "2026-08-20T18:05:00Z"
+        assert result["age_seconds"] == 0.0
+        assert result["provider_effective_at"] == "2026-07-21T18:05:00Z"
+
+    def test_rejects_future_provider_effective_time(self) -> None:
+        captured_at = datetime(2026, 8, 20, 18, 5, tzinfo=timezone.utc)
+        ec2 = MagicMock()
+        ec2.describe_spot_price_history.return_value = {
+            "SpotPriceHistory": [
+                {
+                    "SpotPrice": "1.25",
+                    "Timestamp": captured_at + timedelta(seconds=301),
+                }
+            ]
+        }
+        with pytest.raises(RuntimeError, match="future"):
+            get_fresh_spot_price_observation(
+                ec2,
+                "r7i.2xlarge",
+                "us-west-2d",
+                captured_at=captured_at,
+            )
+
+    def test_provider_error_does_not_surface_sdk_text(self) -> None:
+        ec2 = MagicMock()
+        ec2.describe_spot_price_history.side_effect = RuntimeError("secret provider token")
+        with pytest.raises(RuntimeError) as captured:
+            get_fresh_spot_price_observation(
+                ec2,
+                "r7i.2xlarge",
+                "us-west-2d",
+            )
+        assert "secret provider token" not in str(captured.value)
+
     def test_empty_history_fails_hard(self) -> None:
         ec2 = MagicMock()
         ec2.describe_spot_price_history.return_value = {"SpotPriceHistory": []}
@@ -134,9 +217,7 @@ class TestGetSpotPrice:
 
     def test_non_numeric_fails_hard(self) -> None:
         ec2 = MagicMock()
-        ec2.describe_spot_price_history.return_value = {
-            "SpotPriceHistory": [{"SpotPrice": "N/A"}]
-        }
+        ec2.describe_spot_price_history.return_value = {"SpotPriceHistory": [{"SpotPrice": "N/A"}]}
         with pytest.raises(RuntimeError, match="non-numeric SpotPrice"):
             get_spot_price(ec2, "m5.xlarge", "us-west-2a")
 
@@ -226,7 +307,7 @@ class TestProcessSlurmQueues:
         }
 
         def _price_for(InstanceTypes, **_kwargs):
-            return {"SpotPriceHistory": [{"SpotPrice": prices[InstanceTypes[0]]}]}
+            return {"SpotPriceHistory": [_fresh_spot_row(prices[InstanceTypes[0]])]}
 
         ec2.describe_spot_price_history.side_effect = _price_for
         _set_instance_vcpus(
@@ -268,7 +349,7 @@ class TestProcessSlurmQueues:
         }
 
         def _price_for(InstanceTypes, **_kwargs):
-            return {"SpotPriceHistory": [{"SpotPrice": prices[InstanceTypes[0]]}]}
+            return {"SpotPriceHistory": [_fresh_spot_row(prices[InstanceTypes[0]])]}
 
         ec2.describe_spot_price_history.side_effect = _price_for
         _set_instance_vcpus(ec2, {"c7i.48xlarge": 192, "c8i.96xlarge": 384})
@@ -306,7 +387,7 @@ class TestProcessSlurmQueues:
         def _price_for(InstanceTypes, ProductDescriptions, **_kwargs):
             return {
                 "SpotPriceHistory": [
-                    {"SpotPrice": prices[(InstanceTypes[0], ProductDescriptions[0])]}
+                    _fresh_spot_row(prices[(InstanceTypes[0], ProductDescriptions[0])])
                 ]
             }
 
@@ -346,7 +427,7 @@ class TestProcessSlurmQueues:
         def _price_for(InstanceTypes, ProductDescriptions, **_kwargs):
             return {
                 "SpotPriceHistory": [
-                    {"SpotPrice": prices[(InstanceTypes[0], ProductDescriptions[0])]}
+                    _fresh_spot_row(prices[(InstanceTypes[0], ProductDescriptions[0])])
                 ]
             }
 
@@ -385,7 +466,7 @@ class TestProcessSlurmQueues:
         def _price_for(InstanceTypes, ProductDescriptions, **_kwargs):
             return {
                 "SpotPriceHistory": [
-                    {"SpotPrice": prices[(InstanceTypes[0], ProductDescriptions[0])]}
+                    _fresh_spot_row(prices[(InstanceTypes[0], ProductDescriptions[0])])
                 ]
             }
 
@@ -427,7 +508,7 @@ class TestProcessSlurmQueues:
         }
 
         def _price_for(InstanceTypes, **_kwargs):
-            return {"SpotPriceHistory": [{"SpotPrice": prices[InstanceTypes[0]]}]}
+            return {"SpotPriceHistory": [_fresh_spot_row(prices[InstanceTypes[0]])]}
 
         ec2.describe_spot_price_history.side_effect = _price_for
         _set_instance_vcpus(ec2, {"c6i.16xlarge": 64, "c6i.32xlarge": 128})
@@ -517,9 +598,9 @@ Scheduling:
     written = yaml.load(output.read_text(encoding="utf-8"))
     assert written["Scheduling"]["SlurmQueues"][0]["ComputeResources"][0]["SpotPrice"] == 9.99
     headnode_args = written["HeadNode"]["CustomActions"]["OnNodeConfigured"]["Args"]
-    queue_args = written["Scheduling"]["SlurmQueues"][0]["CustomActions"][
-        "OnNodeConfigured"
-    ]["Args"]
+    queue_args = written["Scheduling"]["SlurmQueues"][0]["CustomActions"]["OnNodeConfigured"][
+        "Args"
+    ]
     assert headnode_args[2] == "8.00"
     assert queue_args[2] == "8.00"
     assert all(isinstance(arg, str) for arg in headnode_args)

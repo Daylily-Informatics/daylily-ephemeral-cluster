@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import os
 import re
@@ -12,6 +13,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import zlib
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -64,6 +66,7 @@ class WorkflowLaunchInfo:
     session_name: str
     run_dir: str
     repo_path: str
+    status_attempt_id: str
 
 
 @dataclass
@@ -72,7 +75,9 @@ class WorkflowStatus:
     repo_path: str
     started_at: Optional[str]
     completed_at: Optional[str]
-    exit_code: Optional[int]
+    controller_exit_code: Optional[int]
+    day_run_exit_code: Optional[int]
+    snakemake_exit_code: Optional[int]
     command: str
 
 
@@ -293,7 +298,10 @@ def parse_remote_stage_dir(stdout: str) -> str:
 
 
 def parse_workflow_launch(stdout: str) -> WorkflowLaunchInfo:
+    from daylily_ec.scripts.daylily_run_omics_analysis_headnode import parse_controller_target
+
     session_name = run_dir = repo_path = None
+    controller_target = None
     for line in stdout.splitlines():
         if line.startswith("__DAYLILY_SESSION__="):
             session_name = line.split("=", 1)[1].strip()
@@ -301,9 +309,18 @@ def parse_workflow_launch(stdout: str) -> WorkflowLaunchInfo:
             run_dir = line.split("=", 1)[1].strip()
         elif line.startswith("__DAYLILY_REPO_PATH__="):
             repo_path = line.split("=", 1)[1].strip()
-    if not (session_name and run_dir and repo_path):
+        elif line.startswith("__DYEC_CONTROLLER_TARGET__="):
+            controller_target = parse_controller_target(line.split("=", 1)[1].strip())
+    if not (session_name and run_dir and repo_path and controller_target):
         raise CommandError("Unable to determine workflow launch details from launcher output.")
-    return WorkflowLaunchInfo(session_name=session_name, run_dir=run_dir, repo_path=repo_path)
+    if controller_target.controller_id != session_name or controller_target.cwd != repo_path:
+        raise CommandError("Workflow launch controller target disagrees with the launch receipt.")
+    return WorkflowLaunchInfo(
+        session_name=session_name,
+        run_dir=run_dir,
+        repo_path=repo_path,
+        status_attempt_id=controller_target.status_attempt_id,
+    )
 
 
 def parse_tmux_session(stdout: str) -> str:
@@ -329,8 +346,6 @@ def _parse_workflow_status(stdout: str) -> tuple[Optional[WorkflowStatus], str]:
             if raw == "MISSING":
                 continue
             payload = json.loads(raw)
-            exit_code_raw = payload.get("exit_code")
-            exit_code = int(exit_code_raw) if isinstance(exit_code_raw, int) else None
             status_payload = WorkflowStatus(
                 session_name=str(payload.get("session_name") or ""),
                 repo_path=str(payload.get("repo_path") or ""),
@@ -338,7 +353,21 @@ def _parse_workflow_status(stdout: str) -> tuple[Optional[WorkflowStatus], str]:
                 completed_at=str(payload.get("completed_at"))
                 if payload.get("completed_at")
                 else None,
-                exit_code=exit_code,
+                controller_exit_code=(
+                    payload["controller_exit_code"]
+                    if isinstance(payload.get("controller_exit_code"), int)
+                    else None
+                ),
+                day_run_exit_code=(
+                    payload["day_run_exit_code"]
+                    if isinstance(payload.get("day_run_exit_code"), int)
+                    else None
+                ),
+                snakemake_exit_code=(
+                    payload["snakemake_exit_code"]
+                    if isinstance(payload.get("snakemake_exit_code"), int)
+                    else None
+                ),
                 command=str(payload.get("command") or ""),
             )
     return status_payload, "\n".join(tail_lines).strip()
@@ -533,21 +562,79 @@ def _fetch_workflow_status(
     region: str,
     run_dir: str,
 ) -> tuple[Optional[WorkflowStatus], str, str]:
-    status_file = f"{run_dir.rstrip('/')}/status.json"
+    target_file = f"{run_dir.rstrip('/')}/controller_target.json"
     log_file = f"{run_dir.rstrip('/')}/tmux.log"
+    execution_status_source = (REPO_ROOT / "daylily_ec" / "execution_status.py").read_bytes()
+    execution_status_encoded = base64.b64encode(
+        zlib.compress(execution_status_source, level=9)
+    ).decode("ascii")
     script = f"""
 set -euo pipefail
-STATUS_FILE={json.dumps(status_file)}
+TARGET_FILE={json.dumps(target_file)}
 LOG_FILE={json.dumps(log_file)}
-export STATUS_FILE LOG_FILE
-if [[ -f "$STATUS_FILE" ]]; then
+export TARGET_FILE LOG_FILE
+if [[ -f "$TARGET_FILE" ]]; then
   python3 - <<'PY'
+import base64
 import json
 import os
 from pathlib import Path
+import types
+import zlib
 
-payload = json.loads(Path(os.environ["STATUS_FILE"]).read_text(encoding="utf-8"))
-print("__DAYLILY_STATUS__=" + json.dumps(payload, sort_keys=True))
+status_module = types.ModuleType("daylily_ec.execution_status")
+status_source = zlib.decompress(base64.b64decode({execution_status_encoded!r}))
+exec(compile(status_source, "<dyec-execution-status>", "exec"), status_module.__dict__)
+
+target_path = Path(os.environ["TARGET_FILE"])
+target = json.loads(target_path.read_text(encoding="utf-8"))
+required_target = {{
+    "schema_version",
+    "controller_id",
+    "pid",
+    "cwd",
+    "log_path",
+    "dag_path",
+    "analysis_root",
+    "status_attempt_id",
+}}
+if set(target) != required_target or target.get("schema_version") != "dyec.controller_target.v2":
+    raise SystemExit("invalid controller target v2")
+repo_path = str(target["cwd"])
+analysis_root = str(target["analysis_root"])
+if (
+    not repo_path.startswith("/fsx/analysis_results/")
+    or not repo_path.endswith("/daylily-omics-analysis")
+    or analysis_root != str(Path(repo_path).parent)
+):
+    raise SystemExit("controller target clone identity is invalid")
+status_path = status_module.status_path_for_repo(repo_path)
+if not status_path.is_file() or status_path.is_symlink():
+    print("__DAYLILY_STATUS__=MISSING")
+    raise SystemExit(0)
+try:
+    payload = status_module.read_execution_status(
+        status_path,
+        repo_path=repo_path,
+        analysis_root=analysis_root,
+    )
+    attempt = status_module.controller_attempt(
+        payload,
+        attempt_id=target["status_attempt_id"],
+        session_name=target["controller_id"],
+    )
+except status_module.ExecutionStatusError as exc:
+    raise SystemExit(f"invalid clone-resident status v2: {{exc}}") from exc
+codes = status_module.attempt_exit_codes(attempt)
+result = {{
+    "session_name": target["controller_id"],
+    "repo_path": repo_path,
+    "started_at": attempt.get("started_at"),
+    "completed_at": attempt.get("completed_at"),
+    "command": attempt.get("requested_command"),
+    **codes,
+}}
+print("__DAYLILY_STATUS__=" + json.dumps(result, sort_keys=True))
 PY
 else
   echo "__DAYLILY_STATUS__=MISSING"
@@ -595,12 +682,17 @@ def _wait_for_workflow_completion(
         )
         last_command_id = command_id
         last_tail = log_tail
-        if status is None or status.exit_code is None:
+        if status is None or status.controller_exit_code is None:
             time.sleep(poll_interval_seconds)
             continue
 
         last_status = status
-        if status.exit_code != 0:
+        terminal_codes = (
+            status.controller_exit_code,
+            status.day_run_exit_code,
+            status.snakemake_exit_code,
+        )
+        if any(code is None for code in terminal_codes):
             _record_step(
                 summary,
                 output_path,
@@ -610,9 +702,32 @@ def _wait_for_workflow_completion(
                 run_dir=launch_info.run_dir,
                 repo_path=launch_info.repo_path,
                 command_id=command_id,
-                exit_code=str(status.exit_code),
+                reason="terminal controller status omitted a child exit code",
             )
-            detail = f"Workflow failed with exit code {status.exit_code}."
+            raise CommandError(
+                "Clone-resident v2 status finalized the controller without all "
+                "three independently recorded exit codes."
+            )
+        if any(code != 0 for code in terminal_codes):
+            _record_step(
+                summary,
+                output_path,
+                "wait-for-workflow",
+                "failed",
+                session_name=launch_info.session_name,
+                run_dir=launch_info.run_dir,
+                repo_path=launch_info.repo_path,
+                command_id=command_id,
+                controller_exit_code=str(status.controller_exit_code),
+                day_run_exit_code=str(status.day_run_exit_code),
+                snakemake_exit_code=str(status.snakemake_exit_code),
+            )
+            detail = (
+                "Workflow failed with clone-resident v2 exit codes "
+                f"controller={status.controller_exit_code}, "
+                f"day_run={status.day_run_exit_code}, "
+                f"snakemake={status.snakemake_exit_code}."
+            )
             if log_tail:
                 detail = detail + "\n\nLast workflow log lines:\n" + log_tail
             raise CommandError(detail)
@@ -627,7 +742,9 @@ def _wait_for_workflow_completion(
             repo_path=launch_info.repo_path,
             command_id=command_id,
             completed_at=status.completed_at or "",
-            exit_code=str(status.exit_code),
+            controller_exit_code=str(status.controller_exit_code),
+            day_run_exit_code=str(status.day_run_exit_code),
+            snakemake_exit_code=str(status.snakemake_exit_code),
         )
         return status
 

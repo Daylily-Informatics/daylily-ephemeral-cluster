@@ -1,8 +1,10 @@
 # Daylily Ephemeral Cluster
 
-Daylily Ephemeral Cluster, usually called DYEC or DayEC, is the CLI control plane for short-lived AWS ParallelCluster bioinformatics work. Release `18.0.13` creates and configures clusters, mounts sequencing-run data into FSx, launches pinned workflow repositories on the headnode, monitors exact analysis roots, moves files between local and headnode storage, and exports finished results to S3 with receipts.
+Daylily Ephemeral Cluster, usually called DYEC or DayEC, is the CLI control plane for short-lived AWS ParallelCluster bioinformatics work. Release `19.0.6` creates and configures clusters, mounts sequencing-run data into FSx, launches pinned workflow repositories on the headnode, monitors exact analysis roots, moves files between local and headnode storage, and exports finished results to S3 with receipts.
 
 DYEC is not an identity service and not a workflow engine. It does not require or contact a metadata or identity service. It consumes explicit local configuration, explicit manifests, explicit S3 paths, and explicit command-catalog entries. DayOA owns its workflow rules and `dy-r` execution. DYEC owns cluster/headnode orchestration and the launch/export envelope.
+
+> **Agent and operator starting point:** read [docs/agent_cli_guide.md](docs/agent_cli_guide.md) before operating a cluster or DayOA analysis. It maps the common DYEC CLI paths, the interactive DayOA contract, and the stop conditions. `dyec agent guidance` is the matching compact terminal reminder.
 
 ## Current operator model
 
@@ -25,7 +27,7 @@ Inspect the installed CLI before mutating anything:
 dyec --json version
 dyec --help
 dyec agent guidance
-dyec --json catalog list
+dyec --json catalog list --dyec-version 19.0.6
 ```
 
 ### Optional project-local context
@@ -60,6 +62,13 @@ Use `--cluster` for DYEC commands. Keep `--cluster-name` for tools such as `pclu
 ## Safety contracts
 
 - Use `dyec`; do not launch DayOA by invoking raw `snakemake`.
+- Upstream services use the installed `dyec` console script for every cluster
+  lifecycle operation. They do not run `pcluster`, import DYEC Python
+  internals, or use a module entrypoint as an alternate control path.
+- Saved cluster templates keep `SpotPrice: CALCULATE_MAX_SPOT_PRICE` on every
+  Spot compute resource. Root `dyec create` resolves the normal config and
+  performs live spot-price calculation before provider dry-run/create; saved
+  templates never persist a calculated numeric bid.
 - New DayOA checkouts must be explicit-tag checkouts.
 - A DYEC controller never mutates a pinned DayOA release: no runtime rule/script/environment/config patches, source overlays, or generated helpers in the checkout. It verifies the selected ref is clean before dispatch and after the workflow returns. Missing behavior is a hard error that must be fixed and released in DayOA, never repaired on the headnode.
 - Headnode work uses a cluster-appropriate remote user selected by platform: Ubuntu/Intel DayOA headnodes use `ubuntu`; DRAGEN/RHEL-style headnodes use `ec2-user`.
@@ -76,10 +85,11 @@ Run `dyec --help` for the live list. Current major groups are:
 
 | Group | Purpose |
 |---|---|
-| `version`, `info`, `runtime`, `env`, `resources-dir`, `state`, `set-vars`, `unset-vars` | Local/runtime introspection and per-checkout local context. |
+| `version`, `info`, `runtime`, `env`, `resources`, `state`, `set-vars`, `unset-vars` | Versioned resource/runtime introspection and per-checkout local context. |
 | `agent` | Compact operational guidance for an automated or human operator. |
-| `preflight`, `create`, `drift`, `delete` | Cluster lifecycle. |
-| `cluster`, `cluster-info` | ParallelCluster inspection and tag helpers. |
+| `preflight`, `create`, `drift`, `delete` | Cluster lifecycle; root create retains the original profile/region-AZ/cluster-type entrypoint and automatic resolution. |
+| `create-request` | Standalone protected request and admission tooling; it is not required or invoked by root create. |
+| `cluster`, `cluster-info` | ParallelCluster inspection, guarded compute-fleet lifecycle, and tag helpers. |
 | `headnode` | SSM-backed headnode connection, command execution, file transfer, and observability. |
 | `mounts`, `mount` | FSx run-directory Data Repository Associations. |
 | `workflow`, `repositories`, `catalog` | Standard workflow clone/launch/status helpers plus repository and command-catalog discovery, exact rendering, and launch. |
@@ -88,10 +98,10 @@ Run `dyec --help` for the live list. Current major groups are:
 | `analysis` | Analysis-root visit logging, status reporting, lock ownership, and guarded commands. |
 | `command` | Command-family progress views such as HIOMRS sample stats and DAG download. |
 | `export`, `exports`, `runtime-cache` | FSx analysis export and DRA-only runtime-cache preservation through explicit S3 receipts. |
-| `pricing`, `cost-centers`, `aws`, `slurm-accounting` | Cost, quota, AWS readiness, and accounting support. |
+| `pricing`, `cost-centers`, `aws`, `slurm-accounting` | Cost, quota, AWS readiness, read-only accounting-topology inspection, and guarded accounting support. |
 | `tests` | Local pytest and catalog validation helpers. |
 
-Detailed examples live in [docs/cli_reference.md](docs/cli_reference.md).
+Detailed option-level examples live in [docs/cli_reference.md](docs/cli_reference.md). The task-oriented path is [docs/agent_cli_guide.md](docs/agent_cli_guide.md).
 
 ## Guarded AWS Budget updates
 
@@ -166,23 +176,17 @@ dyec --json catalog launch hybrid_ilmn_ont_hiomr_kitchensink \
   --dry-run
 ```
 
-If the dry-run plan is bounded and correct, launch the same catalog command without `--dry-run` and use a new session name:
+If the dry-run plan is bounded and correct and the production contract requires
+a same-root continuation, do not issue a second catalog launch against the
+existing root. Start a new `dyec workflow launch` controller with
+`--reuse-existing-analysis-dir --input-contract none --no-input-staging`, the
+exact ref/commit, and the rendered live `dy-r` argv with only `-n` removed.
+The full continuation command and its lock boundary are in
+[docs/agent_cli_guide.md](docs/agent_cli_guide.md#5-preferred-path-catalog-render-dry-controller-and-live-controller).
 
-```bash
-dyec --json catalog launch hybrid_ilmn_ont_hiomr_kitchensink \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER" \
-  --analysis-id "$ANALYSIS_ID" \
-  --executing-entity "$CLUSTER" \
-  --manifest-dir ./config \
-  --payload-staging-s3-uri "$STAGING_S3_URI" \
-  --session-name "$ANALYSIS_ID" \
-  --project RnD \
-  --cost-center "$COST_CENTER"
-```
-
-For DayOA runtime config, pass explicit `key=value` overrides. DYEC appends them to the `dy-r ... --config` section and does not reinterpret their workflow-specific meaning:
+For scalar DayOA runtime config, pass explicit `key=value` overrides. DYEC
+appends them to the `dy-r ... --config` section and does not reinterpret their
+workflow-specific meaning:
 
 ```bash
 dyec --json catalog render hybrid_ilmn_ont_hiomr_kitchensink \
@@ -197,19 +201,25 @@ dyec --json catalog render hybrid_ilmn_ont_hiomr_kitchensink \
   --dy-config global_ont_subsample_pct=0.25
 ```
 
+Typed YAML analysis configuration must be materialized inside the cloned DayOA
+analysis directory, normally under `config/`, and passed to `dy-r` through an
+in-clone `--configfile` path. Never retain a controller-specific YAML/config
+under `/home/ubuntu`, `/tmp`, or another path outside the clone. Together with
+the in-clone manifests and saved command/receipts, the clone is the rerunnable
+analysis capsule; only the explicitly declared source reads, CRAMs, references,
+licenses, and runtime assets remain external.
+
 Large local payloads are staged through S3 with `--payload-staging-s3-uri`. DYEC uploads a tarball containing input manifests, a payload manifest, and the controller launch script. The headnode downloads and expands that tarball into the workflow run directory, starts the tmux controller, and then saves the exact executed script under `<analysis-root>/bin/dyec-controller-launch.sh` after `day-clone` creates the analysis root. This avoids SSM document-size limits without pre-creating the analysis root.
 
-### Current and released command shapes
+### Immutable command shapes
 
-Catalog version 6 uses `dyec_builds.current` for every command-catalog action
-unless `--dyec-version` explicitly selects an immutable numeric release
-snapshot. When a new DYEC release is created, copy `current` to that release's
-numeric key before changing `current`; never edit an existing numeric snapshot:
+Catalog version 6 requires an exact numeric `--dyec-version` for every public
+catalog action. The `19.0.19` snapshot is immutable; there is no mutable
+`current` alias or implicit catalog selection:
 
 ```bash
-dyec --json catalog list --type prod
-dyec --json catalog list --dyec-version 18.0.9 --type prod
-dyec --json catalog render <command-id> --dyec-version 18.0.9 ...
+dyec --json catalog list --dyec-version 19.0.19 --type prod
+dyec --json catalog render <command-id> --dyec-version 19.0.19 ...
 ```
 
 A build may also declare one-hop, same-build aliases. An alias inherits one
@@ -220,7 +230,7 @@ bases, duplicate IDs, mixed extension/replacement modes, and partial command
 replacements fail catalog validation. Existing catalog APIs return aliases as
 fully resolved `AnalysisCommand` records.
 
-The active catalog targets DayOA `15.0.10`. Public catalog output includes a
+The `19.0.19` catalog targets DayOA `16.0.4`. Public catalog output includes a
 derived `validation_pending` field: `true` means the command now targets a
 different DayOA tag than its retained `validated_version`. It is a visibility
 signal only; it does not relabel older validation receipts or block a launch.
@@ -231,7 +241,7 @@ prefix must contain `command_registry.json` and `summary.json` from a successful
 
 ```bash
 dyec --json catalog validation-compare <command-id> \
-  --dyec-version 18.0.9 --profile "$AWS_PROFILE" --region "$REGION"
+  --dyec-version 19.0.19 --profile "$AWS_PROFILE" --region "$REGION"
 ```
 
 The comparison fails hard when no prefix is declared, the receipts are missing,
@@ -248,7 +258,7 @@ dyec workflow launch \
   --cluster "$CLUSTER" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$CLUSTER" \
-  --git-tag 15.0.10 \
+  --git-tag 16.0.3 \
   --manifest-dir ./config \
   --payload-staging-s3-uri "$STAGING_S3_URI" \
   --session-name "$ANALYSIS_ID" \
@@ -527,8 +537,7 @@ Export one completed analysis directory:
 dyec analysis visit \
   --analysis-root /fsx/analysis_results/"$CLUSTER"/"$ANALYSIS_ID" \
   --mode export \
-  --intent "export completed pipeline results to $DESTINATION_S3_URI without FSx cleanup" \
-  --s3-visit-uri "$DESTINATION_S3_URI"
+  --intent "export completed pipeline results to $DESTINATION_S3_URI without FSx cleanup"
 
 dyec export \
   --profile "$AWS_PROFILE" \
@@ -541,7 +550,9 @@ dyec export \
 
 `dyec catalog list`, `show`, and `render` expose the same `result_export`
 contract. DayOA never exports: after the controller succeeds, run the displayed
-DYEC visit and DRA export commands from the analysis root.
+DYEC visit and DRA export commands from the analysis root. Leave the destination
+prefix empty for `dyec export`'s fail-closed preflight; do not put an
+`--s3-visit-uri` marker in that intended destination.
 `dyec export` records a local receipt and uses an explicit DRA/export path.
 Verify `status=success`, `phase=complete`, `task_lifecycle=SUCCEEDED`,
 `detached=true`, and the expected S3 objects. FSx data is preserved unless a
@@ -558,4 +569,13 @@ python -m pytest tests/test_cli_registry_v2.py -q
 git diff --check
 ```
 
-Release tags are numeric, annotated semver tags with no leading `v`. Do not move pushed tags. The checked-in release baseline is `18.0.13`; choose any future version only through the explicit release process on a clean release commit.
+The repository-catalog snapshot modules are optional and skipped by default.
+Run them explicitly when catalog snapshot validation is needed:
+
+```bash
+python -m pytest --run-catalog-snapshot-tests \
+  tests/test_repository_catalog.py \
+  tests/test_repository_catalog_aliases.py
+```
+
+Release tags are numeric, annotated semver tags with no leading `v`. Do not move pushed tags. The checked-in release target is `19.0.19`; tag only the exact clean release commit after required acceptance.

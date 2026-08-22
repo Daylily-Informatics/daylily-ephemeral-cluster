@@ -17,9 +17,9 @@ from daylily_ec.workflow.dyr_preflight import normalize_dyr_preflight_options
 
 CATALOG_VERSION = 6
 SUPPORTED_CATALOG_VERSIONS = {1, 2, 3, 4, 5, CATALOG_VERSION}
-CURRENT_DYEC_BUILD = "current"
+CURRENT_DYEC_BUILD = "19.0.19"
 DYEC_BUILD_VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+(?:\.\d+)?$")
-CROSS_BUILD_ALIAS_PATTERN = re.compile(r"^(?:current|\d+\.\d+\.\d+(?:\.\d+)?)(?:[/:@])")
+CROSS_BUILD_ALIAS_PATTERN = re.compile(r"^\d+\.\d+\.\d+(?:\.\d+)?(?:[/:@])")
 ALIAS_CONFIG_KEY_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_.-]*$")
 ALIAS_ENVIRONMENT_PATTERN = re.compile(r"^[A-Z_][A-Z0-9_]*$")
 ALIAS_TARGET_PATTERN = re.compile(r"^[A-Za-z0-9_./:-]+$")
@@ -573,6 +573,7 @@ class AnalysisCommand(BaseModel):
     requires_run_mount: bool
     staging_receipt_required: bool = False
     cost_center_required: bool = False
+    runtime_config_target: str = ""
     runtime_parameters: Dict[str, Any] = Field(default_factory=dict)
     input_requirements: CommandInputRequirements = Field(default_factory=CommandInputRequirements)
     targets: List[str]
@@ -678,6 +679,18 @@ class AnalysisCommand(BaseModel):
             raise ValueError("manifest template paths must be relative and must not contain '..'")
         return cleaned
 
+    @field_validator("runtime_config_target")
+    @classmethod
+    def _validate_runtime_config_target(cls, value: str) -> str:
+        cleaned = str(value or "").strip()
+        if not cleaned:
+            return ""
+        if cleaned != "config/dyec_runtime_config.yaml":
+            raise ValueError(
+                "runtime_config_target must be exactly config/dyec_runtime_config.yaml"
+            )
+        return cleaned
+
     @field_validator("validation_evidence_s3_uri_prefix")
     @classmethod
     def _validate_validation_evidence_s3_uri_prefix(cls, value: str) -> str:
@@ -695,6 +708,19 @@ class AnalysisCommand(BaseModel):
             raise ValueError("manifest_dir_template requires the six_manifest input contract")
         if self.staging_receipt_required and self.input_contract != "six_manifest":
             raise ValueError("staging_receipt_required requires the six_manifest input contract")
+        if self.runtime_config_target:
+            if self.input_contract != "six_manifest" or not self.requires_staging:
+                raise ValueError(
+                    "runtime_config_target requires a staged six_manifest command"
+                )
+            required_configfile = f"--configfile {self.runtime_config_target}"
+            if (
+                required_configfile not in self.dy_command
+                or required_configfile not in self.dryrun_dy_command
+            ):
+                raise ValueError(
+                    "runtime_config_target must be the exact --configfile path in both commands"
+                )
         if self.sample_manifest_template and self.input_contract == "six_manifest":
             raise ValueError(
                 "six_manifest commands must use manifest_dir_template, not sample_manifest_template"
@@ -797,6 +823,7 @@ class AnalysisCommand(BaseModel):
         samples_file: Optional[str] = None,
         libraries_file: Optional[str] = None,
         units_file: Optional[str] = None,
+        runtime_config_file: Optional[str] = None,
         dry_run: bool = False,
         skip_project_check: bool = True,
         export_destination_s3_uri: Optional[str] = None,
@@ -853,8 +880,15 @@ class AnalysisCommand(BaseModel):
                 raise ValueError(
                     "manifest_dir cannot be combined with legacy stage or manifest arguments"
                 )
+            if self.runtime_config_target and not runtime_config_file:
+                raise ValueError(
+                    f"{self.command_id} requires runtime_config_file for "
+                    f"{self.runtime_config_target}"
+                )
         elif manifest_dir:
             raise ValueError("manifest_dir requires the six_manifest input contract")
+        elif runtime_config_file:
+            raise ValueError("runtime_config_file requires the six_manifest input contract")
         elif self.input_contract == "sample_manifest_v12":
             if units_file:
                 raise ValueError(
@@ -917,6 +951,8 @@ class AnalysisCommand(BaseModel):
         argv.append("--skip-project-check" if skip_project_check else "--strict-project-check")
         if self.no_containerized:
             argv.append("--no-containerized")
+        if runtime_config_file:
+            argv.extend(["--runtime-config-file", runtime_config_file])
         if not self.default_activation:
             argv.append("--no-default-activation")
         if self.input_contract == "none":
@@ -1216,12 +1252,7 @@ def _resolve_analysis_command_alias(
 
 
 class DyecBuildCommandSet(BaseModel):
-    """Catalog command shapes for the current view or one immutable DYEC build.
-
-    Commands are deliberately embedded rather than referenced by repository
-    rows. Numeric keys are immutable release snapshots; ``current`` is the
-    default mutable view that is copied when a new DYEC release is created.
-    """
+    """Catalog command shapes for one immutable numeric DYEC build."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -1391,7 +1422,9 @@ class RepositoryCatalog(BaseModel):
         if self.command_catalog_version >= 4 and not self.dyec_builds:
             raise ValueError("command catalog version 4 requires dyec_builds")
         if self.command_catalog_version >= 5 and CURRENT_DYEC_BUILD not in self.dyec_builds:
-            raise ValueError("command catalog version 5 or newer requires dyec_builds.current")
+            raise ValueError(
+                "command catalog version 5 or newer requires the exact current DYEC release snapshot"
+            )
         if self.command_catalog_version < 6 and any(
             command_set.aliases for command_set in self.dyec_builds.values()
         ):
@@ -1400,13 +1433,11 @@ class RepositoryCatalog(BaseModel):
             if str(build_version).startswith("v"):
                 raise ValueError("dyec_builds keys must use non-v semver release identifiers")
             _clean_id(build_version, field_name="dyec_builds key")
-            if (
-                self.command_catalog_version >= 5
-                and build_version != CURRENT_DYEC_BUILD
-                and not DYEC_BUILD_VERSION_PATTERN.fullmatch(str(build_version))
+            if self.command_catalog_version >= 5 and not DYEC_BUILD_VERSION_PATTERN.fullmatch(
+                str(build_version)
             ):
                 raise ValueError(
-                    "dyec_builds keys must be 'current' or non-v semver release identifiers"
+                    "dyec_builds keys must be non-v semver release identifiers"
                 )
         unknown_contracts = set(self.input_contracts) - INPUT_CONTRACTS
         if unknown_contracts:
@@ -1566,7 +1597,7 @@ class RepositoryCatalog(BaseModel):
         raise KeyError(f"Unknown analysis command: {command_key}")
 
     def resolve_dyec_build_key(self, dyec_version: Optional[str] = None) -> str:
-        """Resolve an omitted selector to the mutable current catalog view."""
+        """Resolve an omitted selector to this release's immutable snapshot."""
 
         return _clean_id(
             dyec_version if dyec_version is not None else CURRENT_DYEC_BUILD,
@@ -1574,7 +1605,7 @@ class RepositoryCatalog(BaseModel):
         )
 
     def commands_for_dyec_build(self, dyec_version: Optional[str] = None) -> List[AnalysisCommand]:
-        """Return current commands by default or an explicitly selected snapshot."""
+        """Return the requested immutable DYEC-build command snapshot."""
 
         build_key = self.resolve_dyec_build_key(dyec_version)
         try:

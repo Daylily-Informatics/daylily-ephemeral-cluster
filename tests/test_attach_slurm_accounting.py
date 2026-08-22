@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -12,6 +13,7 @@ from daylily_ec.aws.slurm_accounting import (
     SlurmAccountingError,
 )
 from daylily_ec.aws.slurm_accounting_privatelink import (
+    SlurmAccountingPrivateLinkBridge,
     SlurmAccountingPrivateLinkError,
 )
 from daylily_ec.pcluster.runner import PclusterResult
@@ -37,6 +39,48 @@ def _db() -> SlurmAccountingDb:
         password_secret_arn="arn:aws:secretsmanager:us-west-2:123:secret:acct",
         client_security_group_id="sg-accounting-client",
         client_secret_read_policy_arn="arn:aws:iam::123:policy/accounting-client-read",
+        instance_id="i-accounting",
+    )
+
+
+def _bridge(
+    *,
+    provider_stack_name: str = "dayec-slurm-accounting-us-west-2c",
+    consumer_vpc_id: str = "vpc-cluster",
+    database_name: str = "dayec_slurm_acct",
+) -> SlurmAccountingPrivateLinkBridge:
+    return SlurmAccountingPrivateLinkBridge(
+        stack_name="dayec-sacct-pl-vpc-cluster",
+        status="UPDATE_COMPLETE",
+        provider_accounting_stack_name=provider_stack_name,
+        provider_vpc_id="vpc-provider",
+        consumer_vpc_id=consumer_vpc_id,
+        endpoint_id="vpce-accounting",
+        endpoint_service_id="vpce-svc-accounting",
+        endpoint_subnet_id="subnet-endpoint",
+        client_security_group_id="sg-consumer-client",
+        client_secret_read_policy_arn="arn:aws:iam::123:policy/consumer-read",
+        target_group_arn="arn:aws:elasticloadbalancing:us-west-2:123:targetgroup/accounting",
+        uri="vpce-accounting.example:3306",
+        endpoint_private_ip="10.0.2.4",
+        database_name=database_name,
+        username="slurm_acct",
+        password_secret_arn="arn:aws:secretsmanager:us-west-2:123:secret:acct",
+        accounting_instance_id="i-accounting",
+    )
+
+
+def _provider_db() -> SlurmAccountingDb:
+    return SlurmAccountingDb(
+        stack_name="dayec-slurm-accounting-us-west-2c",
+        status="CREATE_COMPLETE",
+        uri="10.0.1.237:3306",
+        private_ip="10.0.1.237",
+        database_name="dayec_slurm_acct",
+        username="slurm_acct",
+        password_secret_arn="arn:aws:secretsmanager:us-west-2:123:secret:acct",
+        client_security_group_id="sg-provider-client",
+        client_secret_read_policy_arn="arn:aws:iam::123:policy/provider-read",
         instance_id="i-accounting",
     )
 
@@ -89,6 +133,21 @@ class _Ec2:
                     "SubnetId": "subnet-head",
                     "VpcId": "vpc-cluster",
                     "AvailabilityZone": "us-west-2d",
+                }
+            ]
+        }
+
+    def describe_instances(self, *, InstanceIds):
+        assert InstanceIds == ["i-accounting"]
+        return {
+            "Reservations": [
+                {
+                    "Instances": [
+                        {
+                            "InstanceId": "i-accounting",
+                            "InstanceType": "t4g.micro",
+                        }
+                    ]
                 }
             ]
         }
@@ -412,6 +471,9 @@ def test_prepare_auto_reuses_deterministic_healthy_privatelink_bridge(
     bridge_calls = []
 
     class Bridge:
+        stack_name = "dayec-sacct-pl-vpc-cluster"
+        provider_accounting_stack_name = "existing-other-vpc"
+
         @staticmethod
         def as_accounting_db():
             return bridge_db
@@ -486,6 +548,9 @@ def test_prepare_reconciles_existing_bridge_before_approved_cross_vpc_attachment
     reconciliation_calls = []
 
     class Bridge:
+        stack_name = "dayec-sacct-pl-vpc-cluster"
+        provider_accounting_stack_name = "dayec-slurm-accounting-us-west-2c"
+
         @staticmethod
         def as_accounting_db():
             return bridge_db
@@ -592,6 +657,7 @@ def test_prepare_uses_explicit_healthy_privatelink_bridge(tmp_path, monkeypatch)
     )
 
     class Bridge:
+        stack_name = "dayec-sacct-pl-vpc-cluster"
         consumer_vpc_id = "vpc-cluster"
         provider_accounting_stack_name = "dayec-slurm-accounting-us-west-2c"
 
@@ -636,6 +702,265 @@ def test_prepare_uses_explicit_healthy_privatelink_bridge(tmp_path, monkeypatch)
     assert rendered["Scheduling"]["SlurmSettings"]["Database"]["Uri"] == (
         "vpce-accounting.example:3306"
     )
+
+
+def test_exact_preparation_uses_only_named_existing_provider_and_bridge(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    source = _config(tmp_path / "source.yaml")
+    provider_name = "dayec-slurm-accounting-us-west-2c"
+    bridge_name = "dayec-sacct-pl-vpc-cluster"
+    calls: list[tuple[str, object]] = []
+    monkeypatch.setattr(
+        attach_module.AWSContext,
+        "build_region",
+        classmethod(lambda _cls, _region, profile=None: _AwsContext()),
+    )
+    monkeypatch.setattr(
+        attach_module,
+        "list_regional_slurm_accounting_stacks",
+        lambda *_args, **_kwargs: [
+            {
+                "StackName": provider_name,
+                "Tags": [{"Key": "daylily-ec:vpc-id", "Value": "vpc-provider"}],
+            }
+        ],
+    )
+
+    def resolve_bridge(*_args, **kwargs):
+        calls.append(("bridge", kwargs))
+        return _bridge()
+
+    def discover_provider(*_args, **kwargs):
+        calls.append(("provider", kwargs))
+        return [_provider_db()]
+
+    monkeypatch.setattr(
+        privatelink_module,
+        "resolve_slurm_accounting_privatelink_bridge",
+        resolve_bridge,
+    )
+    monkeypatch.setattr(attach_module, "discover_slurm_accounting_dbs", discover_provider)
+    monkeypatch.setattr(
+        privatelink_module,
+        "resolve_slurm_accounting_privatelink_bridge_for_consumer",
+        lambda *_args, **_kwargs: pytest.fail("alternate bridge discovery is forbidden"),
+    )
+    monkeypatch.setattr(
+        privatelink_module,
+        "reconcile_existing_slurm_accounting_privatelink_bridge_for_consumer",
+        lambda *_args, **_kwargs: pytest.fail("bridge reconciliation is forbidden"),
+    )
+    monkeypatch.setattr(
+        privatelink_module,
+        "ensure_slurm_accounting_privatelink_bridge",
+        lambda *_args, **_kwargs: pytest.fail("bridge creation is forbidden"),
+    )
+
+    prepared = prepare_slurm_accounting_update(
+        cluster_name="cluster-a",
+        region="us-west-2",
+        profile="lsmc",
+        cluster_configuration=source,
+        stack_name=provider_name,
+        privatelink_stack_name=bridge_name,
+        database_name="dayec_slurm_acct",
+        db_username="slurm_acct",
+        instance_type="t4g.micro",
+        create_if_missing=False,
+        output_dir=tmp_path,
+        exact_target_only=True,
+        expected_region_az="us-west-2d",
+    )
+
+    assert prepared.accounting_stack_name == bridge_name
+    assert prepared.provider_accounting_stack_name == provider_name
+    assert prepared.privatelink_stack_name == bridge_name
+    assert prepared.consumer_vpc_id == "vpc-cluster"
+    assert calls == [
+        (
+            "bridge",
+            {"stack_name": bridge_name, "require_healthy_target": True},
+        ),
+        (
+            "provider",
+            {
+                "region_az": "us-west-2d",
+                "vpc_id": "vpc-provider",
+                "stack_name": provider_name,
+            },
+        ),
+    ]
+
+
+def test_exact_direct_preparation_fails_closed_for_cross_vpc_provider(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        attach_module.AWSContext,
+        "build_region",
+        classmethod(lambda _cls, _region, profile=None: _AwsContext()),
+    )
+    monkeypatch.setattr(
+        attach_module,
+        "list_regional_slurm_accounting_stacks",
+        lambda *_args, **_kwargs: [
+            {
+                "StackName": "dayec-slurm-accounting-us-west-2c",
+                "Tags": [{"Key": "daylily-ec:vpc-id", "Value": "vpc-provider"}],
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        attach_module,
+        "discover_slurm_accounting_dbs",
+        lambda *_args, **_kwargs: pytest.fail("cross-VPC direct discovery is forbidden"),
+    )
+
+    with pytest.raises(SlurmAccountingPreparationError) as caught:
+        prepare_slurm_accounting_update(
+            cluster_name="cluster-a",
+            region="us-west-2",
+            profile="lsmc",
+            cluster_configuration=_config(tmp_path / "source.yaml"),
+            stack_name="dayec-slurm-accounting-us-west-2c",
+            create_if_missing=False,
+            output_dir=tmp_path,
+            exact_target_only=True,
+            expected_region_az="us-west-2d",
+        )
+
+    assert caught.value.stage == "service_resolution"
+    assert caught.value.reason_code == "exact_direct_vpc_mismatch"
+
+
+@pytest.mark.parametrize(
+    ("bridge", "reason_code"),
+    [
+        (
+            _bridge(provider_stack_name="wrong-provider"),
+            "exact_privatelink_identity_mismatch",
+        ),
+        (
+            _bridge(consumer_vpc_id="vpc-wrong"),
+            "exact_privatelink_identity_mismatch",
+        ),
+        (
+            _bridge(database_name="wrong_database"),
+            "exact_privatelink_identity_mismatch",
+        ),
+    ],
+)
+def test_exact_preparation_rejects_bridge_identity_mismatch(
+    tmp_path,
+    monkeypatch,
+    bridge,
+    reason_code,
+) -> None:
+    monkeypatch.setattr(
+        attach_module.AWSContext,
+        "build_region",
+        classmethod(lambda _cls, _region, profile=None: _AwsContext()),
+    )
+    monkeypatch.setattr(
+        attach_module,
+        "list_regional_slurm_accounting_stacks",
+        lambda *_args, **_kwargs: [
+            {
+                "StackName": "dayec-slurm-accounting-us-west-2c",
+                "Tags": [{"Key": "daylily-ec:vpc-id", "Value": "vpc-provider"}],
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        privatelink_module,
+        "resolve_slurm_accounting_privatelink_bridge",
+        lambda *_args, **_kwargs: bridge,
+    )
+    monkeypatch.setattr(
+        attach_module,
+        "discover_slurm_accounting_dbs",
+        lambda *_args, **_kwargs: pytest.fail(
+            "bridge identity must fail before provider DB discovery"
+        ),
+    )
+
+    with pytest.raises(SlurmAccountingPreparationError) as caught:
+        prepare_slurm_accounting_update(
+            cluster_name="cluster-a",
+            region="us-west-2",
+            profile="lsmc",
+            cluster_configuration=_config(tmp_path / "source.yaml"),
+            stack_name="dayec-slurm-accounting-us-west-2c",
+            privatelink_stack_name="dayec-sacct-pl-vpc-cluster",
+            database_name="dayec_slurm_acct",
+            db_username="slurm_acct",
+            create_if_missing=False,
+            output_dir=tmp_path,
+            exact_target_only=True,
+            expected_region_az="us-west-2d",
+        )
+
+    assert caught.value.reason_code == reason_code
+
+
+@pytest.mark.parametrize(
+    "provider_db",
+    [
+        replace(_provider_db(), instance_id="i-other"),
+        replace(_provider_db(), password_secret_arn="arn:aws:secretsmanager:other"),
+    ],
+)
+def test_exact_preparation_rejects_provider_bridge_binding_mismatch(
+    tmp_path,
+    monkeypatch,
+    provider_db,
+) -> None:
+    monkeypatch.setattr(
+        attach_module.AWSContext,
+        "build_region",
+        classmethod(lambda _cls, _region, profile=None: _AwsContext()),
+    )
+    monkeypatch.setattr(
+        attach_module,
+        "list_regional_slurm_accounting_stacks",
+        lambda *_args, **_kwargs: [
+            {
+                "StackName": "dayec-slurm-accounting-us-west-2c",
+                "Tags": [{"Key": "daylily-ec:vpc-id", "Value": "vpc-provider"}],
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        privatelink_module,
+        "resolve_slurm_accounting_privatelink_bridge",
+        lambda *_args, **_kwargs: _bridge(),
+    )
+    monkeypatch.setattr(
+        attach_module,
+        "discover_slurm_accounting_dbs",
+        lambda *_args, **_kwargs: [provider_db],
+    )
+
+    with pytest.raises(SlurmAccountingPreparationError) as caught:
+        prepare_slurm_accounting_update(
+            cluster_name="cluster-a",
+            region="us-west-2",
+            profile="lsmc",
+            cluster_configuration=_config(tmp_path / "source.yaml"),
+            stack_name="dayec-slurm-accounting-us-west-2c",
+            privatelink_stack_name="dayec-sacct-pl-vpc-cluster",
+            database_name="dayec_slurm_acct",
+            db_username="slurm_acct",
+            create_if_missing=False,
+            output_dir=tmp_path,
+            exact_target_only=True,
+            expected_region_az="us-west-2d",
+        )
+
+    assert caught.value.reason_code == "exact_privatelink_provider_binding_mismatch"
 
 
 def test_secret_values_are_hidden_from_accounting_result_repr(tmp_path) -> None:
@@ -717,6 +1042,9 @@ def test_attach_propagates_alternate_pcluster_executable(tmp_path, monkeypatch) 
             cluster_name="cluster-a",
             region="us-west-2",
             accounting_stack_name="dayec-slurm-accounting-us-west-2",
+            provider_accounting_stack_name="dayec-slurm-accounting-us-west-2",
+            privatelink_stack_name=None,
+            consumer_vpc_id="vpc-cluster",
             update_config_path=update_config,
             service_created=False,
         ),

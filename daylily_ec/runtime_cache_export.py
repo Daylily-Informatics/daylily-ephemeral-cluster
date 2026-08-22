@@ -442,6 +442,7 @@ def run_runtime_cache_export(options: RuntimeCacheExportOptions) -> dict[str, An
             wait_for_ssm_online,
         )
         from daylily_ec.workflow.export_data import (
+            RUNTIME_CACHE_EXPORT_KIND,
             STATUS_FILENAME,
             ExportOptions,
             run_export_workflow,
@@ -499,6 +500,7 @@ def run_runtime_cache_export(options: RuntimeCacheExportOptions) -> dict[str, An
                     wait=True,
                     timeout_seconds=options.export_timeout_seconds,
                     delete_data_in_file_system=False,
+                    export_kind=RUNTIME_CACHE_EXPORT_KIND,
                 )
             )
         export_receipt_path = dra_output_dir / STATUS_FILENAME

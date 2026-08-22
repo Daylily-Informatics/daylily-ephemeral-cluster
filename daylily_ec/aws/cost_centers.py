@@ -307,15 +307,17 @@ def ensure_active_cost_center(
         )
     users = _normalize_list(allowed_users, field="allowed_users")
     groups = _normalize_list(allowed_groups, field="allowed_groups")
+    owners = _normalize_list(owner_emails, field="owner_emails")
     if not users and not groups:
         raise CostCenterError("At least one allowed user or allowed group is required.")
+    if len(owners) != 1:
+        raise CostCenterError("Exactly one canonical owner email is required.")
+    controlled_notes = str(notes or "")
 
-    ensure_cost_center_registry(
+    _require_existing_active_cost_center_tables(
         dynamodb_client,
         table_name=table_name,
         usage_table_name=usage_table_name,
-        actor_arn=actor_arn,
-        now=now,
     )
     existing = get_cost_center(
         dynamodb_client,
@@ -323,43 +325,92 @@ def ensure_active_cost_center(
         table_name=table_name,
         allow_missing=True,
     )
+    was_created = False
     if existing is None:
-        return (
+        try:
             create_cost_center(
                 dynamodb_client,
                 resolved_name,
                 monthly_cap_usd=cap,
                 allowed_users=users,
                 allowed_groups=groups,
-                owner_emails=owner_emails,
-                notes=notes,
+                owner_emails=owners,
+                notes=controlled_notes,
                 actor_arn=actor_arn,
                 table_name=table_name,
                 now=now,
-            ),
-            True,
+            )
+            was_created = True
+        except CostCenterError:
+            # A concurrent exact conditional put is safe.  No other create
+            # error is treated as success: the strong reread below must find
+            # and exactly verify the authoritative row.
+            pass
+        existing = get_cost_center(
+            dynamodb_client,
+            resolved_name,
+            table_name=table_name,
+            allow_missing=True,
         )
+        if existing is None:
+            raise CostCenterError(
+                f"Cost center '{resolved_name}' was not created and no authoritative row exists."
+            )
 
     mismatch: list[str] = []
     if existing.status != "active":
-        mismatch.append(f"status={existing.status!r}")
+        mismatch.append("status")
     if existing.monthly_cap_usd != cap:
-        mismatch.append(f"monthly_cap_usd={existing.monthly_cap_usd}")
+        mismatch.append("monthly_cap_usd")
     if existing.allowed_users != users:
-        mismatch.append(f"allowed_users={list(existing.allowed_users)!r}")
+        mismatch.append("allowed_users")
     if existing.allowed_groups != groups:
-        mismatch.append(f"allowed_groups={list(existing.allowed_groups)!r}")
+        mismatch.append("allowed_groups")
+    if existing.owner_emails != owners:
+        mismatch.append("owner_emails")
+    if existing.notes != controlled_notes:
+        mismatch.append("notes")
+    if existing.max_usage_age_hours is not None:
+        mismatch.append("max_usage_age_hours")
+    if existing.active_until:
+        mismatch.append("active_until")
     if cost_center_is_expired(existing, now=now):
-        mismatch.append(f"active_until={existing.active_until!r} (expired)")
+        mismatch.append("expired")
     if mismatch:
         raise CostCenterError(
             f"Cost center '{resolved_name}' already exists but does not match the explicit "
-            "DYEC create inputs: "
+            "DYEC create inputs (mismatched fields only): "
             + ", ".join(mismatch)
             + ". Edit it explicitly with `dyec cost-centers edit` or choose another name."
         )
 
-    return existing, False
+    return existing, was_created
+
+
+def _require_existing_active_cost_center_tables(
+    dynamodb_client: Any,
+    *,
+    table_name: str,
+    usage_table_name: str,
+) -> None:
+    expected_schemas = {
+        "registry": [{"AttributeName": "cost_center", "KeyType": "HASH"}],
+        "usage": [
+            {"AttributeName": "cost_center", "KeyType": "HASH"},
+            {"AttributeName": "month", "KeyType": "RANGE"},
+        ],
+    }
+    for label, name in (("registry", table_name), ("usage", usage_table_name)):
+        try:
+            table = dynamodb_client.describe_table(TableName=name).get("Table") or {}
+        except Exception as exc:
+            raise CostCenterError(
+                f"Required cost-center {label} table is unavailable; bootstrap is not implicit."
+            ) from exc
+        if table.get("TableStatus") != "ACTIVE":
+            raise CostCenterError(f"Required cost-center {label} table is not ACTIVE.")
+        if table.get("KeySchema") != expected_schemas[label]:
+            raise CostCenterError(f"Required cost-center {label} table schema does not match.")
 
 
 def edit_cost_center(
@@ -737,9 +788,16 @@ def _validate_decimal(value: str | Decimal, *, field: str) -> Decimal:
         decimal = Decimal(str(value))
     except (InvalidOperation, ValueError) as exc:
         raise CostCenterError(f"{field} must be a number.") from exc
+    if not decimal.is_finite():
+        raise CostCenterError(f"{field} must be a finite number.")
     if decimal < 0:
         raise CostCenterError(f"{field} must be >= 0.")
-    return decimal
+    if decimal.is_zero():
+        return Decimal("0")
+    canonical = format(decimal, "f")
+    if "." in canonical:
+        canonical = canonical.rstrip("0").rstrip(".")
+    return Decimal(canonical)
 
 
 def _normalize_list(values: Sequence[str], *, field: str) -> tuple[str, ...]:
@@ -755,7 +813,7 @@ def _normalize_list(values: Sequence[str], *, field: str) -> tuple[str, ...]:
             continue
         normalized.append(value)
         seen.add(value)
-    return tuple(normalized)
+    return tuple(sorted(normalized))
 
 
 def _put_cost_center(
@@ -817,7 +875,10 @@ def _cost_center_from_item(raw: dict[str, Any]) -> CostCenter:
     return CostCenter(
         name=_s(raw, "cost_center"),
         status=status,
-        monthly_cap_usd=Decimal(_n(raw, "monthly_cap_usd", "0")),
+        monthly_cap_usd=_validate_decimal(
+            _n(raw, "monthly_cap_usd", "0"),
+            field="monthly_cap_usd",
+        ),
         allowed_users=_ss(raw, "allowed_users"),
         allowed_groups=_ss(raw, "allowed_groups"),
         owner_emails=_ss(raw, "owner_emails"),

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Thin wrapper — delegates to the Python control plane (daylily_ec).
+# Thin wrapper — delegates to the installed public DYEC control plane.
 # The original Bash implementation is preserved at:
 #   bin/legacy/daylily-create-ephemeral-cluster.bash
 #
@@ -7,4 +7,4 @@
 #   daylily-create-ephemeral-cluster --region-az us-west-2b [OPTIONS]
 set -euo pipefail
 
-exec python -m daylily_ec create "$@"
+exec dyec create "$@"

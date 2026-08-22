@@ -1,4 +1,4 @@
-"""Cluster deletion workflow for the ``daylily-ec delete`` command."""
+"""Cluster deletion workflow for the ``dyec delete`` command."""
 
 from __future__ import annotations
 
@@ -153,7 +153,7 @@ def confirm_delete(fsx_ids: list[str], *, yes: bool, prompt_fn=typer.prompt) -> 
     ui.warn("FSx filesystems are still associated with the cluster:")
     for fsx_id in fsx_ids:
         ui.detail("FSx", fsx_id)
-    ui.info("Export results with `daylily-ec export` before deleting if needed.")
+    ui.info("Export results with `dyec export` before deleting if needed.")
 
     if yes:
         ui.info("Skipping confirmation (--yes provided).")
@@ -368,7 +368,7 @@ def run_delete_dry_run(options: DeleteOptions) -> int:
             )
             for fsx_id in cluster_bound_fsx_ids:
                 ui.detail("External P2 FSx", fsx_id)
-        ui.info("Export results with `daylily-ec export` before deleting if needed.")
+        ui.info("Export results with `dyec export` before deleting if needed.")
         if repository_activity["associations"]:
             ui.warn("Active FSx data repository associations are still attached:")
             for association in repository_activity["associations"]:

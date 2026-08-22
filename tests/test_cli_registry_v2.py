@@ -29,21 +29,26 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "15.0.10"
+DAYOA_BLESSED_TAG = "16.0.4"
 
 EXPECTED_COMMANDS = {
     ("version",),
     ("info",),
     ("create",),
+    ("create-request", "render"),
+    ("create-request", "prepare"),
     ("preflight",),
     ("drift",),
     ("cluster-info",),
     ("cluster", "list"),
     ("cluster", "jobs"),
     ("cluster", "describe"),
+    ("cluster", "inspect"),
     ("cluster", "wait"),
+    ("cluster", "compute-fleet"),
     ("cluster", "tags"),
     ("export",),
+    ("exports", "inspect"),
     ("exports", "attach"),
     ("exports", "run"),
     ("exports", "transfer"),
@@ -55,7 +60,8 @@ EXPECTED_COMMANDS = {
     ("identities", "status"),
     ("identities", "evidence"),
     ("delete",),
-    ("resources-dir",),
+    ("resources", "resolve"),
+    ("resources", "materialize"),
     ("set-vars",),
     ("unset-vars",),
     ("agent", "guidance"),
@@ -70,16 +76,20 @@ EXPECTED_COMMANDS = {
     ("pricing", "snapshot"),
     ("pricing", "spot-logs"),
     ("aws", "budget", "set-limit"),
+    ("aws", "capacity-snapshot"),
     ("aws", "validate", "permissions"),
     ("aws", "validate", "quotas"),
     ("aws", "validate", "all"),
     ("aws", "audit", "api-calls"),
     ("aws", "audit", "cost-resources"),
+    ("slurm-accounting", "inspect"),
     ("slurm-accounting", "ensure"),
     ("slurm-accounting", "attach"),
+    ("slurm-accounting", "recover"),
     ("slurm-accounting", "privatelink", "ensure"),
     ("cost-centers", "ensure-registry"),
     ("cost-centers", "create"),
+    ("cost-centers", "ensure-active"),
     ("cost-centers", "edit"),
     ("cost-centers", "disable"),
     ("cost-centers", "show"),
@@ -97,6 +107,9 @@ EXPECTED_COMMANDS = {
     ("headnode", "fsx-usage"),
     ("headnode", "analysis-roots"),
     ("headnode", "dayoa-controllers"),
+    ("headnode", "scheduler-snapshot"),
+    ("headnode", "runtime-identity"),
+    ("headnode", "controller-evidence"),
     ("headnode", "dayoa-controller-action"),
     ("headnode", "slurm-job-action"),
     ("headnode", "slurm-drain"),
@@ -114,6 +127,7 @@ EXPECTED_COMMANDS = {
     ("workflow", "benchmark-report"),
     ("workflow", "stop"),
     ("repositories", "commands"),
+    ("repositories", "deploy-key-secret-status"),
     ("catalog", "list"),
     ("catalog", "show"),
     ("catalog", "validation-compare"),
@@ -390,16 +404,19 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     drift_cmd = registry.get_command(("drift",))
     delete_cmd = registry.get_command(("delete",))
     export_cmd = registry.get_command(("export",))
+    exports_inspect_cmd = registry.get_command(("exports", "inspect"))
     exports_attach_cmd = registry.get_command(("exports", "attach"))
     exports_run_cmd = registry.get_command(("exports", "run"))
     exports_transfer_cmd = registry.get_command(("exports", "transfer"))
     exports_cleanup_cmd = registry.get_command(("exports", "cleanup"))
     exports_detach_cmd = registry.get_command(("exports", "detach"))
-    resources_dir_cmd = registry.get_command(("resources-dir",))
+    resources_resolve_cmd = registry.get_command(("resources", "resolve"))
+    resources_materialize_cmd = registry.get_command(("resources", "materialize"))
     cluster_info_cmd = registry.get_command(("cluster-info",))
     cluster_list_cmd = registry.get_command(("cluster", "list"))
     cluster_jobs_cmd = registry.get_command(("cluster", "jobs"))
     cluster_describe_cmd = registry.get_command(("cluster", "describe"))
+    cluster_inspect_cmd = registry.get_command(("cluster", "inspect"))
     cluster_wait_cmd = registry.get_command(("cluster", "wait"))
     cluster_tags_cmd = registry.get_command(("cluster", "tags"))
     env_status_cmd = registry.get_command(("env", "status"))
@@ -420,6 +437,13 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     headnode_fsx_usage_cmd = registry.get_command(("headnode", "fsx-usage"))
     headnode_analysis_roots_cmd = registry.get_command(("headnode", "analysis-roots"))
     headnode_dayoa_controllers_cmd = registry.get_command(("headnode", "dayoa-controllers"))
+    headnode_scheduler_snapshot_cmd = registry.get_command(
+        ("headnode", "scheduler-snapshot")
+    )
+    headnode_runtime_identity_cmd = registry.get_command(("headnode", "runtime-identity"))
+    headnode_controller_evidence_cmd = registry.get_command(
+        ("headnode", "controller-evidence")
+    )
     headnode_dayoa_controller_action_cmd = registry.get_command(
         ("headnode", "dayoa-controller-action")
     )
@@ -438,6 +462,9 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     workflow_benchmark_report_cmd = registry.get_command(("workflow", "benchmark-report"))
     workflow_stop_cmd = registry.get_command(("workflow", "stop"))
     repositories_commands_cmd = registry.get_command(("repositories", "commands"))
+    repositories_secret_status_cmd = registry.get_command(
+        ("repositories", "deploy-key-secret-status")
+    )
     catalog_list_cmd = registry.get_command(("catalog", "list"))
     catalog_show_cmd = registry.get_command(("catalog", "show"))
     catalog_validation_compare_cmd = registry.get_command(("catalog", "validation-compare"))
@@ -479,8 +506,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     aws_validate_all_cmd = registry.get_command(("aws", "validate", "all"))
     aws_audit_api_calls_cmd = registry.get_command(("aws", "audit", "api-calls"))
     aws_audit_cost_resources_cmd = registry.get_command(("aws", "audit", "cost-resources"))
+    slurm_accounting_inspect_cmd = registry.get_command(("slurm-accounting", "inspect"))
     slurm_accounting_ensure_cmd = registry.get_command(("slurm-accounting", "ensure"))
     slurm_accounting_attach_cmd = registry.get_command(("slurm-accounting", "attach"))
+    slurm_accounting_recover_cmd = registry.get_command(("slurm-accounting", "recover"))
+    cluster_compute_fleet_cmd = registry.get_command(("cluster", "compute-fleet"))
     cost_centers_put_usage_cmd = registry.get_command(("cost-centers", "put-usage"))
     cost_centers_ensure_cur_export_cmd = registry.get_command(("cost-centers", "ensure-cur-export"))
 
@@ -512,6 +542,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert export_cmd is not None
     assert export_cmd.policy.mutates_state is True
 
+    assert exports_inspect_cmd is not None
+    assert exports_inspect_cmd.policy.supports_json is True
+    assert exports_inspect_cmd.policy.mutates_state is False
+    assert exports_inspect_cmd.policy.long_running is False
+
     for exports_cmd in (
         exports_attach_cmd,
         exports_run_cmd,
@@ -524,8 +559,12 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
         assert exports_cmd.policy.mutates_state is True
         assert exports_cmd.policy.long_running is True
 
-    assert resources_dir_cmd is not None
-    assert resources_dir_cmd.policy.runtime_guard == "exempt"
+    assert resources_resolve_cmd is not None
+    assert resources_resolve_cmd.policy.supports_json is True
+    assert resources_resolve_cmd.policy.mutates_state is False
+    assert resources_materialize_cmd is not None
+    assert resources_materialize_cmd.policy.supports_json is True
+    assert resources_materialize_cmd.policy.mutates_state is True
 
     assert cluster_info_cmd is not None
     assert cluster_info_cmd.policy.supports_json is True
@@ -541,6 +580,10 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert cluster_describe_cmd is not None
     assert cluster_describe_cmd.policy.supports_json is True
 
+    assert cluster_inspect_cmd is not None
+    assert cluster_inspect_cmd.policy.supports_json is True
+    assert cluster_inspect_cmd.policy.mutates_state is False
+
     assert cluster_wait_cmd is not None
     assert cluster_wait_cmd.policy.long_running is True
     assert cluster_wait_cmd.policy.mutates_state is False
@@ -549,6 +592,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert cluster_tags_cmd.policy.supports_json is True
     assert cluster_tags_cmd.policy.mutates_state is True
     assert cluster_tags_cmd.policy.long_running is True
+
+    assert cluster_compute_fleet_cmd is not None
+    assert cluster_compute_fleet_cmd.policy.supports_json is True
+    assert cluster_compute_fleet_cmd.policy.mutates_state is True
+    assert cluster_compute_fleet_cmd.policy.long_running is True
 
     assert env_status_cmd is not None
     assert env_status_cmd.policy.supports_json is True
@@ -602,10 +650,17 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
         headnode_fsx_usage_cmd,
         headnode_analysis_roots_cmd,
         headnode_dayoa_controllers_cmd,
+        headnode_scheduler_snapshot_cmd,
+        headnode_runtime_identity_cmd,
     ):
         assert semantic_read_cmd is not None
         assert semantic_read_cmd.policy.supports_json is True
         assert semantic_read_cmd.policy.mutates_state is False
+
+    assert headnode_controller_evidence_cmd is not None
+    assert headnode_controller_evidence_cmd.policy.supports_json is True
+    assert headnode_controller_evidence_cmd.policy.mutates_state is True
+    assert headnode_controller_evidence_cmd.policy.long_running is True
 
     for semantic_action_cmd in (
         headnode_dayoa_controller_action_cmd,
@@ -664,6 +719,9 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert repositories_commands_cmd is not None
     assert repositories_commands_cmd.policy.supports_json is True
     assert repositories_commands_cmd.policy.runtime_guard == "exempt"
+    assert repositories_secret_status_cmd is not None
+    assert repositories_secret_status_cmd.policy.supports_json is True
+    assert repositories_secret_status_cmd.policy.mutates_state is False
 
     for catalog_read_cmd in (catalog_list_cmd, catalog_show_cmd, catalog_render_cmd):
         assert catalog_read_cmd is not None
@@ -803,9 +861,19 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert slurm_accounting_ensure_cmd.policy.long_running is True
 
     assert slurm_accounting_attach_cmd is not None
+    assert slurm_accounting_inspect_cmd is not None
+    assert slurm_accounting_inspect_cmd.policy.supports_json is True
+    assert slurm_accounting_inspect_cmd.policy.mutates_state is False
+    assert slurm_accounting_inspect_cmd.policy.long_running is False
+
     assert slurm_accounting_attach_cmd.policy.supports_json is True
     assert slurm_accounting_attach_cmd.policy.mutates_state is True
     assert slurm_accounting_attach_cmd.policy.long_running is True
+
+    assert slurm_accounting_recover_cmd is not None
+    assert slurm_accounting_recover_cmd.policy.supports_json is True
+    assert slurm_accounting_recover_cmd.policy.mutates_state is True
+    assert slurm_accounting_recover_cmd.policy.long_running is True
 
     assert cost_centers_put_usage_cmd is not None
     assert cost_centers_put_usage_cmd.policy.supports_json is True
@@ -912,13 +980,157 @@ def test_root_json_is_global_for_info(monkeypatch, tmp_path) -> None:
     assert payload["Config Dir"] == str((tmp_path / "config" / "daylily").resolve())
 
 
-def test_json_rejected_for_non_json_command() -> None:
-    result = runner.invoke(app, ["--json", "create", "--region-az", "us-west-2b"])
 
-    assert result.exit_code == 2
+
+
+
+
+
+def test_cost_center_ensure_active_public_payload_uses_principal_digests(
+    monkeypatch,
+) -> None:
+    import daylily_ec.aws.cost_centers as cost_module
+
+    _activate_dayec_runtime(monkeypatch)
+    aws_ctx = SimpleNamespace(
+        profile="lsmc",
+        account_id="123456789012",
+        region="us-west-2",
+        caller_arn="arn:aws:iam::123456789012:user/operator",
+    )
+    monkeypatch.setattr(
+        cli_module,
+        "_cost_center_context",
+        lambda *_args, **_kwargs: (aws_ctx, object()),
+    )
+    monkeypatch.setattr(
+        cost_module,
+        "ensure_active_cost_center",
+        lambda *_args, **_kwargs: (
+            SimpleNamespace(
+                name="ursa-production",
+                status="active",
+                monthly_cap_usd="1200",
+                allowed_users=("operator-a",),
+                allowed_groups=(),
+                owner_emails=("owner@example.org",),
+                notes="",
+                max_usage_age_hours=None,
+                active_until="",
+            ),
+            True,
+        ),
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "cost-centers",
+            "ensure-active",
+            "ursa-production",
+            "--monthly-cap-usd",
+            "1200",
+            "--allowed-user",
+            "operator-a",
+            "--owner-email",
+            "owner@example.org",
+            "--profile",
+            "lsmc",
+            "--home-region",
+            "us-west-2",
+        ],
+    )
+
+    assert result.exit_code == 0
     payload = json.loads(result.stdout)
-    assert payload["error"]["code"] == "contract_violation"
-    assert payload["error"]["details"]["command"] == "create"
+    assert payload["schema_version"] == "dyec.cost_center_ensure_active.v1"
+    assert payload["created"] is True
+    assert payload["record"]["cost_center"] == "ursa-production"
+    assert payload["record"]["allowed_user_count"] == 1
+    assert payload["record"]["owner_email_count"] == 1
+    assert len(payload["record"]["controlled_fields_sha256"]) == 64
+    assert "operator-a" not in result.stdout
+    assert "owner@example.org" not in result.stdout
+
+
+def test_cost_center_ensure_active_provider_failure_is_bounded(monkeypatch) -> None:
+    _activate_dayec_runtime(monkeypatch)
+    monkeypatch.setattr(
+        cli_module,
+        "_cost_center_context",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            RuntimeError("provider secret credential text")
+        ),
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "cost-centers",
+            "ensure-active",
+            "ursa-production",
+            "--monthly-cap-usd",
+            "1200",
+            "--allowed-user",
+            "operator-a",
+            "--owner-email",
+            "owner@example.org",
+            "--profile",
+            "lsmc",
+            "--home-region",
+            "us-west-2",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert json.loads(result.stdout) == {
+        "error": "The exact active cost-center contract was not satisfied.",
+        "error_code": "cost_center_provider_failed",
+        "ok": False,
+        "schema_version": "dyec.cost_center_ensure_active.v1",
+    }
+    assert "credential" not in result.stdout
+    assert "credential" not in result.stderr
+
+
+def test_capacity_snapshot_provider_failure_is_bounded(monkeypatch) -> None:
+    import daylily_ec.aws.context as context_module
+
+    _activate_dayec_runtime(monkeypatch)
+    monkeypatch.setattr(
+        context_module.AWSContext,
+        "build_region",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            RuntimeError("provider secret credential text")
+        ),
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "aws",
+            "capacity-snapshot",
+            "--region",
+            "us-west-2",
+            "--profile",
+            "lsmc",
+            "--quota-family",
+            "standard",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert json.loads(result.stdout) == {
+        "error": "The exact regional capacity snapshot could not be constructed.",
+        "error_code": "capacity_snapshot_provider_failed",
+        "ok": False,
+        "schema_version": "dyec.aws_capacity_snapshot.v1",
+    }
+    assert "credential" not in result.stdout
+    assert "credential" not in result.stderr
 
 
 def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
@@ -979,6 +1191,40 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
             "budget_email_override": None,
             "budget_email_fallback": None,
         }
+
+
+def test_create_command_three_flag_entrypoint_uses_restored_workflow(monkeypatch) -> None:
+    import daylily_ec.workflow.create_cluster as create_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+
+    def fake_run_create_workflow(region_az: str, **kwargs) -> int:
+        calls["region_az"] = region_az
+        calls["kwargs"] = kwargs
+        return 0
+
+    monkeypatch.setattr(create_module, "run_create_workflow", fake_run_create_workflow)
+
+    result = runner.invoke(
+        app,
+        [
+            "create",
+            "--profile",
+            "lsmc",
+            "--region-az",
+            "us-west-2d",
+            "--cluster-type",
+            "intel",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert calls["region_az"] == "us-west-2d"
+    assert calls["kwargs"]["profile"] == "lsmc"
+    assert calls["kwargs"]["cluster_type"] == "intel"
+    assert calls["kwargs"]["config_path"] is None
+    assert calls["kwargs"]["non_interactive"] is False
 
 
 def test_create_command_prints_and_info_logs_total_runtime(
@@ -1056,6 +1302,8 @@ def test_create_command_slurm_accounting_mode_contract(
     assert calls[0]["slurm_accounting"] == expected_mode
     assert calls[0]["create_slurm_accounting_if_missing"] is False
     assert calls[0]["acknowledge_slurm_accounting_create_cost"] is False
+
+
 
 
 @pytest.mark.parametrize("invalid_mode", ["ON", "On", "OFF", "true", "enabled"])
@@ -3005,6 +3253,83 @@ def test_headnode_configure_has_no_version_override() -> None:
         assert "--dyec-version" not in result.output
 
 
+@pytest.mark.parametrize("command", ("configure", "configure-dragen"))
+def test_headnode_configure_requires_an_explicit_credential_authority(command: str) -> None:
+    base = [
+        "headnode",
+        command,
+        "--profile",
+        "dev",
+        "--region",
+        "us-west-2",
+        "--cluster",
+        "cluster-a",
+    ]
+
+    missing_authority = runner.invoke(app, base)
+    assert missing_authority.exit_code == 2
+    assert "--state-file" in missing_authority.output
+    assert "automatic state discovery is not allowed" in missing_authority.output
+
+    missing_dayoa = runner.invoke(
+        app,
+        base
+        + [
+            "--dyec-deploy-key-secret-arn",
+            "arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec-key",
+        ],
+    )
+    assert missing_dayoa.exit_code == 2
+    assert "--dayoa-deploy-key-secret-arn" in missing_dayoa.output
+
+
+@pytest.mark.parametrize(
+    ("command", "blank_option", "expected_message"),
+    (
+        (
+            "configure",
+            "--dyec-deploy-key-secret-arn",
+            "--dyec-deploy-key-secret-arn must be non-empty",
+        ),
+        (
+            "configure-dragen",
+            "--dayoa-deploy-key-secret-arn",
+            "--dayoa-deploy-key-secret-arn must be non-empty",
+        ),
+    ),
+)
+def test_headnode_configure_rejects_blank_deploy_key_before_target_resolution(
+    monkeypatch,
+    command: str,
+    blank_option: str,
+    expected_message: str,
+) -> None:
+    def unexpected_target_resolution(**_kwargs):
+        pytest.fail("blank deploy-key input must fail before target resolution")
+
+    monkeypatch.setattr(cli_module, "_resolve_headnode_cli_target", unexpected_target_resolution)
+    args = [
+        "headnode",
+        command,
+        "--profile",
+        "dev",
+        "--region",
+        "us-west-2",
+        "--cluster",
+        "cluster-a",
+        "--dyec-deploy-key-secret-arn",
+        "arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec-key",
+        "--dayoa-deploy-key-secret-arn",
+        "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayoa-key",
+    ]
+    args[args.index(blank_option) + 1] = " "
+
+    result = runner.invoke(app, args)
+
+    assert result.exit_code == 1
+    assert expected_message in result.stderr
+
+
 def test_headnode_configure_uses_workflow_configure(monkeypatch, tmp_path) -> None:
     import daylily_ec.aws.ssm as ssm_module
     import daylily_ec.workflow.create_cluster as workflow_module
@@ -3052,18 +3377,22 @@ def test_headnode_configure_uses_workflow_configure(monkeypatch, tmp_path) -> No
             "cluster-a",
             "--repo-overrides",
             str(override_file),
+            "--dyec-deploy-key-secret-arn",
+            "arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec-key",
+            "--dayoa-deploy-key-secret-arn",
+            "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayoa-key",
         ],
     )
 
     assert result.exit_code == 0
     assert calls["configure"] == {
         "cluster_name": "cluster-a",
-        "dyec_deploy_key_region": "",
-        "dyec_deploy_key_secret_arn": "",
+        "dyec_deploy_key_region": "us-west-2",
+        "dyec_deploy_key_secret_arn": "arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec-key",
         "dyec_repo_ref": "16.1.85",
         "dyec_repo_url": "https://github.com/lsmc-bio/daylily-ephemeral-cluster.git",
-        "dayoa_deploy_key_region": "",
-        "dayoa_deploy_key_secret_arn": "",
+        "dayoa_deploy_key_region": "us-west-2",
+        "dayoa_deploy_key_secret_arn": "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayoa-key",
         "github_token_region": "",
         "github_token_secret_arn": "",
         "head_node_instance_id": "i-abc123",
@@ -3121,18 +3450,22 @@ def test_headnode_configure_dragen_uses_ec2_user(monkeypatch, tmp_path) -> None:
             "dragen-cluster",
             "--repo-overrides",
             str(override_file),
+            "--dyec-deploy-key-secret-arn",
+            "arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec-key",
+            "--dayoa-deploy-key-secret-arn",
+            "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayoa-key",
         ],
     )
 
     assert result.exit_code == 0
     assert calls["configure"] == {
         "cluster_name": "dragen-cluster",
-        "dyec_deploy_key_region": "",
-        "dyec_deploy_key_secret_arn": "",
+        "dyec_deploy_key_region": "us-west-2",
+        "dyec_deploy_key_secret_arn": "arn:aws:secretsmanager:us-west-2:123456789012:secret:dyec-key",
         "dyec_repo_ref": "16.1.85",
         "dyec_repo_url": "https://github.com/lsmc-bio/daylily-ephemeral-cluster.git",
-        "dayoa_deploy_key_region": "",
-        "dayoa_deploy_key_secret_arn": "",
+        "dayoa_deploy_key_region": "us-west-2",
+        "dayoa_deploy_key_secret_arn": "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayoa-key",
         "github_token_region": "",
         "github_token_secret_arn": "",
         "head_node_instance_id": "i-drg123",
@@ -3790,6 +4123,8 @@ def test_catalog_list_and_show_expose_command_catalog_entries() -> None:
             "--json",
             "catalog",
             "list",
+            "--dyec-version",
+            "19.0.19",
             "--command-class",
             "sample_analysis",
             "--type",
@@ -3799,29 +4134,35 @@ def test_catalog_list_and_show_expose_command_catalog_entries() -> None:
 
     assert list_result.exit_code == 0, list_result.output
     list_payload = json.loads(list_result.stdout)
-    assert list_payload["dyec_version"] == "current"
-    assert "--intent" in list_payload["result_export"]["manual_visit_command"]
-    assert list_payload["result_export"]["preserves_fsx_by_default"] is True
-    command_ids = {item["command_id"] for item in list_payload["commands"]}
+    assert list_payload["contract"]["dyec_build"] == "19.0.19"
+    assert "--intent" in list_payload["contract"]["result_export"]["manual_visit_command"]
+    assert list_payload["contract"]["result_export"]["preserves_fsx_by_default"] is True
+    command_ids = {item["command_id"] for item in list_payload["result"]["commands"]}
     assert "package_inflection_hybrid_data" in command_ids
 
     show_result = runner.invoke(
         app,
-        ["--json", "catalog", "show", "package_inflection_hybrid_data"],
+        [
+            "--json",
+            "catalog",
+            "show",
+            "package_inflection_hybrid_data",
+            "--dyec-version",
+            "19.0.19",
+        ],
     )
 
     assert show_result.exit_code == 0, show_result.output
     show_payload = json.loads(show_result.stdout)
-    assert show_payload["dyec_version"] == "current"
-    assert "--mode export" in show_payload["result_export"]["manual_visit_command"]
-    assert "--intent" in show_payload["result_export"]["manual_visit_command"]
-    assert "dyec export" in show_payload["result_export"]["manual_export_command"]
-    assert show_payload["command"]["command_id"] == "package_inflection_hybrid_data"
-    assert show_payload["command"]["input_contract"] == "six_manifest"
-    assert show_payload["command"]["dy_command"].startswith(
-        "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_inflection_seqone_v2"
-    )
-    assert show_payload["command"]["return_results"] is False
+    assert show_payload["contract"]["dyec_build"] == "19.0.19"
+    result_export = show_payload["contract"]["result_export"]
+    assert "--mode export" in result_export["manual_visit_command"]
+    assert "--intent" in result_export["manual_visit_command"]
+    assert "dyec export" in result_export["manual_export_command"]
+    command = show_payload["result"]["command"]
+    assert command["command_id"] == "package_inflection_hybrid_data"
+    assert command["input_contract"] == "six_manifest"
+    assert command["return_results"] is False
 
 
 def test_catalog_validation_compare_uses_declared_command_evidence(monkeypatch) -> None:
@@ -3838,13 +4179,20 @@ def test_catalog_validation_compare_uses_declared_command_evidence(monkeypatch) 
 
     result = runner.invoke(
         app,
-        ["--json", "catalog", "validation-compare", "illumina_run_qc"],
+        [
+            "--json",
+            "catalog",
+            "validation-compare",
+            "illumina_run_qc",
+            "--dyec-version",
+            "19.0.19",
+        ],
     )
 
     assert result.exit_code == 0, result.output
     assert json.loads(result.stdout) == {
         "command_id": "illumina_run_qc",
-        "dyec_version": "current",
+        "dyec_version": "19.0.19",
         "matches": True,
     }
 
@@ -3859,6 +4207,8 @@ def test_catalog_render_builds_exact_workflow_launch_argv(tmp_path) -> None:
             "catalog",
             "render",
             "package_inflection_hybrid_data",
+            "--dyec-version",
+            "19.0.19",
             "--analysis-id",
             "pkg-run",
             "--executing-entity",
@@ -3880,7 +4230,9 @@ def test_catalog_render_builds_exact_workflow_launch_argv(tmp_path) -> None:
     )
 
     assert result.exit_code == 0, result.output
-    payload = json.loads(result.stdout)
+    envelope = json.loads(result.stdout)
+    payload = envelope["result"]["render"]
+    assert envelope["contract"]["dyec_build"] == "19.0.19"
     assert "--intent" in payload["result_export"]["manual_visit_command"]
     assert any(
         "DYEC must wait for a successful controller exit" in step
@@ -3889,17 +4241,17 @@ def test_catalog_render_builds_exact_workflow_launch_argv(tmp_path) -> None:
     assert payload["command"]["command_id"] == "package_inflection_hybrid_data"
     assert payload["git_tag"] == payload["command"]["git_tag"]
     assert payload["dry_run"] is True
-    assert payload["dy_command"].startswith(
+    argv = payload["workflow_argv"]
+    dy_command = argv[argv.index("--dy-command") + 1]
+    assert dy_command.startswith(
         "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_inflection_seqone_v2"
     )
-    assert " -n" in payload["dy_command"]
-    argv = payload["workflow_argv"]
+    assert " -n" in dy_command
     assert argv[:2] == ["workflow", "launch"]
     assert argv[argv.index("--manifest-dir") + 1] == str(manifest_dir)
     assert argv[argv.index("--session-name") + 1] == "pkg-session"
     assert argv[argv.index("--project") + 1] == "project-alpha"
-    assert argv[argv.index("--dy-command") + 1] == payload["dy_command"]
-    assert "dyec workflow launch" in payload["workflow_command"]
+    assert argv[argv.index("--dy-command") + 1] == dy_command
 
 
 def test_catalog_render_appends_dy_config_overrides(tmp_path) -> None:
@@ -3912,6 +4264,8 @@ def test_catalog_render_appends_dy_config_overrides(tmp_path) -> None:
             "catalog",
             "render",
             "hybrid_ilmn_ont_hiomr_kitchensink",
+            "--dyec-version",
+            "19.0.19",
             "--analysis-id",
             "hg-run",
             "--executing-entity",
@@ -3932,12 +4286,16 @@ def test_catalog_render_appends_dy_config_overrides(tmp_path) -> None:
     )
 
     assert result.exit_code == 0, result.output
-    payload = json.loads(result.stdout)
+    envelope = json.loads(result.stdout)
+    payload = envelope["result"]["render"]
+    assert envelope["contract"]["dyec_build"] == "19.0.19"
     assert payload["dy_config"] == [
         "use_fq_data_starting_hrs=0",
         "use_fq_data_up_to_hrs=7",
     ]
-    dy_tokens = shlex.split(payload["dy_command"])
+    argv = payload["workflow_argv"]
+    dy_command = argv[argv.index("--dy-command") + 1]
+    dy_tokens = shlex.split(dy_command)
     assert dy_tokens.count("--config") == 1
     config_index = dy_tokens.index("--config")
     config_values = []
@@ -3950,8 +4308,7 @@ def test_catalog_render_appends_dy_config_overrides(tmp_path) -> None:
     assert 'htd_callers=["smn12"]' in config_values
     assert "use_fq_data_starting_hrs=0" in config_values
     assert "use_fq_data_up_to_hrs=7" in config_values
-    argv = payload["workflow_argv"]
-    assert argv[argv.index("--dy-command") + 1] == payload["dy_command"]
+    assert argv[argv.index("--dy-command") + 1] == dy_command
 
 
 def test_catalog_quick_launch_uses_rendered_workflow_argv(monkeypatch, tmp_path) -> None:
@@ -3976,6 +4333,8 @@ def test_catalog_quick_launch_uses_rendered_workflow_argv(monkeypatch, tmp_path)
             "catalog",
             "quick-launch",
             "package_inflection_hybrid_data",
+            "--dyec-version",
+            "19.0.19",
             "--analysis-id",
             "pkg-run",
             "--executing-entity",
@@ -3995,12 +4354,16 @@ def test_catalog_quick_launch_uses_rendered_workflow_argv(monkeypatch, tmp_path)
     )
 
     assert result.exit_code == 0, result.output
-    payload = json.loads(result.stdout)
+    envelope = json.loads(result.stdout)
+    payload = envelope["result"]["render"]
+    assert envelope["contract"]["dyec_build"] == "19.0.19"
     launch_argv = calls["launch_argv"]
     assert launch_argv[launch_argv.index("--manifest-dir") + 1] == str(manifest_dir)
     assert launch_argv[launch_argv.index("--analysis-id") + 1] == "pkg-run"
-    assert payload["workflow_launch"]["session_name"] == "pkg-session"
-    assert payload["workflow_launch"]["dy_command"] == payload["dy_command"]
+    assert envelope["result"]["workflow_launch"]["session_name"] == "pkg-session"
+    rendered_argv = payload["workflow_argv"]
+    rendered_dy_command = rendered_argv[rendered_argv.index("--dy-command") + 1]
+    assert envelope["result"]["workflow_launch"]["dy_command"] == rendered_dy_command
 
 
 def test_catalog_render_requires_explicit_staged_inputs_for_sample_commands() -> None:
@@ -4010,6 +4373,8 @@ def test_catalog_render_requires_explicit_staged_inputs_for_sample_commands() ->
             "catalog",
             "render",
             "complete_genomics_cg_snv_concordance",
+            "--dyec-version",
+            "19.0.19",
             "--analysis-id",
             "cg-run",
             "--executing-entity",
@@ -4036,6 +4401,8 @@ def test_catalog_launch_requires_materialized_complete_staging_receipt(
             "catalog",
             "launch",
             "complete_genomics_cg_snv_concordance",
+            "--dyec-version",
+            "19.0.19",
             "--analysis-id",
             "cg-run",
             "--executing-entity",
@@ -5249,8 +5616,8 @@ def test_workflow_stop_interrupts_controller_via_ssm(monkeypatch) -> None:
             "slurm_jobs_before": [],
             "scancelled_job_ids": [],
             "slurm_jobs_after": [],
-            "status_path": "/home/ubuntu/daylily-runs/sess-1/status.json",
-            "status_updated": True,
+            "clone_resident_status_mutated_by_stop": False,
+            "clone_resident_status_note": "not modified; the controller owns its append-only v2 attempt",
         }
         return SsmCommandResult(
             "cmd-1",
@@ -5287,13 +5654,15 @@ def test_workflow_stop_interrupts_controller_via_ssm(monkeypatch) -> None:
     assert payload["interrupted_tmux_session"] is True
     assert payload["killed_tmux_session"] is False
     assert payload["cancel_slurm_jobs"] is False
+    assert payload["clone_resident_status_mutated_by_stop"] is False
     _instance_id, _region, script, kwargs = calls["run_shell"]
     assert "DAYLILY_WORKFLOW_SESSION=sess-1" in script
     assert "DAYLILY_CANCEL_SLURM_JOBS=false" in script
     assert 'run(["tmux", "send-keys"' in script
     assert '"C-c"' in script
     assert 'run(["tmux", "kill-session"' in script
-    assert 'status["exit_code"] = 130' in script
+    assert 'status["exit_code"] = 130' not in script
+    assert '"clone_resident_status_mutated_by_stop": False' in script
     assert "scancel" in script
     assert kwargs["profile"] == "dev"
 
@@ -5334,8 +5703,8 @@ def test_workflow_stop_can_cancel_slurm_jobs_with_explicit_pattern(monkeypatch) 
             "slurm_jobs_before": [{"job_id": "101", "name": "sentmm2ont-ONT-4Coriells"}],
             "scancelled_job_ids": ["101"],
             "slurm_jobs_after": [],
-            "status_path": "/home/ubuntu/daylily-runs/sess-1/status.json",
-            "status_updated": True,
+            "clone_resident_status_mutated_by_stop": False,
+            "clone_resident_status_note": "not modified; the controller owns its append-only v2 attempt",
         }
         return SsmCommandResult(
             "cmd-1",

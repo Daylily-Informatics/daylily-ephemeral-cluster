@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from datetime import datetime, timezone
+from typing import ClassVar
 
 import pytest
 
@@ -28,10 +29,10 @@ from daylily_ec.aws.cost_centers import (
 
 
 class NotFound(Exception):
-    response = {"Error": {"Code": "ResourceNotFoundException"}}
+    response: ClassVar[dict[str, object]] = {"Error": {"Code": "ResourceNotFoundException"}}
 
 
-class ConditionalCheckFailed(Exception):
+class ConditionalCheckFailedException(Exception):
     pass
 
 
@@ -45,11 +46,21 @@ class FakeDynamo:
         self.tables: set[str] = set()
         self.items: dict[str, dict[tuple[str, ...], dict]] = {}
         self.created: list[str] = []
+        self.get_calls: list[dict[str, object]] = []
 
     def describe_table(self, TableName):
         if TableName not in self.tables:
             raise NotFound(TableName)
-        return {"Table": {"TableName": TableName}}
+        key_schema = [{"AttributeName": "cost_center", "KeyType": "HASH"}]
+        if "usage" in TableName:
+            key_schema.append({"AttributeName": "month", "KeyType": "RANGE"})
+        return {
+            "Table": {
+                "TableName": TableName,
+                "TableStatus": "ACTIVE",
+                "KeySchema": key_schema,
+            }
+        }
 
     def create_table(self, TableName, **_kwargs):
         self.tables.add(TableName)
@@ -63,12 +74,13 @@ class FakeDynamo:
         key = self._key(Item)
         exists = key in self.items.setdefault(TableName, {})
         if ConditionExpression == "attribute_not_exists(cost_center)" and exists:
-            raise ConditionalCheckFailed()
+            raise ConditionalCheckFailedException()
         if ConditionExpression == "attribute_exists(cost_center)" and not exists:
-            raise ConditionalCheckFailed()
+            raise ConditionalCheckFailedException()
         self.items[TableName][key] = deepcopy(Item)
 
     def get_item(self, TableName, Key, **_kwargs):
+        self.get_calls.append({"TableName": TableName, **_kwargs})
         key = self._key(Key)
         item = self.items.setdefault(TableName, {}).get(key)
         return {"Item": deepcopy(item)} if item else {}
@@ -237,12 +249,14 @@ def test_active_until_is_exact_utc_and_authorization_enforces_exclusive_boundary
 
 def test_ensure_active_cost_center_creates_once_and_rejects_contract_drift():
     dynamo = FakeDynamo()
+    ensure_cost_center_registry(dynamo, table_name="cc", usage_table_name="usage")
 
     created, was_created = ensure_active_cost_center(
         dynamo,
         "project-a",
         monthly_cap_usd="200",
         allowed_users=["ubuntu"],
+        owner_emails=["owner@example.org"],
         table_name="cc",
         usage_table_name="usage",
         now="2026-07-05T00:37:42Z",
@@ -256,12 +270,15 @@ def test_ensure_active_cost_center_creates_once_and_rejects_contract_drift():
         "project-a",
         monthly_cap_usd="200",
         allowed_users=["ubuntu"],
+        owner_emails=["owner@example.org"],
         table_name="cc",
         usage_table_name="usage",
         now="2026-07-05T01:37:42Z",
     )
     assert was_created is False
     assert verified == created
+    assert dynamo.get_calls
+    assert all(call.get("ConsistentRead") is True for call in dynamo.get_calls)
 
     with pytest.raises(CostCenterError, match="does not match the explicit DYEC create inputs"):
         ensure_active_cost_center(
@@ -269,6 +286,143 @@ def test_ensure_active_cost_center_creates_once_and_rejects_contract_drift():
             "project-a",
             monthly_cap_usd="300",
             allowed_users=["ubuntu"],
+            owner_emails=["owner@example.org"],
+            table_name="cc",
+            usage_table_name="usage",
+        )
+
+
+def test_ensure_active_cost_center_accepts_only_an_exact_concurrent_create() -> None:
+    dynamo = FakeDynamo()
+    ensure_cost_center_registry(dynamo, table_name="cc", usage_table_name="usage")
+    create_cost_center(
+        dynamo,
+        "project-a",
+        monthly_cap_usd="200",
+        allowed_users=["ubuntu"],
+        owner_emails=["owner@example.org"],
+        table_name="cc",
+        now="2026-07-05T00:37:42Z",
+    )
+    concurrent_item = dynamo.items["cc"].pop(("project-a",))
+    original_put_item = dynamo.put_item
+
+    def race_put_item(*, TableName, Item, ConditionExpression=None):
+        if ConditionExpression == "attribute_not_exists(cost_center)":
+            dynamo.items[TableName][("project-a",)] = deepcopy(concurrent_item)
+            raise ConditionalCheckFailedException()
+        return original_put_item(
+            TableName=TableName,
+            Item=Item,
+            ConditionExpression=ConditionExpression,
+        )
+
+    dynamo.put_item = race_put_item  # type: ignore[method-assign]
+    item, created = ensure_active_cost_center(
+        dynamo,
+        "project-a",
+        monthly_cap_usd="200",
+        allowed_users=["ubuntu"],
+        owner_emails=["owner@example.org"],
+        table_name="cc",
+        usage_table_name="usage",
+        now="2026-07-05T00:37:42Z",
+    )
+
+    assert created is False
+    assert item.status == "active"
+    assert dynamo.get_calls[-1]["ConsistentRead"] is True
+
+
+def test_ensure_active_cost_center_never_reactivates_disabled_row() -> None:
+    dynamo = FakeDynamo()
+    ensure_cost_center_registry(dynamo, table_name="cc", usage_table_name="usage")
+    create_cost_center(
+        dynamo,
+        "project-a",
+        monthly_cap_usd="200",
+        allowed_users=["ubuntu"],
+        owner_emails=["owner@example.org"],
+        table_name="cc",
+    )
+    disable_cost_center(
+        dynamo,
+        "project-a",
+        reason="closed",
+        table_name="cc",
+    )
+
+    with pytest.raises(CostCenterError, match="mismatched fields only.*status"):
+        ensure_active_cost_center(
+            dynamo,
+            "project-a",
+            monthly_cap_usd="200",
+            allowed_users=["ubuntu"],
+            owner_emails=["owner@example.org"],
+            table_name="cc",
+            usage_table_name="usage",
+        )
+
+    assert get_cost_center(dynamo, "project-a", table_name="cc").status == "disabled"
+
+
+def test_ensure_active_cost_center_requires_existing_tables() -> None:
+    dynamo = FakeDynamo()
+
+    with pytest.raises(CostCenterError, match="bootstrap is not implicit"):
+        ensure_active_cost_center(
+            dynamo,
+            "project-a",
+            monthly_cap_usd="200",
+            allowed_users=["ubuntu"],
+            owner_emails=["owner@example.org"],
+            table_name="cc",
+            usage_table_name="usage",
+        )
+
+    assert dynamo.created == []
+
+
+def test_ensure_active_cost_center_requires_one_canonical_owner_and_cap() -> None:
+    dynamo = FakeDynamo()
+    ensure_cost_center_registry(dynamo, table_name="cc", usage_table_name="usage")
+
+    with pytest.raises(CostCenterError, match="Exactly one canonical owner email"):
+        ensure_active_cost_center(
+            dynamo,
+            "project-a",
+            monthly_cap_usd="200",
+            allowed_users=["ubuntu"],
+            owner_emails=["a@example.org", "b@example.org"],
+            table_name="cc",
+            usage_table_name="usage",
+        )
+
+    item, created = ensure_active_cost_center(
+        dynamo,
+        "project-a",
+        monthly_cap_usd="200.000",
+        allowed_users=["ubuntu"],
+        owner_emails=["owner@example.org"],
+        table_name="cc",
+        usage_table_name="usage",
+    )
+    assert created is True
+    assert str(item.monthly_cap_usd) == "200"
+
+
+@pytest.mark.parametrize("amount", ["NaN", "Infinity", "-Infinity"])
+def test_ensure_active_cost_center_rejects_nonfinite_cap(amount: str) -> None:
+    dynamo = FakeDynamo()
+    ensure_cost_center_registry(dynamo, table_name="cc", usage_table_name="usage")
+
+    with pytest.raises(CostCenterError, match="finite number"):
+        ensure_active_cost_center(
+            dynamo,
+            "project-a",
+            monthly_cap_usd=amount,
+            allowed_users=["ubuntu"],
+            owner_emails=["owner@example.org"],
             table_name="cc",
             usage_table_name="usage",
         )

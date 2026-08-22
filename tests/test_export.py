@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import io
+import json
+from datetime import datetime, timezone
 from unittest.mock import patch
 
 import pytest
@@ -14,7 +17,9 @@ from daylily_ec.workflow.export_data import (
     analysis_dir_from_source_path,
     analysis_headnode_path,
     attach_export_dra,
+    clone_status_evidence_s3_uri,
     cleanup_exported_analysis,
+    inspect_completed_export,
     normalize_export_source_path,
     resolve_launch_export_destination_s3_uri,
     run_export_task,
@@ -22,6 +27,7 @@ from daylily_ec.workflow.export_data import (
     validate_export_destination_s3_uri,
     validate_no_overlapping_export_dra,
     validate_s3_destination_prefix_empty,
+    verify_exported_clone_status_v2_evidence,
 )
 
 runner = CliRunner()
@@ -101,13 +107,92 @@ class FakeFsxClient:
         }
 
 
+class EmptyS3Client:
+    def list_objects_v2(self, **_kwargs):
+        return {"KeyCount": 0}
+
+
 class FakeSession:
-    def __init__(self, client: FakeFsxClient) -> None:
+    def __init__(self, client: FakeFsxClient, s3_client: object | None = None) -> None:
         self.fsx_client = client
+        self.s3_client = s3_client or EmptyS3Client()
 
     def client(self, service_name: str):
-        assert service_name == "fsx"
-        return self.fsx_client
+        if service_name == "fsx":
+            return self.fsx_client
+        assert service_name == "s3"
+        return self.s3_client
+
+
+def _exported_status_v2() -> dict[str, object]:
+    timestamp = "2026-08-18T04:00:00Z"
+    return {
+        "schema_version": "daylily.analysis_status.v2",
+        "analysis": {
+            "analysis_root": "/fsx/analysis_results/user/run",
+            "repo_path": "/fsx/analysis_results/user/run/daylily-omics-analysis",
+            "created_at": timestamp,
+        },
+        "updated_at": timestamp,
+        "attempts": [
+            {
+                "attempt_id": "00000000-0000-4000-8000-000000000001",
+                "sequence": 1,
+                "origin": "dyec_controller",
+                "mode": "live",
+                "requested_command": "dy-r target",
+                "started_at": timestamp,
+                "completed_at": timestamp,
+                "state": "succeeded",
+                "controller": {
+                    "state": "succeeded",
+                    "session_name": "controller-1",
+                    "pid": 1234,
+                    "command": "dy-r target",
+                    "started_at": timestamp,
+                    "completed_at": timestamp,
+                    "exit_code": 0,
+                },
+                "day_run": {
+                    "state": "succeeded",
+                    "argv": ["bin/day_run", "target"],
+                    "started_at": timestamp,
+                    "completed_at": timestamp,
+                    "exit_code": 0,
+                },
+                "snakemake": {
+                    "state": "succeeded",
+                    "argv": ["snakemake", "target"],
+                    "started_at": timestamp,
+                    "completed_at": timestamp,
+                    "exit_code": 0,
+                    "log_path": ".snakemake/log/one.snakemake.log",
+                    "log_attribution": "exact invocation file-set difference",
+                },
+            }
+        ],
+    }
+
+
+class FakeS3Client:
+    def __init__(self, payload: dict[str, object], *, key_count: int = 0) -> None:
+        self.payload = payload
+        self.key_count = key_count
+        self.get_requests: list[dict[str, str]] = []
+        self.list_requests: list[dict[str, str | int]] = []
+
+    def list_objects_v2(self, **kwargs):
+        self.list_requests.append(kwargs)
+        if kwargs.get("MaxKeys") == 1:
+            return {"KeyCount": self.key_count}
+        return {
+            "Contents": [{"Key": f"{kwargs['Prefix']}result.txt", "Size": 1}],
+            "IsTruncated": False,
+        }
+
+    def get_object(self, **kwargs):
+        self.get_requests.append(kwargs)
+        return {"Body": io.BytesIO(json.dumps(self.payload).encode("utf-8"))}
 
 
 @pytest.mark.parametrize(
@@ -330,11 +415,162 @@ def test_run_export_task_uses_exact_nested_path() -> None:
     assert client.created_task["Paths"] == [receipt["source_path"]]
 
 
+def test_exported_clone_status_v2_evidence_requires_full_analysis_export() -> None:
+    assert clone_status_evidence_s3_uri(
+        source_path="/fsx/analysis_results/user/run/",
+        destination_s3_uri="s3://bucket/root/user/run/",
+    ) == "s3://bucket/root/user/run/daylily-omics-analysis/status.json"
+    with pytest.raises(ExportError, match="complete analysis directory"):
+        clone_status_evidence_s3_uri(
+            source_path="/fsx/analysis_results/user/run/daylily-omics-analysis/",
+            destination_s3_uri="s3://bucket/root/user/run/daylily-omics-analysis/",
+        )
+
+
+def test_analysis_export_rejects_nested_source_before_attaching_dra(tmp_path, monkeypatch) -> None:
+    client = FakeFsxClient()
+    monkeypatch.setattr(
+        "daylily_ec.workflow.export_data._create_session",
+        lambda _region, _profile: FakeSession(client, FakeS3Client(_exported_status_v2())),
+    )
+
+    rc = run_export_workflow(
+        ExportOptions(
+            cluster_name="cluster-a",
+            fsx_file_system_id="fs-123",
+            source_path="/fsx/analysis_results/user/run/AU/",
+            destination_s3_uri="s3://bucket/root/user/run/AU/",
+            region="us-west-2",
+            profile="profile",
+            output_dir=tmp_path,
+            wait=False,
+        )
+    )
+
+    assert rc == 1
+    assert client.created_association is None
+    receipt = yaml.safe_load((tmp_path / "fsx_export.yaml").read_text(encoding="utf-8"))["fsx_export"]
+    assert receipt["phase"] == "validate"
+    assert "complete analysis directory" in receipt["failure_details"]["message"]
+
+
+def test_export_rejects_nonempty_s3_prefix_before_creating_dra(tmp_path, monkeypatch) -> None:
+    client = FakeFsxClient()
+    s3 = FakeS3Client(_exported_status_v2(), key_count=1)
+    monkeypatch.setattr(
+        "daylily_ec.workflow.export_data._create_session",
+        lambda _region, _profile: FakeSession(client, s3),
+    )
+
+    rc = run_export_workflow(
+        ExportOptions(
+            cluster_name="cluster-a",
+            fsx_file_system_id="fs-123",
+            source_path="/fsx/analysis_results/user/run",
+            destination_s3_uri="s3://bucket/root/user/run/",
+            region="us-west-2",
+            profile="profile",
+            output_dir=tmp_path,
+            wait=False,
+        )
+    )
+
+    assert rc == 1
+    assert client.created_association is None
+    assert s3.list_requests == [
+        {"Bucket": "bucket", "Prefix": "root/user/run/", "MaxKeys": 1}
+    ]
+    receipt = yaml.safe_load((tmp_path / "fsx_export.yaml").read_text(encoding="utf-8"))["fsx_export"]
+    assert receipt["phase"] == "preflight"
+    assert "destination prefix is not empty" in receipt["failure_details"]["message"]
+
+
+def test_verify_exported_clone_status_v2_evidence_reads_retained_attempts() -> None:
+    s3 = FakeS3Client(_exported_status_v2())
+
+    evidence = verify_exported_clone_status_v2_evidence(
+        s3,
+        source_path="/fsx/analysis_results/user/run/",
+        destination_s3_uri="s3://bucket/root/user/run/",
+    )
+
+    assert evidence == {
+        "required": True,
+        "verified": True,
+        "s3_uri": "s3://bucket/root/user/run/daylily-omics-analysis/status.json",
+        "schema_version": "daylily.analysis_status.v2",
+        "attempt_count": 1,
+        "latest_attempt_id": "00000000-0000-4000-8000-000000000001",
+    }
+    assert s3.get_requests == [
+        {
+            "Bucket": "bucket",
+            "Key": "root/user/run/daylily-omics-analysis/status.json",
+        }
+    ]
+
+
+def test_analysis_export_rejects_legacy_evidence_by_default(tmp_path, monkeypatch) -> None:
+    client = FakeFsxClient()
+    s3 = FakeS3Client({"schema_version": "retired.home.status.v1"})
+    monkeypatch.setattr(
+        "daylily_ec.workflow.export_data._create_session",
+        lambda _region, _profile: FakeSession(client, s3),
+    )
+
+    rc = run_export_workflow(
+        ExportOptions(
+            cluster_name="cluster-a",
+            fsx_file_system_id="fs-123",
+            source_path="/fsx/analysis_results/user/run",
+            destination_s3_uri="s3://bucket/root/user/run/",
+            region="us-west-2",
+            profile="profile",
+            output_dir=tmp_path,
+            wait=False,
+            delete_data_in_file_system=True,
+        )
+    )
+
+    assert rc == 1
+    assert client.deleted_association == {
+        "AssociationId": "dra-export",
+        "DeleteDataInFileSystem": False,
+    }
+
+
+def test_export_workflow_records_validated_clone_status_evidence(tmp_path, monkeypatch) -> None:
+    client = FakeFsxClient()
+    s3 = FakeS3Client(_exported_status_v2())
+    monkeypatch.setattr(
+        "daylily_ec.workflow.export_data._create_session",
+        lambda _region, _profile: FakeSession(client, s3),
+    )
+
+    rc = run_export_workflow(
+        ExportOptions(
+            cluster_name="cluster-a",
+            fsx_file_system_id="fs-123",
+            source_path="/fsx/analysis_results/user/run",
+            destination_s3_uri="s3://bucket/root/user/run/",
+            region="us-west-2",
+            profile="profile",
+            output_dir=tmp_path,
+            wait=False,
+        )
+    )
+
+    assert rc == 0
+    receipt = yaml.safe_load((tmp_path / "fsx_export.yaml").read_text(encoding="utf-8"))["fsx_export"]
+    assert receipt["clone_status_v2_evidence"]["verified"] is True
+    assert receipt["clone_status_v2_evidence"]["attempt_count"] == 1
+
+
 def test_run_export_workflow_writes_provider_neutral_receipt(tmp_path, monkeypatch) -> None:
     client = FakeFsxClient()
     monkeypatch.setattr(
         "daylily_ec.workflow.export_data._create_session",
-        lambda _region, _profile: FakeSession(client),
+        lambda _region, _profile: FakeSession(client, FakeS3Client(_exported_status_v2())),
     )
     rc = run_export_workflow(
         ExportOptions(
@@ -355,6 +591,7 @@ def test_run_export_workflow_writes_provider_neutral_receipt(tmp_path, monkeypat
     assert receipt["status"] == "success"
     assert receipt["detached"] is True
     assert receipt["delete_data_in_file_system"] is False
+    assert receipt["clone_status_v2_evidence"]["verified"] is True
     text = (tmp_path / "fsx_export.yaml").read_text(encoding="utf-8").lower()
     for forbidden in ("dayhoff", "ursa", "bloom", "tapdb", "dewey"):
         assert forbidden not in text
@@ -406,6 +643,7 @@ def test_exports_transfer_emits_json_receipt_and_preserves_fsx(monkeypatch) -> N
         observed["options"] = options
         receipt = {
             "fsx_export": {
+                "schema_version": 6,
                 "status": "success",
                 "task_id": "task-1",
                 "task_lifecycle": "SUCCEEDED",
@@ -452,12 +690,251 @@ def test_exports_transfer_emits_json_receipt_and_preserves_fsx(monkeypatch) -> N
     )
 
     assert result.exit_code == 0, result.stdout + result.stderr
-    assert yaml.safe_load(result.stdout)["task_lifecycle"] == "SUCCEEDED"
+    payload = yaml.safe_load(result.stdout)
+    assert payload["schema_version"] == "dyec.exports.transfer.v1"
+    assert payload["ok"] is True
+    assert payload["operation"] == "transfer"
+    assert payload["task_lifecycle"] == "SUCCEEDED"
     options = observed["options"]
     assert isinstance(options, ExportOptions)
     assert options.destination_analysis_id == "M-RGX-FSAP"
     assert options.delete_data_in_file_system is False
+    assert not hasattr(options, "require_clone_status_v2_evidence")
     assert options.timeout_seconds == 5400
+
+
+def test_inspect_completed_export_proves_task_detach_and_s3_without_mutation(
+    monkeypatch,
+) -> None:
+    source = "/analysis_results/ursa-M-RGX-JJG9/M-RGX-JK33/"
+    destination = (
+        "s3://bucket/derived/ursa-clusters/ursa-m-rgx-j2gs/"
+        "analysis_results/M-RGX-JK33/"
+    )
+    report_path = (
+        f"{destination}_daylily_monitor/fsx-export/"
+        "20260822T011000Z/export-report/"
+    )
+
+    class InspectionFsxClient:
+        def __init__(self) -> None:
+            self.calls: list[tuple[str, dict[str, object]]] = []
+
+        def describe_data_repository_tasks(self, **kwargs):
+            self.calls.append(("describe_data_repository_tasks", kwargs))
+            return {
+                "DataRepositoryTasks": [
+                    {
+                        "TaskId": "task-1",
+                        "Lifecycle": "SUCCEEDED",
+                        "Type": "EXPORT_TO_REPOSITORY",
+                        "CreationTime": datetime(2026, 8, 22, 1, 10, tzinfo=timezone.utc),
+                        "EndTime": datetime(2026, 8, 22, 1, 20, tzinfo=timezone.utc),
+                        "FileSystemId": "fs-123",
+                        "Paths": [source],
+                        "Report": {
+                            "Enabled": True,
+                            "Path": report_path,
+                            "Format": "REPORT_CSV_20191124",
+                            "Scope": "FAILED_FILES_ONLY",
+                        },
+                    }
+                ]
+            }
+
+        def describe_data_repository_associations(self, **kwargs):
+            self.calls.append(("describe_data_repository_associations", kwargs))
+            return {"Associations": []}
+
+    def event(
+        *,
+        name: str,
+        event_time: str,
+        request: dict[str, object],
+        response: dict[str, object],
+    ) -> dict[str, object]:
+        event_id = f"event-{name}"
+        return {
+            "EventId": event_id,
+            "CloudTrailEvent": json.dumps(
+                {
+                    "eventSource": "fsx.amazonaws.com",
+                    "eventName": name,
+                    "eventTime": event_time,
+                    "eventID": event_id,
+                    "requestID": f"request-{name}",
+                    "recipientAccountId": "108782052779",
+                    "userIdentity": {"principalId": "role:ursa"},
+                    "requestParameters": request,
+                    "responseElements": response,
+                }
+            ),
+        }
+
+    events = {
+        "CreateDataRepositoryAssociation": event(
+            name="CreateDataRepositoryAssociation",
+            event_time="2026-08-22T01:05:00Z",
+            request={
+                "fileSystemId": "fs-123",
+                "fileSystemPath": source,
+                "dataRepositoryPath": destination,
+                "batchImportMetaDataOnCreate": False,
+                "tags": [
+                    {"key": "lsmc:purpose", "value": "output-export"},
+                    {"key": "Name", "value": "ursa-M-RGX-JJG9/M-RGX-JK33"},
+                ],
+            },
+            response={"association": {"associationId": "dra-export"}},
+        ),
+        "CreateDataRepositoryTask": event(
+            name="CreateDataRepositoryTask",
+            event_time="2026-08-22T01:10:00Z",
+            request={
+                "fileSystemId": "fs-123",
+                "type": "EXPORT_TO_REPOSITORY",
+                "paths": [source],
+                "report": {"path": report_path},
+            },
+            response={"dataRepositoryTask": {"taskId": "task-1"}},
+        ),
+        "DeleteDataRepositoryAssociation": event(
+            name="DeleteDataRepositoryAssociation",
+            event_time="2026-08-22T01:21:00Z",
+            request={
+                "associationId": "dra-export",
+                "deleteDataInFileSystem": False,
+            },
+            response={"association": {"associationId": "dra-export"}},
+        ),
+    }
+
+    class InspectionCloudTrailClient:
+        def __init__(self) -> None:
+            self.calls: list[dict[str, object]] = []
+
+        def lookup_events(self, **kwargs):
+            self.calls.append(kwargs)
+            event_name = kwargs["LookupAttributes"][0]["AttributeValue"]
+            return {"Events": [events[event_name]]}
+
+    fsx = InspectionFsxClient()
+    cloudtrail = InspectionCloudTrailClient()
+    monkeypatch.setattr(
+        "daylily_ec.workflow.export_data.verify_exported_clone_status_v2_evidence",
+        lambda *_args, **_kwargs: {
+            "required": True,
+            "verified": True,
+            "schema_version": "daylily.analysis_status.v2",
+            "s3_uri": f"{destination}daylily-omics-analysis/status.json",
+            "attempt_count": 1,
+            "latest_attempt_id": "attempt-1",
+        },
+    )
+    monkeypatch.setattr(
+        "daylily_ec.workflow.export_data.verify_exported_destination_evidence",
+        lambda *_args, **_kwargs: {
+            "required": True,
+            "verified": True,
+            "schema_version": "dyec.export.destination_evidence.v1",
+            "s3_uri": destination,
+            "object_count": 1,
+            "total_bytes": 1,
+            "list_request_count": 1,
+        },
+    )
+
+    payload = inspect_completed_export(
+        cluster_name="ursa-m-rgx-j2gs",
+        fsx_file_system_id="fs-123",
+        source_path=f"/fsx{source}",
+        destination_s3_uri=destination,
+        destination_analysis_id="M-RGX-JK33",
+        started_after="2026-08-22T01:00:00Z",
+        started_before="2026-08-22T01:30:00Z",
+        region="us-west-2",
+        profile="lsmc",
+        fsx_client=fsx,
+        cloudtrail_client=cloudtrail,
+        s3_client=object(),
+    )
+
+    assert payload["schema_version"] == "dyec.exports.inspect.v1"
+    assert payload["read_only"] is True
+    assert payload["task_id"] == "task-1"
+    assert payload["association_id"] == "dra-export"
+    assert payload["detached"] is True
+    assert payload["delete_data_in_file_system"] is False
+    assert [name for name, _kwargs in fsx.calls] == [
+        "describe_data_repository_tasks",
+        "describe_data_repository_associations",
+    ]
+    assert len(cloudtrail.calls) == 3
+
+
+def test_exports_inspect_emits_current_read_only_receipt(monkeypatch) -> None:
+    from daylily_ec.cli import app
+
+    observed: dict[str, object] = {}
+
+    def fake_inspect(**kwargs):
+        observed.update(kwargs)
+        return {
+            "schema_version": "dyec.exports.inspect.v1",
+            "ok": True,
+            "operation": "inspect",
+            "read_only": True,
+            "task_id": "task-1",
+            "destination_s3_uri": "s3://bucket/derived/cluster/analysis_results/run/",
+        }
+
+    monkeypatch.setenv("CONDA_PREFIX", "/tmp/dayec")
+    monkeypatch.setenv("CONDA_DEFAULT_ENV", "DAY-EC")
+    monkeypatch.setattr(
+        "daylily_ec.workflow.export_data.inspect_completed_export",
+        fake_inspect,
+    )
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "exports",
+            "inspect",
+            "--cluster",
+            "cluster-a",
+            "--fsx-file-system-id",
+            "fs-123",
+            "--source-path",
+            "/fsx/analysis_results/ursa-run/execution",
+            "--destination-s3-uri",
+            "s3://bucket/derived/cluster/analysis_results/run/",
+            "--destination-analysis-id",
+            "run",
+            "--started-after",
+            "2026-08-22T01:00:00Z",
+            "--started-before",
+            "2026-08-22T01:30:00Z",
+            "--region",
+            "us-west-2",
+            "--profile",
+            "lsmc",
+        ],
+    )
+
+    assert result.exit_code == 0, result.stdout + result.stderr
+    payload = yaml.safe_load(result.stdout)
+    assert payload["schema_version"] == "dyec.exports.inspect.v1"
+    assert payload["read_only"] is True
+    assert observed["fsx_file_system_id"] == "fs-123"
+
+
+def test_analysis_export_cli_has_no_legacy_evidence_opt_in() -> None:
+    from daylily_ec.cli import app
+
+    for argv in (["export", "--help"], ["exports", "transfer", "--help"]):
+        result = runner.invoke(app, argv)
+        assert result.exit_code == 0, result.stdout + result.stderr
+        assert "--require-clone-status-v2-evidence" not in result.output
 
 
 def test_cleanup_exported_analysis_deletes_only_exact_fsx_path() -> None:

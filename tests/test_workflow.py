@@ -26,19 +26,19 @@ import daylily_ec.aws.cloudformation as cloudformation
 import daylily_ec.aws.context as aws_context
 import daylily_ec.aws.ec2 as aws_ec2
 import daylily_ec.aws.heartbeat as aws_heartbeat
-from daylily_ec.aws.idle_cost import IdleClusterCostEstimate
 import daylily_ec.aws.iam as aws_iam
 import daylily_ec.aws.slurm_accounting as aws_slurm_accounting
-from daylily_ec.aws.ssm import SsmCommandFailedError, SsmCommandResult
 import daylily_ec.aws.spot_pricing as spot_pricing
 import daylily_ec.config.triplets as triplets
 import daylily_ec.pcluster.monitor as pcluster_monitor
 import daylily_ec.pcluster.runner as pcluster_runner
 import daylily_ec.render.renderer as renderer
+import daylily_ec.workflow.create_cluster as create_cluster_module
+from daylily_ec.aws.idle_cost import IdleClusterCostEstimate
+from daylily_ec.aws.ssm import SsmCommandFailedError, SsmCommandResult
 from daylily_ec.config.models import ConfigFile, Triplet
 from daylily_ec.state import store as state_store
 from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport
-import daylily_ec.workflow.create_cluster as create_cluster_module
 from daylily_ec.workflow.create_cluster import (
     DEFAULT_BUDGET_EMAIL,
     DEFAULT_COST_CENTER_MONTHLY_CAP_USD,
@@ -48,42 +48,43 @@ from daylily_ec.workflow.create_cluster import (
     EXIT_SUCCESS,
     EXIT_TOOLCHAIN,
     EXIT_VALIDATION_FAILURE,
-    az_cluster_template_relative_path,
-    attach_headnode_managed_policy,
     _build_connection_command,
+    _build_headnode_conda_environment_reset_command,
     _default_budget_email,
     _default_cluster_name,
+    _extract_selected,
     _is_valid_fsx_size,
     _is_valid_headnode_instance_type,
-    _extract_selected,
-    _resolve_fsx_deployment_type,
-    _resolve_fsx_persistent2_throughput,
-    _resolve_fsx_size,
-    _resolve_persistent2_config,
-    _resolve_headnode_instance_type,
-    _read_headnode_root_volume_spec,
-    _resolve_s3_role_config_value,
     _noop_heartbeat_result,
+    _read_headnode_root_volume_spec,
     _require_values,
     _resolve_cluster_name,
     _resolve_config_value,
+    _resolve_fsx_deployment_type,
+    _resolve_fsx_persistent2_throughput,
+    _resolve_fsx_size,
+    _resolve_headnode_instance_type,
+    _resolve_persistent2_config,
     _resolve_post_create_inputs,
-    resolve_cluster_template_yaml,
-    resolve_dayoa_deploy_key_inputs,
-    resolve_dyec_deploy_key_inputs,
-    resolve_dragen_create_inputs,
+    _resolve_s3_role_config_value,
+    _validate_cluster_name,
+    attach_headnode_managed_policy,
+    az_cluster_template_relative_path,
     configure_headnode,
     evaluate_regional_cluster_cap,
     make_repository_catalog_preflight_step,
     normalize_create_cluster_type,
     parse_create_repo_overrides,
+    resolve_cluster_template_yaml,
+    resolve_dayoa_deploy_key_inputs,
+    resolve_dragen_create_inputs,
+    resolve_dyec_deploy_key_inputs,
     run_preflight,
     validate_create_cluster_type_region,
+    validate_dragen_cluster_contract,
     validate_regional_cluster_cap_options,
     validate_sentieon_single_cluster_contract,
     validate_startup_dra_contract,
-    validate_dragen_cluster_contract,
-    _validate_cluster_name,
 )
 
 # ── Exit code constants ─────────────────────────────────────────────────
@@ -2202,6 +2203,8 @@ class TestRunCreateWorkflow:
         assert records["cost_center_kwargs"]["name"] == "bjuice"
         assert records["cost_center_kwargs"]["monthly_cap_usd"] == "200"
         assert records["cost_center_kwargs"]["allowed_users"] == ("ubuntu",)
+        assert records["cost_center_kwargs"]["owner_emails"] == ("johnm@lsmc.com",)
+        assert records["cost_center_kwargs"]["notes"] == ""
         assert records["heartbeat_kwargs"]["email"] == "johnm@lsmc.com"
         assert records["heartbeat_kwargs"]["schedule_expression"] == "rate(60 minutes)"
         assert "budget_project" not in records["next_run_values"]
@@ -2231,6 +2234,25 @@ class TestRunCreateWorkflow:
         assert records["configure_headnode_kwargs"]["dayoa_deploy_key_secret_arn"].endswith(
             ":secret:dayec/dayoa-key"
         )
+
+    def test_noninteractive_create_uses_budget_email_as_cost_center_owner(
+        self, tmp_path, monkeypatch
+    ):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            config_overrides={
+                "budget_email": ["USESETVALUE", "", "owner@example.org"],
+                "cost_center_name": ["USESETVALUE", "", "p-19012-ccenter"],
+            },
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        assert records["prompt_labels"] == []
+        assert records["cost_center_kwargs"]["owner_emails"] == ("owner@example.org",)
 
     def test_collects_every_prompt_before_baseline_provisioning(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
@@ -2760,6 +2782,19 @@ class TestConfigureHeadnode:
             "daylily_ec.versioning.get_release_version",
             lambda: "16.1.85",
         )
+        monkeypatch.setattr(
+            "daylily_ec.workflow.create_cluster._resolve_headnode_cluster_cache_namespace",
+            lambda cluster_name, region, profile: f"{cluster_name}-00000000-0000-0000-0000-000000000000",
+        )
+
+    def test_force_reset_cleans_all_conda_caches_after_removing_named_environments(self):
+        reset_lines = _build_headnode_conda_environment_reset_command().splitlines()
+
+        assert reset_lines.count("conda clean --all --yes") == 1
+        assert reset_lines.index("done") < reset_lines.index("conda clean --all --yes")
+        assert reset_lines.index("conda clean --all --yes") < reset_lines.index(
+            'rm -f "$HOME/.config/daylily/headnode_dayoa_bootstrap.tsv"'
+        )
 
     @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")
@@ -3012,9 +3047,7 @@ class TestConfigureHeadnode:
         monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
         mock_run_shell.return_value = SimpleNamespace(stdout="", stderr="")
         mock_validate_headnode_readiness.return_value = SimpleNamespace(command_id="cmd-ready")
-        secret_arn = (
-            "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayec/github-token"
-        )
+        secret_arn = "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayec/github-token"
 
         ok = configure_headnode(
             cluster_name="test-cluster",
@@ -3063,10 +3096,10 @@ class TestConfigureHeadnode:
         mock_run_shell.return_value = SimpleNamespace(stdout="", stderr="")
         mock_validate_headnode_readiness.return_value = SimpleNamespace(command_id="cmd-ready")
         dyec_secret_arn = (
-            "arn:aws:secretsmanager:us-west-2:123456789012:" "secret:dayec/github-deploy-keys/dyec"
+            "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayec/github-deploy-keys/dyec"
         )
         dayoa_secret_arn = (
-            "arn:aws:secretsmanager:us-west-2:123456789012:" "secret:dayec/github-deploy-keys/dayoa"
+            "arn:aws:secretsmanager:us-west-2:123456789012:secret:dayec/github-deploy-keys/dayoa"
         )
 
         ok = configure_headnode(

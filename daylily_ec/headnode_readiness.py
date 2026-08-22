@@ -70,7 +70,7 @@ case "${{DAYOA_CLUSTER_CACHE_NAMESPACE}}" in
     exit 1
     ;;
 esac
-command -v daylily-ec >/dev/null 2>&1
+command -v dyec >/dev/null 2>&1
 command -v day-clone >/dev/null 2>&1
 stty -a 2>/dev/null | grep -Eq '(^|[[:space:];])-ixon([[:space:];]|$)'
 df -P /fsx >/dev/null

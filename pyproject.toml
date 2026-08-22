@@ -75,6 +75,7 @@ python_functions = ["test_*"]
 addopts = "-v"
 markers = [
     "live_aws: tests that execute against live AWS resources and must be explicitly opted in",
+    "catalog_snapshot: slow repository-catalog snapshot tests that must be explicitly opted in",
 ]
 
 [tool.black]

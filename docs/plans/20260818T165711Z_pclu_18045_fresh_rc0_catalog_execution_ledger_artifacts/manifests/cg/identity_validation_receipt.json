@@ -1,0 +1,115 @@
+{
+  "dyec_version": "18.0.47",
+  "generated_at": "2026-08-18T17:05:00.444366+00:00",
+  "identity_status": {
+    "analysis_units": [
+      {
+        "analysis_unit_uid": "TVBCG5X-HG003-5x-1-D0-ANALYSIS",
+        "customer_release_eligible": false,
+        "missing_identity_fields": [
+          "ANALYSIS_UNIT_EUID",
+          "DELIVERY_EUID"
+        ],
+        "test_identity_fields": [
+          "LIBRARY_EUID[TVBCG5X-HG003-5x-1-D0-LIB]",
+          "SAMPLE_EUID",
+          "SPECIMEN_EUID"
+        ]
+      }
+    ],
+    "analysis_units_total": 1,
+    "customer_release_eligible_units": 0,
+    "fields": {
+      "analysis_units.tsv:ANALYSIS_UNIT_EUID": {
+        "blank": 1,
+        "owner_issued": 0,
+        "test": 0
+      },
+      "analysis_units.tsv:DELIVERY_EUID": {
+        "blank": 1,
+        "owner_issued": 0,
+        "test": 0
+      },
+      "libraries.tsv:LIBRARY_EUID": {
+        "blank": 0,
+        "owner_issued": 0,
+        "test": 1
+      },
+      "samples.tsv:SAMPLE_EUID": {
+        "blank": 0,
+        "owner_issued": 0,
+        "test": 1
+      },
+      "sequencing_inputs.tsv:POOL_TUBE_EUID": {
+        "blank": 1,
+        "owner_issued": 0,
+        "test": 0
+      },
+      "sequencing_inputs.tsv:SEQUENCING_RUN_EUID": {
+        "blank": 1,
+        "owner_issued": 0,
+        "test": 0
+      },
+      "sequencing_inputs.tsv:SOURCE_ARTIFACT_EUID": {
+        "blank": 1,
+        "owner_issued": 0,
+        "test": 0
+      },
+      "specimens.tsv:SPECIMEN_EUID": {
+        "blank": 0,
+        "owner_issued": 0,
+        "test": 1
+      }
+    }
+  },
+  "inputs": {
+    "analysis_unit_inputs.tsv": {
+      "path": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260818T165711Z_pclu_18045_fresh_rc0_catalog_execution_ledger_artifacts/manifests/.dyec-cg-slim-materialize-yi3k6615/manifest/analysis_unit_inputs.tsv",
+      "rows": 1,
+      "sha256": "fa2a8fdbfe073d72851d213868c8d2fad457d3b1218b6786e56d7c9be7d457ef"
+    },
+    "analysis_units.tsv": {
+      "path": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260818T165711Z_pclu_18045_fresh_rc0_catalog_execution_ledger_artifacts/manifests/.dyec-cg-slim-materialize-yi3k6615/manifest/analysis_units.tsv",
+      "rows": 1,
+      "sha256": "fe7f5dd55d3808c77311e7cbc49f08bf85d6371336742bb2de53dd55c09bcc47"
+    },
+    "libraries.tsv": {
+      "path": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260818T165711Z_pclu_18045_fresh_rc0_catalog_execution_ledger_artifacts/manifests/.dyec-cg-slim-materialize-yi3k6615/manifest/libraries.tsv",
+      "rows": 1,
+      "sha256": "ba233284f70a803bb6c0d574da5992ec7c0ed0b96da3454d7eccac8a11b2868f"
+    },
+    "samples.tsv": {
+      "path": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260818T165711Z_pclu_18045_fresh_rc0_catalog_execution_ledger_artifacts/manifests/.dyec-cg-slim-materialize-yi3k6615/manifest/samples.tsv",
+      "rows": 1,
+      "sha256": "ead47f222dbd42a0139a7b27eaddfde57c3f30960ac0856908fb82646a5d9b6e"
+    },
+    "sequencing_inputs.tsv": {
+      "path": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260818T165711Z_pclu_18045_fresh_rc0_catalog_execution_ledger_artifacts/manifests/.dyec-cg-slim-materialize-yi3k6615/manifest/sequencing_inputs.tsv",
+      "rows": 1,
+      "sha256": "b54697115139a2c9fab35f913bda10e02af515e20df288a5e5646ca9f884863b"
+    },
+    "specimens.tsv": {
+      "path": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260818T165711Z_pclu_18045_fresh_rc0_catalog_execution_ledger_artifacts/manifests/.dyec-cg-slim-materialize-yi3k6615/manifest/specimens.tsv",
+      "rows": 1,
+      "sha256": "7c47cf8ec088bcfc7d2ad5eee623a009a1beeb5c912db6544703a89e692f7d6d"
+    }
+  },
+  "invariants": {
+    "foreign_keys_valid": true,
+    "identifiers_created": false,
+    "identifiers_rewritten": false,
+    "network_accessed": false,
+    "ordered_inputs_valid": true,
+    "provider_neutral": true
+  },
+  "manifest_dir": "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260818T165711Z_pclu_18045_fresh_rc0_catalog_execution_ledger_artifacts/manifests/.dyec-cg-slim-materialize-yi3k6615/manifest",
+  "manifest_order": [
+    "specimens.tsv",
+    "samples.tsv",
+    "libraries.tsv",
+    "sequencing_inputs.tsv",
+    "analysis_units.tsv",
+    "analysis_unit_inputs.tsv"
+  ],
+  "schema_version": "dyec.six_manifest.validation.v1"
+}

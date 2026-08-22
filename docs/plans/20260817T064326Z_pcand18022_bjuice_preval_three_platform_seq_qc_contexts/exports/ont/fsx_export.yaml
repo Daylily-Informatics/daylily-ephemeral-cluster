@@ -1,0 +1,25 @@
+fsx_export:
+  schema_version: 4
+  status: success
+  phase: complete
+  cluster_name: pcand-18022
+  region: us-west-2
+  analysis_dir: pcand-18022/pcand18022_ont_seq_qc_15011_live_20260817T0752Z
+  source_path: /analysis_results/pcand-18022/pcand18022_ont_seq_qc_15011_live_20260817T0752Z/
+  headnode_path: /fsx/analysis_results/pcand-18022/pcand18022_ont_seq_qc_15011_live_20260817T0752Z/
+  destination_s3_uri: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ont_seq_qc_15011_live_20260817T0752Z/
+  fsx_root: /fsx/analysis_results/pcand-18022/pcand18022_ont_seq_qc_15011_live_20260817T0752Z/
+  s3_root: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ont_seq_qc_15011_live_20260817T0752Z/
+  dayoa_analysis_root: /fsx/analysis_results/pcand-18022/pcand18022_ont_seq_qc_15011_live_20260817T0752Z/daylily-omics-analysis/
+  dayoa_s3_root: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ont_seq_qc_15011_live_20260817T0752Z/daylily-omics-analysis/
+  detached: true
+  delete_data_in_file_system: true
+  failure_details: {}
+  fsx_file_system_id: fs-09eb220d064d55d92
+  file_system_path: /analysis_results/pcand-18022/pcand18022_ont_seq_qc_15011_live_20260817T0752Z/
+  association_id: dra-07a7629ad6d148601
+  lifecycle: AVAILABLE
+  task_id: task-0ab635bdaf6de0351
+  task_lifecycle: SUCCEEDED
+  report_path: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ont_seq_qc_15011_live_20260817T0752Z/_daylily_monitor/fsx-export/20260817T090048Z/export-report/
+  detach_lifecycle: DELETED

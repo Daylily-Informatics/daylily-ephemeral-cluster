@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import json
+import math
 import statistics
+from collections.abc import Iterable
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterable, Optional
+from typing import Any
 
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
@@ -23,6 +25,8 @@ DEFAULT_SPOT_COST_LIMIT_PCT: float = 1.70
 MIN_SPOT_COST_LIMIT_PCT: float = 1.0
 MAX_SPOT_COST_LIMIT_PCT: float = 2.20
 DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD: float = 8.00
+MAX_SPOT_OBSERVATION_AGE_SECONDS = 3600
+MAX_SPOT_OBSERVATION_FUTURE_SKEW_SECONDS = 300
 
 
 def validate_spot_pricing_limits(
@@ -53,8 +57,7 @@ def validate_spot_pricing_limits(
         )
     if warn_threshold <= 0:
         raise ValueError(
-            "--write-spot-pricing-warn-threshold must be > 0; "
-            f"got {warn_threshold:.4f}."
+            f"--write-spot-pricing-warn-threshold must be > 0; got {warn_threshold:.4f}."
         )
     return global_max, pct, warn_threshold
 
@@ -78,8 +81,7 @@ def get_spot_price(
     except Exception as exc:
         raise RuntimeError(
             f"Spot price lookup failed for {product_description} {instance_type} in {az}. "
-            "Confirm the instance type is valid and ec2:DescribeSpotPriceHistory is allowed. "
-            f"Detail: {exc}"
+            "Confirm the instance type is valid and ec2:DescribeSpotPriceHistory is allowed."
         ) from exc
 
     prices = resp.get("SpotPriceHistory", [])
@@ -94,8 +96,78 @@ def get_spot_price(
     except (KeyError, ValueError, TypeError) as exc:
         raise RuntimeError(
             "Spot price lookup returned a non-numeric SpotPrice for "
-            f"{product_description} {instance_type} in {az}: {prices[0]!r}"
+            f"{product_description} {instance_type} in {az}."
         ) from exc
+
+
+def get_fresh_spot_price_observation(
+    ec2_client: Any,
+    instance_type: str,
+    az: str,
+    *,
+    product_description: str = DEFAULT_SPOT_PRODUCT_DESCRIPTION,
+    captured_at: datetime | None = None,
+) -> dict[str, Any]:
+    """Return one bounded, timestamped, fresh Spot market observation."""
+
+    now = captured_at or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        raise RuntimeError("Spot price capture time must include a timezone.")
+    try:
+        response = ec2_client.describe_spot_price_history(
+            InstanceTypes=[instance_type],
+            AvailabilityZone=az,
+            ProductDescriptions=[product_description],
+            MaxResults=1,
+        )
+    except Exception as exc:
+        raise RuntimeError(
+            f"Spot price lookup failed for {product_description} {instance_type} in {az}."
+        ) from exc
+    rows = response.get("SpotPriceHistory", [])
+    if len(rows) != 1 or not isinstance(rows[0], dict):
+        raise RuntimeError(
+            f"Spot price lookup returned no exact observation for {instance_type} in {az}."
+        )
+    row = rows[0]
+    try:
+        price = float(row["SpotPrice"])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise RuntimeError(
+            f"Spot price lookup returned an invalid numeric observation for {instance_type}."
+        ) from exc
+    if not math.isfinite(price) or price <= 0:
+        raise RuntimeError(
+            f"Spot price lookup returned an invalid numeric observation for {instance_type}."
+        )
+    # EC2 returns the current price when StartTime is omitted, while Timestamp
+    # identifies when that unchanged price became effective rather than when
+    # this live lookup observed it.
+    provider_effective = row.get("Timestamp")
+    if isinstance(provider_effective, str):
+        try:
+            provider_effective = datetime.fromisoformat(
+                provider_effective.replace("Z", "+00:00")
+            )
+        except ValueError as exc:
+            raise RuntimeError("Spot price observation timestamp is invalid.") from exc
+    if not isinstance(provider_effective, datetime) or provider_effective.tzinfo is None:
+        raise RuntimeError("Spot price observation is missing a timezone-aware timestamp.")
+    provider_effective_utc = provider_effective.astimezone(timezone.utc)
+    captured_utc = now.astimezone(timezone.utc)
+    provider_age_seconds = (captured_utc - provider_effective_utc).total_seconds()
+    if provider_age_seconds < -MAX_SPOT_OBSERVATION_FUTURE_SKEW_SECONDS:
+        raise RuntimeError("Spot price observation timestamp is too far in the future.")
+    return {
+        "instance_type": instance_type,
+        "product_description": product_description,
+        "price": price,
+        "observed_at": captured_utc.isoformat().replace("+00:00", "Z"),
+        "age_seconds": 0.0,
+        "provider_effective_at": provider_effective_utc.isoformat().replace(
+            "+00:00", "Z"
+        ),
+    }
 
 
 def get_instance_vcpu_counts(ec2_client: Any, instance_types: Iterable[str]) -> dict[str, int]:
@@ -111,7 +183,7 @@ def get_instance_vcpu_counts(ec2_client: Any, instance_types: Iterable[str]) -> 
         joined = ", ".join(unique_instance_types)
         raise RuntimeError(
             "Instance type vCPU lookup failed for "
-            f"{joined}. Confirm ec2:DescribeInstanceTypes is allowed. Detail: {exc}"
+            f"{joined}. Confirm ec2:DescribeInstanceTypes is allowed."
         ) from exc
 
     counts: dict[str, int] = {}
@@ -122,13 +194,11 @@ def get_instance_vcpu_counts(ec2_client: Any, instance_types: Iterable[str]) -> 
             vcpus = int(vcpu_info["DefaultVCpus"])
         except (KeyError, TypeError, ValueError) as exc:
             raise RuntimeError(
-                f"Instance type vCPU lookup returned invalid VCpuInfo for {instance_type}: "
-                f"{item!r}"
+                f"Instance type vCPU lookup returned invalid VCpuInfo for {instance_type}."
             ) from exc
         if vcpus <= 0:
             raise RuntimeError(
-                f"Instance type vCPU lookup returned non-positive DefaultVCpus for "
-                f"{instance_type}: {vcpus}"
+                f"Instance type vCPU lookup returned non-positive DefaultVCpus for {instance_type}."
             )
         counts[instance_type] = vcpus
 
@@ -142,13 +212,13 @@ def get_instance_vcpu_counts(ec2_client: Any, instance_types: Iterable[str]) -> 
 
 def calculate_compute_resource_spot_price(
     ec2_client: Any,
-    resource_config: Dict[str, Any],
+    resource_config: dict[str, Any],
     az: str,
     *,
     global_spot_max_cost: float = DEFAULT_GLOBAL_SPOT_MAX_COST,
     spot_cost_limit_pct: float = DEFAULT_SPOT_COST_LIMIT_PCT,
     write_spot_pricing_warn_threshold: float = DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD,
-) -> Optional[float]:
+) -> float | None:
     """Return the capped spot bid for one compute resource using its own median."""
 
     global_max, pct, _warn_threshold = validate_spot_pricing_limits(
@@ -156,7 +226,12 @@ def calculate_compute_resource_spot_price(
         spot_cost_limit_pct=spot_cost_limit_pct,
         write_spot_pricing_warn_threshold=write_spot_pricing_warn_threshold,
     )
-    stats = _collect_resource_price_stats(ec2_client, resource_config, az)
+    stats = _collect_resource_price_stats(
+        ec2_client,
+        resource_config,
+        az,
+        captured_at=datetime.now(timezone.utc),
+    )
     if stats is None:
         return None
     return _final_bid(
@@ -168,7 +243,7 @@ def calculate_compute_resource_spot_price(
 
 def apply_spot_to_queue(
     ec2_client: Any,
-    queue_config: Dict[str, Any],
+    queue_config: dict[str, Any],
     az: str,
     *,
     global_spot_max_cost: float = DEFAULT_GLOBAL_SPOT_MAX_COST,
@@ -189,7 +264,7 @@ def apply_spot_to_queue(
 
 
 def process_slurm_queues(
-    config: Dict[str, Any],
+    config: dict[str, Any],
     az: str,
     ec2_client: Any,
     *,
@@ -215,7 +290,7 @@ def apply_spot_prices(
     az: str,
     *,
     ec2_client: Any = None,
-    profile: Optional[str] = None,
+    profile: str | None = None,
     global_spot_max_cost: float = DEFAULT_GLOBAL_SPOT_MAX_COST,
     spot_cost_limit_pct: float = DEFAULT_SPOT_COST_LIMIT_PCT,
     write_spot_pricing_warn_threshold: float = DEFAULT_WRITE_SPOT_PRICING_WARN_THRESHOLD,
@@ -231,7 +306,7 @@ def apply_spot_prices(
     if ec2_client is None:
         import boto3
 
-        session_kw: Dict[str, str] = {}
+        session_kw: dict[str, str] = {}
         if profile:
             session_kw["profile_name"] = profile
         region = az[:-1]
@@ -266,7 +341,7 @@ def apply_spot_prices(
 
 
 def _build_spot_price_summary(
-    config: Dict[str, Any],
+    config: dict[str, Any],
     az: str,
     ec2_client: Any,
     *,
@@ -274,6 +349,7 @@ def _build_spot_price_summary(
     spot_cost_limit_pct: float,
     write_spot_pricing_warn_threshold: float,
 ) -> dict[str, Any]:
+    captured_at = datetime.now(timezone.utc)
     queues = config.get("Scheduling", {}).get("SlurmQueues", []) or []
     spot_queues = [
         queue
@@ -286,7 +362,12 @@ def _build_spot_price_summary(
         queue_name = str(queue.get("Name") or f"queue_{queue_index}")
         for resource_index, resource in enumerate(_queue_resources(queue)):
             resource_name = _resource_name(resource, resource_index)
-            stats = _collect_resource_price_stats(ec2_client, resource, az)
+            stats = _collect_resource_price_stats(
+                ec2_client,
+                resource,
+                az,
+                captured_at=captured_at,
+            )
             if stats is None:
                 raise RuntimeError(
                     f"Compute resource {queue_name}/{resource_name} has no Instances[].InstanceType."
@@ -329,9 +410,7 @@ def _build_spot_price_summary(
                 reference_source = "self"
                 reference_median = float(ref_stats["raw_median_spot_price"])
                 effective_spot_cost_limit_pct = spot_cost_limit_pct
-            uncapped_bid = _round_price(
-                reference_median * effective_spot_cost_limit_pct
-            )
+            uncapped_bid = _round_price(reference_median * effective_spot_cost_limit_pct)
             final_bid = min(uncapped_bid, _round_price(global_spot_max_cost))
             final_bid = _round_price(final_bid)
             global_limiter_applied = uncapped_bid > final_bid
@@ -357,6 +436,7 @@ def _build_spot_price_summary(
                 "resource": resource_name,
                 "instance_types": list(stats["instance_types"]),
                 "instance_vcpus": dict(stats["instance_vcpus"]),
+                "spot_price_observations": list(stats["spot_price_observations"]),
                 "min_instance_vcpus": int(stats["min_instance_vcpus"]),
                 "max_instance_vcpus": int(stats["max_instance_vcpus"]),
                 "raw_min_spot_price": _round_price(float(stats["raw_min_spot_price"])),
@@ -392,13 +472,15 @@ def _build_spot_price_summary(
 
     return {
         "schema_version": SPOT_PRICE_SUMMARY_SCHEMA_VERSION,
-        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "generated_at": captured_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "observation_policy": {
+            "maximum_age_seconds": MAX_SPOT_OBSERVATION_AGE_SECONDS,
+            "maximum_future_skew_seconds": MAX_SPOT_OBSERVATION_FUTURE_SKEW_SECONDS,
+        },
         "availability_zone": az,
         "global_spot_max_cost": _round_price(global_spot_max_cost),
         "spot_cost_limit_pct": spot_cost_limit_pct,
-        "write_spot_pricing_warn_threshold": _round_price(
-            write_spot_pricing_warn_threshold
-        ),
+        "write_spot_pricing_warn_threshold": _round_price(write_spot_pricing_warn_threshold),
         "resources": resource_rows,
         "partitions": list(partition_accumulators.values()),
     }
@@ -406,8 +488,10 @@ def _build_spot_price_summary(
 
 def _collect_resource_price_stats(
     ec2_client: Any,
-    resource_config: Dict[str, Any],
+    resource_config: dict[str, Any],
     az: str,
+    *,
+    captured_at: datetime,
 ) -> dict[str, Any] | None:
     instance_types = [
         str(inst.get("InstanceType"))
@@ -417,14 +501,21 @@ def _collect_resource_price_stats(
     if not instance_types:
         return None
 
-    prices = [
-        _effective_spot_price(ec2_client, instance_type, az)
+    observations = [
+        _effective_spot_price_observation(
+            ec2_client,
+            instance_type,
+            az,
+            captured_at=captured_at,
+        )
         for instance_type in instance_types
     ]
+    prices = [float(observation["price"]) for observation in observations]
     instance_vcpus = get_instance_vcpu_counts(ec2_client, instance_types)
     return {
         "instance_types": instance_types,
         "instance_vcpus": instance_vcpus,
+        "spot_price_observations": observations,
         "min_instance_vcpus": min(instance_vcpus.values()),
         "max_instance_vcpus": max(instance_vcpus.values()),
         "raw_min_spot_price": min(prices),
@@ -433,21 +524,21 @@ def _collect_resource_price_stats(
     }
 
 
-def _queue_resources(queue: Dict[str, Any]) -> list[Dict[str, Any]]:
+def _queue_resources(queue: dict[str, Any]) -> list[dict[str, Any]]:
     return list(queue.get("ComputeResources", []) or [])
 
 
-def _resource_name(resource: Dict[str, Any], index: int) -> str:
+def _resource_name(resource: dict[str, Any], index: int) -> str:
     return str(resource.get("Name") or f"resource_{index}")
 
 
-def _queue_max_instances(resources: Iterable[Dict[str, Any]]) -> int:
+def _queue_max_instances(resources: Iterable[dict[str, Any]]) -> int:
     return sum(_parse_int(resource.get("MaxCount", 0)) for resource in resources)
 
 
 def _queue_partition_max_spot_price(
     queue_name: str,
-    resources: Iterable[Dict[str, Any]],
+    resources: Iterable[dict[str, Any]],
     resource_stats: dict[tuple[str, str], dict[str, Any]],
 ) -> float:
     prices = []
@@ -463,23 +554,29 @@ def _uses_f2_partition_max(
     *,
     queue_max_instances: int,
 ) -> bool:
-    return (
-        queue_max_instances < F2_PARTITION_MAX_INSTANCE_THRESHOLD
-        and any(_is_f2_instance_type(instance_type) for instance_type in stats["instance_types"])
+    return queue_max_instances < F2_PARTITION_MAX_INSTANCE_THRESHOLD and any(
+        _is_f2_instance_type(instance_type) for instance_type in stats["instance_types"]
     )
 
 
-def _effective_spot_price(ec2_client: Any, instance_type: str, az: str) -> float:
-    prices = [
-        get_spot_price(
+def _effective_spot_price_observation(
+    ec2_client: Any,
+    instance_type: str,
+    az: str,
+    *,
+    captured_at: datetime,
+) -> dict[str, Any]:
+    observations = [
+        get_fresh_spot_price_observation(
             ec2_client,
             instance_type,
             az,
             product_description=product_description,
+            captured_at=captured_at,
         )
         for product_description in _spot_product_descriptions(instance_type)
     ]
-    return max(prices)
+    return max(observations, key=lambda item: float(item["price"]))
 
 
 def _spot_product_descriptions(instance_type: str) -> tuple[str, ...]:
@@ -513,9 +610,7 @@ def _partition_summary_row(
             "max_final_bid": 0.0,
             "global_spot_max_cost": _round_price(global_spot_max_cost),
             "spot_cost_limit_pct": spot_cost_limit_pct,
-            "write_spot_pricing_warn_threshold": _round_price(
-                write_spot_pricing_warn_threshold
-            ),
+            "write_spot_pricing_warn_threshold": _round_price(write_spot_pricing_warn_threshold),
             "global_limiter_applied": False,
             "warn_threshold_exceeded": False,
             "reference_partitions": "",
@@ -553,12 +648,8 @@ def _partition_summary_row(
         ),
         "max_final_bid": _round_price(max(float(row["final_bid"]) for row in row_list)),
         "global_spot_max_cost": _round_price(global_spot_max_cost),
-        "spot_cost_limit_pct": max(
-            float(row["spot_cost_limit_pct"]) for row in row_list
-        ),
-        "write_spot_pricing_warn_threshold": _round_price(
-            write_spot_pricing_warn_threshold
-        ),
+        "spot_cost_limit_pct": max(float(row["spot_cost_limit_pct"]) for row in row_list),
+        "write_spot_pricing_warn_threshold": _round_price(write_spot_pricing_warn_threshold),
         "global_limiter_applied": any(bool(row["global_limiter_applied"]) for row in row_list),
         "warn_threshold_exceeded": any(bool(row["warn_threshold_exceeded"]) for row in row_list),
         "reference_partitions": ",".join(reference_partitions),

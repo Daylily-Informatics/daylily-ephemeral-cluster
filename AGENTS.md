@@ -1,3 +1,30 @@
+# Agent quick start
+
+**Before a DYEC or DayOA operation, read
+[docs/agent_cli_guide.md](docs/agent_cli_guide.md).** It is the visible CLI
+route map for local setup, cluster/headnode inspection, run mounts, catalog
+launch, interactive DayOA work, monitoring, no-delete export, and terminal
+stop conditions. In an activated checkout, run `dyec agent guidance` for the
+compact companion reminder.
+
+The detailed rules below are mandatory. When guidance conflicts, follow the
+current instruction hierarchy and the closest applicable safety contract; do not
+invent a fallback or bypass the supported DYEC/DAYOA CLI path.
+
+## Catalog Live-Sweep Protocol
+
+- For a live command-catalog sweep, render and launch each named command with
+  `dyec catalog`, then continue the same successful dry analysis root through
+  `dyec workflow launch --reuse-existing-analysis-dir --input-contract none
+  --no-input-staging --reuse-local-git-ref --reuse-local-git-commit <sha>`.
+  The continued `dy-r` command must differ only by removal of `-n`.
+- Do not use `dyec tests command-catalog` as a live dry-to-live controller: it
+  creates separate warmup, dry, and live analysis IDs. Use only an explicit
+  supplied six-manifest directory; never synthesize or discover a replacement.
+- For each successful lane, record an export visit, complete and verify the
+  detached full-root `dyec export` receipt and S3 evidence before proposing any
+  FSx cleanup. FSx deletion remains a separate exact-root confirmation gate.
+
 # Shell Session Defaults
 
 - Default to an interactive shell for shell work. On this Mac, use the user's default shell unless the user explicitly asks for another shell.
@@ -19,13 +46,35 @@
   4. `dy-r <targets> <flags>`
 - Example DayOA smoke/dry-run command: `dy-r help -p -k -j 1 -n`.
 - For BCL/DayOA execution, send these commands into the persistent `tmux` pane as separate commands. Do not collapse setup and execution into a one-shot non-interactive SSM script.
+- A dry-to-live pair is one analysis capsule. Create its analysis root, clone,
+  staged inputs, and in-clone config once for the dry controller; after an
+  attributable dry `rc=0` with zero submitted work, run the exact same command
+  in that same analysis ID/root with only `-n` removed.
+- A `-dry` or `-live` suffix may distinguish controller/tmux session names; it
+  must never create a second analysis ID, FSx root, DayOA checkout, input
+  staging area, or runtime configuration. Creating a replacement live root
+  invalidates the dry-run proof and is prohibited unless the human explicitly
+  requests a new analysis or changes the command, pin, inputs, or config.
+- Store every analysis-specific YAML/config file inside that analysis's cloned
+  `daylily-omics-analysis` directory, normally under `config/`, and make the
+  saved controller command reference that in-clone path. Never use a
+  controller-specific config path outside the clone. The clone must preserve
+  all manifests and configuration required to rerun the exact analysis,
+  excluding only explicit links/paths to source reads, CRAMs, references,
+  licenses, and other declared runtime assets.
 
 # Pinned DayOA Source Immutability
 
 - A DYEC controller must never create, edit, delete, move, chmod, or patch a versioned file in a pinned DayOA checkout. This includes workflow rules, scripts, versioned environment YAMLs, `bin/`, and versioned configuration.
 - Runtime source overlays, generated source helpers, and text-rewrite repairs are prohibited. The controller must verify that the selected DayOA ref is clean before dispatch and again after the workflow returns.
-- Explicit input manifests may be materialized only at their established ignored runtime paths; they are not a mechanism for altering DayOA source.
+- Explicit input manifests and analysis-specific runtime config may be
+  materialized only at their established in-clone runtime paths; they are not
+  a mechanism for altering versioned DayOA source. Pinned-source checks must
+  distinguish these analysis artifacts from source modifications.
 - If a required behavior is absent from the selected release, fail clearly and land it in a new, tested, tagged DayOA release. Never repair it on the headnode.
+- The sole exception is an explicit **pinned-source test override** for one named existing analysis root. A human must authorize that root, source ref/commit, intended source change, and test command in the current thread. The controller itself still does not patch, reset, or check out source; the override permits an already-made, explicitly authorized dirty change to be exercised only after verifying its existing HEAD.
+- Use only `dyec workflow launch --pinned-source-test-override "<non-secret reason>"` with `--reuse-existing-analysis-dir --reuse-local-git-ref --reuse-local-git-commit <40-char-sha> --input-contract none --no-input-staging --dry-run --export-trigger none`. The controller records the selected ref, status, staged/working-tree diffs, untracked paths, reason, and command before and after the test outside the DayOA checkout.
+- A pinned-source test override is never valid for a live run, catalog launch, automatic/manual export, delivery, cleanup, or promotion. It cannot replace a source release: make the permanent correction in DayOA, validate it under the approved gate, and publish a tagged release before any production use.
 
 # Provider-Neutral Execution Boundary
 
@@ -43,6 +92,9 @@
 - Ordinary DayOA/HIOMRS execution must work with no EUIDs and no identity
   service. Customer-release preparation may require owner-issued identifiers,
   but they must already be present in the supplied manifests and receipts.
+- The installed literal `dyec` console script is also the only supported upstream orchestration boundary. Ursa and other callers must use public `dyec` commands and bounded JSON receipts; `daylily_ec` Python modules are implementation details, not an integration API.
+- `dyec create` owns the complete cluster-create lifecycle, including registered template rendering, live spot-price calculation, provider creation/update, Slurm-accounting enablement, and terminal verification. Do not require an upstream service to reproduce any of those phases.
+- Provider tools such as `pcluster`, boto3, and AWS SDK helpers may be implementation details behind DYEC, but they must never become a required upstream call path. When an upstream use case lacks a public command, add and test that public command instead of documenting an internal-module workaround.
 
 # Analysis-Root Agent Locking
 
@@ -113,7 +165,7 @@ For cost/performance reports, aggregate directly from those rows: `sum(s)` for t
 - Do not use `root` for headnode work. The `ubuntu` user is in sudoers; use targeted `sudo` from `ubuntu` only when escalation is required.
 - Interactive sessions must use `SSM-SessionManagerRunShell` configured with `runAsDefaultUser=ubuntu` and bash login-shell behavior.
 - Command payloads must go through the central `daylily_ec.aws.ssm.run_shell` and `daylily_ec.aws.ssm.write_remote_text` helpers rather than ad hoc `aws ssm send-command` calls.
-- Use `dyec` for current docs and runbooks. The headnode signature is `dyec headnode connect --profile <profile> --region <region> --cluster <cluster>` and `dyec headnode configure --profile <profile> --region <region> --cluster <cluster>`. Prefer `--cluster`; keep `--cluster-name` for tools such as `pcluster` that require it.
+- Use `dyec` for current docs and runbooks. The headnode signature is `dyec headnode connect --profile <profile> --region <region> --cluster <cluster>` and `dyec headnode configure --profile <profile> --region <region> --cluster <cluster> --state-file <exact-state.json>`. A headnode configure invocation must use either that exact state file or both exact deploy-key options; it must never discover a newest local state. Prefer `--cluster`; keep `--cluster-name` for tools such as `pcluster` that require it.
 - `dyec headnode connect` must preserve interactive TUI/editor key chords, especially Emacs `Ctrl-S` and `Ctrl-X Ctrl-S`. Keep both layers of XON/XOFF protection: the remote ubuntu login shell must disable flow control, and the local `daylily_ec.aws.ssm.start_session` path must keep a local `/dev/tty` flow-control guard running while Session Manager owns the terminal. A one-time local `stty -ixon -ixoff` is not sufficient because the AWS Session Manager/plugin startup path can leave the live local TTY with flow control enabled again.
 - Do not remove or bypass the `tests/test_ssm.py` guardrail coverage for the local flow-control guard. Regression evidence should include a real `dyec headnode connect` session where `cat -v` receives bare `Ctrl-S` as `^S`; for editor validation, `emacs -Q` should enter `I-search` on `Ctrl-S` and write the file on `Ctrl-X Ctrl-S`.
 
@@ -190,7 +242,7 @@ For cost/performance reports, aggregate directly from those rows: `sum(s)` for t
 - Jobs in Slurm `CF`/`CONFIGURING` can legitimately remain there while ParallelCluster creates spot instances from scratch; this can take tens of minutes. This is information for status reporting only, not a trigger for action or job management.
 - Do not actively manage workflow jobs. Scheduling, retries, queue state, and job lifecycle are Snakemake/Slurm responsibilities. Do not cancel, requeue, hold, release, reprioritize, drain/resume, restart services for, or otherwise manipulate jobs or scheduler state unless the user explicitly approves that exact action in the current thread.
 - Monitoring and reporting are allowed. Jobs running for more than 3 hours may be flagged as `needs investigation`, but do not take corrective action without confirmed user approval.
-- If Slurm is unavailable or unhealthy, record the blocker and route the durable fix through ParallelCluster/pcluster configuration or infrastructure code changes.
+- If Slurm is unavailable or unhealthy, record the blocker and use the public `dyec` CLI for the live operation. Any required ParallelCluster/pcluster configuration or infrastructure implementation must remain behind a reviewed DYEC command and release; upstream callers must not invoke the provider directly.
 
 # Brainstorming and Advice Disposition
 
