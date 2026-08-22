@@ -6,7 +6,6 @@ import os
 from unittest.mock import MagicMock, patch
 
 from daylily_ec.aws.iam import (
-    CREATE_SCHEDULER_SCRIPT,
     GLOBAL_POLICY_NAME,
     HEARTBEAT_DEFAULT_ROLE_NAMES,
     HEARTBEAT_ROLE_ENV_VARS,
@@ -33,6 +32,7 @@ def _iam_client(
     groups=None,
     group_policies=None,
     list_policies_pages=None,
+    list_policies_error=None,
     create_policy_resp=None,
     create_policy_error=None,
     get_role_responses=None,
@@ -59,7 +59,11 @@ def _iam_client(
     client.list_attached_group_policies.side_effect = _group_policies_side_effect
 
     # Paginator for list_policies
-    if list_policies_pages is not None:
+    if list_policies_error is not None:
+        paginator = MagicMock()
+        paginator.paginate.side_effect = list_policies_error
+        client.get_paginator.return_value = paginator
+    elif list_policies_pages is not None:
         paginator = MagicMock()
         paginator.paginate.return_value = list_policies_pages
         client.get_paginator.return_value = paginator
@@ -266,8 +270,8 @@ class TestCheckDaylilyPolicies:
 
 
 class TestEnsurePclusterOmicsPolicy:
-    def test_already_exists(self):
-        """Policy exists → PASS with action=already_exists."""
+    def test_present_passes(self):
+        """Policy exists → PASS, and nothing is written."""
         iam = _iam_client(
             list_policies_pages=[
                 {
@@ -282,34 +286,35 @@ class TestEnsurePclusterOmicsPolicy:
         )
         result = ensure_pcluster_omics_policy(iam)
         assert result.status == CheckStatus.PASS
-        assert result.details["action"] == "already_exists"
-        assert result.id == "iam.pcluster_omics_policy"
-        # create_policy should NOT be called
+        assert result.details["action"] == "verified"
         iam.create_policy.assert_not_called()
 
-    def test_not_exists_creates(self):
-        """Policy missing → create → PASS with action=created."""
-        iam = _iam_client(
-            create_policy_resp={
-                "Policy": {
-                    "Arn": "arn:aws:iam::123:policy/pcluster-omics-analysis",
-                    "PolicyName": PCLUSTER_OMICS_POLICY_NAME,
-                },
-            },
-        )
-        result = ensure_pcluster_omics_policy(iam)
-        assert result.status == CheckStatus.PASS
-        assert result.details["action"] == "created"
-        iam.create_policy.assert_called_once()
+    def test_missing_hard_fails_and_creates_nothing(self):
+        """The Phase 4a change: a deploy path must not do one-time IAM setup.
 
-    def test_create_failure(self):
-        """Policy missing and create fails → FAIL."""
-        iam = _iam_client(
-            create_policy_error=Exception("AccessDenied"),
-        )
+        Previously this created the policy, which was the only iam:CreatePolicy
+        in the codebase. Now it fails with instructions. The clean-slate case is
+        covered by the deployer permission set granting
+        iam:CreateServiceLinkedRole directly.
+        """
+        iam = _iam_client()
         result = ensure_pcluster_omics_policy(iam)
         assert result.status == CheckStatus.FAIL
-        assert "AccessDenied" in result.remediation
+        assert result.details["action"] == "missing"
+        iam.create_policy.assert_not_called()
+        assert "Terraform" in result.remediation
+
+    def test_list_failure_reports_the_missing_read(self):
+        """A denied ListPolicies must not be silently reported as 'missing'.
+
+        The old code swallowed this and fell through to create, so a permissions
+        problem looked like an absent policy.
+        """
+        iam = _iam_client(list_policies_error=Exception("AccessDenied"))
+        result = ensure_pcluster_omics_policy(iam)
+        assert result.status == CheckStatus.FAIL
+        assert "iam:ListPolicies" in result.remediation
+        iam.create_policy.assert_not_called()
 
     def test_policy_document_matches_bash(self):
         """Verify policy document matches the exact Bash implementation."""
@@ -429,16 +434,14 @@ class TestResolveSchedulerRole:
             "daylily-eventbridge-scheduler",
         ]
 
-    @patch("daylily_ec.aws.iam.subprocess.run")
-    @patch("daylily_ec.aws.iam.os.path.isfile", return_value=True)
-    @patch("daylily_ec.aws.iam.shutil.which", return_value=None)
-    def test_create_via_script(self, mock_which, mock_isfile, mock_run):
-        """When no role found, create via script → parse ARN from output."""
-        mock_run.return_value = MagicMock(
-            returncode=0,
-            stdout="Creating role...\nROLE ARN: arn:aws:iam::123:role/created-role\nDone.",
-            stderr="",
-        )
+    def test_missing_role_never_creates_one(self):
+        """No role found → resolve, never create.
+
+        The create path (a shell-out to bin/admin/create_scheduler_role_for_sns.sh
+        calling iam:CreateRole + iam:UpdateAssumeRolePolicy + iam:PutRolePolicy
+        mid-deploy) was removed: the role is Terraform-managed and the deployer
+        holds no IAM writes. This asserts the resolver stays read-only.
+        """
         iam = _iam_client()
         env_clean = {v: "" for v in HEARTBEAT_ROLE_ENV_VARS}
         with patch.dict(os.environ, env_clean, clear=False):
@@ -449,12 +452,23 @@ class TestResolveSchedulerRole:
                 region="us-west-2",
                 profile="myprof",
             )
-        assert arn == "arn:aws:iam::123:role/created-role"
-        assert source == "created_by_script"
+        assert arn is None
+        assert source == "not_found"
+        iam.create_role.assert_not_called()
+        iam.put_role_policy.assert_not_called()
+        iam.update_assume_role_policy.assert_not_called()
 
-    @patch("daylily_ec.aws.iam.os.path.isfile", return_value=False)
-    @patch("daylily_ec.aws.iam.shutil.which", return_value=None)
-    def test_not_found(self, mock_which, mock_isfile):
+    def test_module_cannot_shell_out(self):
+        """The IAM module imports no process-spawning machinery."""
+        import daylily_ec.aws.iam as iam_mod
+
+        for attr in ("subprocess", "shutil", "CREATE_SCHEDULER_SCRIPT"):
+            assert not hasattr(iam_mod, attr), (
+                f"daylily_ec.aws.iam.{attr} is back — the scheduler-role "
+                f"create path must stay removed"
+            )
+
+    def test_not_found(self):
         """Nothing found → returns (None, 'not_found')."""
         iam = _iam_client()
         env_clean = {v: "" for v in HEARTBEAT_ROLE_ENV_VARS}
@@ -593,4 +607,3 @@ class TestMakeIamPreflightStep:
         assert GLOBAL_POLICY_NAME == "DaylilyGlobalEClusterPolicy"
         assert REGIONAL_POLICY_PREFIX == "DaylilyRegionalEClusterPolicy"
         assert PCLUSTER_OMICS_POLICY_NAME == "pcluster-omics-analysis"
-        assert CREATE_SCHEDULER_SCRIPT == "bin/admin/create_scheduler_role_for_sns.sh"

@@ -62,7 +62,6 @@ from daylily_ec.aws.context import (
     resolve_region,
 )
 from daylily_ec.aws.iam import (
-    CREATE_SCHEDULER_SCRIPT,
     GLOBAL_POLICY_NAME,
     HEARTBEAT_DEFAULT_ROLE_NAMES,
     HEARTBEAT_ROLE_ENV_VARS,
@@ -145,7 +144,6 @@ __all__ = [
     "BUCKET_NAME_FILTER",
     "CLUSTER_THRESHOLDS",
     "COMPLETE_STATUSES",
-    "CREATE_SCHEDULER_SCRIPT",
     "DEFAULT_GLOBAL_SPOT_MAX_COST",
     "DEFAULT_MONITORED_REGIONS",
     "DEFAULT_PRODUCTION_PARTITIONS",
