@@ -636,6 +636,7 @@ def test_exports_transfer_emits_json_receipt_and_preserves_fsx(monkeypatch) -> N
         observed["options"] = options
         receipt = {
             "fsx_export": {
+                "schema_version": 6,
                 "status": "success",
                 "task_id": "task-1",
                 "task_lifecycle": "SUCCEEDED",
@@ -682,7 +683,11 @@ def test_exports_transfer_emits_json_receipt_and_preserves_fsx(monkeypatch) -> N
     )
 
     assert result.exit_code == 0, result.stdout + result.stderr
-    assert yaml.safe_load(result.stdout)["task_lifecycle"] == "SUCCEEDED"
+    payload = yaml.safe_load(result.stdout)
+    assert payload["schema_version"] == "dyec.exports.transfer.v1"
+    assert payload["ok"] is True
+    assert payload["operation"] == "transfer"
+    assert payload["task_lifecycle"] == "SUCCEEDED"
     options = observed["options"]
     assert isinstance(options, ExportOptions)
     assert options.destination_analysis_id == "M-RGX-FSAP"

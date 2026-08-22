@@ -3628,10 +3628,10 @@ def exports_transfer(
             if payload.get("detached") is not True:
                 raise RuntimeError("DYEC export transfer did not detach its temporary DRA")
             payload = {
+                **payload,
                 "schema_version": "dyec.exports.transfer.v1",
                 "ok": True,
                 "operation": "transfer",
-                **payload,
             }
             _emit_export_payload(
                 payload,
