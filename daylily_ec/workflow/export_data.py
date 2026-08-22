@@ -6,9 +6,9 @@ import dataclasses
 import json
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path, PurePosixPath
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Mapping, Optional
 from urllib.parse import urlparse
 
 import boto3
@@ -43,6 +43,7 @@ HEADNODE_ANALYSIS_EXPORT_ROOT = "/fsx/analysis_results/"
 STATUS_FILENAME = "fsx_export.yaml"
 EXPORT_SCHEMA_VERSION = 6
 EXPORT_PURPOSE_TAG = "output-export"
+EXPORT_INSPECTION_SCHEMA = "dyec.exports.inspect.v1"
 POLL_INTERVAL_SECONDS = 30
 ANALYSIS_EXPORT_KIND = "analysis"
 RUNTIME_CACHE_EXPORT_KIND = "runtime_cache"
@@ -496,6 +497,428 @@ def resolve_export_fsx_id(
     if not cluster_name:
         raise ExportError("Provide --cluster or --fsx-file-system-id.")
     return resolve_fsx_file_system_id(client, cluster_name)
+
+
+def _parse_inspection_timestamp(value: str, *, field_name: str) -> datetime:
+    raw = str(value or "").strip()
+    if raw.endswith("Z"):
+        raw = f"{raw[:-1]}+00:00"
+    try:
+        parsed = datetime.fromisoformat(raw)
+    except ValueError as exc:
+        raise ExportError(f"{field_name} must be an ISO-8601 timestamp with timezone") from exc
+    if parsed.tzinfo is None:
+        raise ExportError(f"{field_name} must include a timezone")
+    return parsed.astimezone(timezone.utc)
+
+
+def _utc_iso(value: datetime) -> str:
+    return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _task_timestamp(task: Mapping[str, Any], field: str) -> datetime:
+    value = task.get(field)
+    if not isinstance(value, datetime) or value.tzinfo is None:
+        raise ExportError(f"FSx export task is missing timezone-aware {field}")
+    return value.astimezone(timezone.utc)
+
+
+def _list_export_tasks(client: Any, *, fsx_file_system_id: str) -> list[Dict[str, Any]]:
+    request: Dict[str, Any] = {
+        "Filters": [{"Name": "file-system-id", "Values": [fsx_file_system_id]}],
+        "MaxResults": 100,
+    }
+    tasks: list[Dict[str, Any]] = []
+    while True:
+        try:
+            response = client.describe_data_repository_tasks(**request)
+        except (BotoCoreError, ClientError) as exc:
+            raise ExportError(f"Unable to inspect FSx data repository tasks: {exc}") from exc
+        rows = response.get("DataRepositoryTasks") or []
+        if not isinstance(rows, list) or any(not isinstance(row, dict) for row in rows):
+            raise ExportError("FSx data repository task inventory is malformed")
+        tasks.extend(rows)
+        next_token = str(response.get("NextToken") or "").strip()
+        if not next_token:
+            return tasks
+        request["NextToken"] = next_token
+
+
+def _lookup_cloudtrail_events(
+    client: Any,
+    *,
+    event_name: str,
+    started_after: datetime,
+    started_before: datetime,
+) -> list[Dict[str, Any]]:
+    request: Dict[str, Any] = {
+        "LookupAttributes": [
+            {"AttributeKey": "EventName", "AttributeValue": event_name}
+        ],
+        "StartTime": started_after,
+        "EndTime": started_before,
+        "MaxResults": 50,
+    }
+    events: list[Dict[str, Any]] = []
+    for _page in range(20):
+        try:
+            response = client.lookup_events(**request)
+        except (BotoCoreError, ClientError) as exc:
+            raise ExportError(f"Unable to inspect CloudTrail {event_name} events: {exc}") from exc
+        rows = response.get("Events") or []
+        if not isinstance(rows, list):
+            raise ExportError(f"CloudTrail {event_name} inventory is malformed")
+        for row in rows:
+            if not isinstance(row, Mapping):
+                raise ExportError(f"CloudTrail {event_name} inventory contains a malformed row")
+            raw_event = row.get("CloudTrailEvent")
+            if not isinstance(raw_event, str):
+                raise ExportError(f"CloudTrail {event_name} row has no event document")
+            try:
+                document = json.loads(raw_event)
+            except json.JSONDecodeError as exc:
+                raise ExportError(f"CloudTrail {event_name} event document is invalid") from exc
+            if not isinstance(document, dict):
+                raise ExportError(f"CloudTrail {event_name} event document is not an object")
+            if (
+                document.get("eventSource") != "fsx.amazonaws.com"
+                or document.get("eventName") != event_name
+                or document.get("errorCode") is not None
+                or document.get("errorMessage") is not None
+            ):
+                continue
+            event_time = _parse_inspection_timestamp(
+                str(document.get("eventTime") or ""),
+                field_name=f"CloudTrail {event_name} eventTime",
+            )
+            if not started_after <= event_time <= started_before:
+                continue
+            document["_event_id"] = str(row.get("EventId") or document.get("eventID") or "")
+            document["_event_time"] = event_time
+            events.append(document)
+        next_token = str(response.get("NextToken") or "").strip()
+        if not next_token:
+            return events
+        request["NextToken"] = next_token
+    raise ExportError(f"CloudTrail {event_name} inspection exceeded the bounded page limit")
+
+
+def _request_mapping(event: Mapping[str, Any], *, event_name: str) -> Mapping[str, Any]:
+    request = event.get("requestParameters")
+    if not isinstance(request, Mapping):
+        raise ExportError(f"CloudTrail {event_name} event has no request parameters")
+    return request
+
+
+def _response_mapping(event: Mapping[str, Any], *, event_name: str) -> Mapping[str, Any]:
+    response = event.get("responseElements")
+    if not isinstance(response, Mapping):
+        raise ExportError(f"CloudTrail {event_name} event has no response elements")
+    return response
+
+
+def _event_identity(event: Mapping[str, Any]) -> tuple[str, str]:
+    identity = event.get("userIdentity")
+    if not isinstance(identity, Mapping):
+        raise ExportError("CloudTrail FSx event has no user identity")
+    principal_id = str(identity.get("principalId") or "").strip()
+    account_id = str(event.get("recipientAccountId") or "").strip()
+    if not principal_id or not account_id:
+        raise ExportError("CloudTrail FSx event has incomplete caller identity")
+    return principal_id, account_id
+
+
+def _event_receipt(event: Mapping[str, Any]) -> Dict[str, Any]:
+    event_time = event.get("_event_time")
+    if not isinstance(event_time, datetime):
+        raise ExportError("CloudTrail FSx event has no parsed event time")
+    event_id = str(event.get("_event_id") or "").strip()
+    request_id = str(event.get("requestID") or "").strip()
+    if not event_id or not request_id:
+        raise ExportError("CloudTrail FSx event has incomplete immutable identifiers")
+    return {
+        "event_id": event_id,
+        "request_id": request_id,
+        "event_time": _utc_iso(event_time),
+    }
+
+
+def inspect_completed_export(
+    *,
+    cluster_name: str,
+    fsx_file_system_id: str,
+    source_path: str,
+    destination_s3_uri: str,
+    destination_analysis_id: str,
+    started_after: str,
+    started_before: str,
+    region: str,
+    profile: Optional[str],
+    fsx_client: Optional[Any] = None,
+    cloudtrail_client: Optional[Any] = None,
+    s3_client: Optional[Any] = None,
+) -> Dict[str, Any]:
+    """Prove one completed transfer using only read-only provider and S3 calls."""
+
+    normalized_cluster = str(cluster_name or "").strip()
+    normalized_fsx_id = str(fsx_file_system_id or "").strip()
+    if not normalized_cluster:
+        raise ExportError("cluster_name is required for completed export inspection")
+    if not normalized_fsx_id:
+        raise ExportError("fsx_file_system_id is required for completed export inspection")
+    normalized_source = normalize_export_source_path(source_path)
+    normalized_destination = validate_export_destination_s3_uri(
+        destination_s3_uri,
+        source_path=normalized_source,
+        cluster_name=normalized_cluster,
+        destination_analysis_id=destination_analysis_id,
+    )
+    after = _parse_inspection_timestamp(started_after, field_name="started_after")
+    before = _parse_inspection_timestamp(started_before, field_name="started_before")
+    if before <= after:
+        raise ExportError("started_before must be later than started_after")
+    if before - after > timedelta(hours=6):
+        raise ExportError("completed export inspection window must not exceed six hours")
+    if before > datetime.now(timezone.utc) + timedelta(minutes=5):
+        raise ExportError("started_before must not be in the future")
+
+    session = None
+    if fsx_client is None or cloudtrail_client is None or s3_client is None:
+        session = _create_session(region, profile)
+    fsx = fsx_client or session.client("fsx")
+    cloudtrail = cloudtrail_client or session.client("cloudtrail")
+    s3 = s3_client or session.client("s3")
+
+    matching_tasks: list[Dict[str, Any]] = []
+    for task in _list_export_tasks(fsx, fsx_file_system_id=normalized_fsx_id):
+        paths = task.get("Paths")
+        if (
+            task.get("FileSystemId") != normalized_fsx_id
+            or str(task.get("Type") or "").upper() != "EXPORT_TO_REPOSITORY"
+            or str(task.get("Lifecycle") or "").upper() != "SUCCEEDED"
+            or not isinstance(paths, list)
+            or paths != [normalized_source]
+        ):
+            continue
+        creation_time = _task_timestamp(task, "CreationTime")
+        end_time = _task_timestamp(task, "EndTime")
+        if not (after <= creation_time <= end_time <= before):
+            continue
+        report = task.get("Report")
+        if not isinstance(report, Mapping):
+            continue
+        report_path = str(report.get("Path") or "").strip()
+        expected_report_root = f"{normalized_destination}_daylily_monitor/fsx-export/"
+        if (
+            report.get("Enabled") is not True
+            or report.get("Format") != "REPORT_CSV_20191124"
+            or report.get("Scope") != "FAILED_FILES_ONLY"
+            or not report_path.startswith(expected_report_root)
+            or not report_path.endswith("/export-report/")
+        ):
+            continue
+        matching_tasks.append(task)
+    if len(matching_tasks) != 1:
+        raise ExportError(
+            "completed export inspection requires exactly one successful FSx task in the window"
+        )
+    task = matching_tasks[0]
+    task_id = str(task.get("TaskId") or "").strip()
+    if not task_id:
+        raise ExportError("completed export inspection task has no task id")
+    task_report = task.get("Report")
+    if not isinstance(task_report, Mapping):
+        raise ExportError("completed export inspection task has no report")
+    report_path = str(task_report.get("Path") or "").strip()
+
+    create_association_events = _lookup_cloudtrail_events(
+        cloudtrail,
+        event_name="CreateDataRepositoryAssociation",
+        started_after=after,
+        started_before=before,
+    )
+    matching_association_events: list[Dict[str, Any]] = []
+    expected_name_tag = analysis_dir_from_source_path(normalized_source)
+    for event in create_association_events:
+        request = _request_mapping(event, event_name="CreateDataRepositoryAssociation")
+        raw_tags = request.get("tags")
+        tag_rows = raw_tags if isinstance(raw_tags, list) else []
+        tags = {
+            str(item.get("key") or ""): str(item.get("value") or "")
+            for item in tag_rows
+            if isinstance(item, Mapping)
+        }
+        try:
+            event_destination = normalize_s3_uri(
+                str(request.get("dataRepositoryPath") or "")
+            )
+        except RunMountError:
+            continue
+        if (
+            request.get("fileSystemId") != normalized_fsx_id
+            or request.get("fileSystemPath") != normalized_source
+            or event_destination != normalized_destination
+            or request.get("batchImportMetaDataOnCreate") is not False
+            or tags.get("lsmc:purpose") != EXPORT_PURPOSE_TAG
+            or tags.get("Name") != expected_name_tag
+        ):
+            continue
+        response = _response_mapping(event, event_name="CreateDataRepositoryAssociation")
+        association = response.get("association")
+        if not isinstance(association, Mapping):
+            continue
+        association_id = str(association.get("associationId") or "").strip()
+        if not association_id:
+            continue
+        event["_association_id"] = association_id
+        matching_association_events.append(event)
+    if len(matching_association_events) != 1:
+        raise ExportError(
+            "completed export inspection requires exactly one matching DRA creation event"
+        )
+    association_event = matching_association_events[0]
+    association_id = str(association_event["_association_id"])
+
+    create_task_events = _lookup_cloudtrail_events(
+        cloudtrail,
+        event_name="CreateDataRepositoryTask",
+        started_after=after,
+        started_before=before,
+    )
+    matching_task_events: list[Dict[str, Any]] = []
+    for event in create_task_events:
+        request = _request_mapping(event, event_name="CreateDataRepositoryTask")
+        response = _response_mapping(event, event_name="CreateDataRepositoryTask")
+        response_task = response.get("dataRepositoryTask")
+        request_report = request.get("report")
+        try:
+            event_report_path = normalize_s3_uri(
+                str(request_report.get("path") or "")
+                if isinstance(request_report, Mapping)
+                else ""
+            )
+        except RunMountError:
+            continue
+        if (
+            request.get("fileSystemId") != normalized_fsx_id
+            or str(request.get("type") or "").upper() != "EXPORT_TO_REPOSITORY"
+            or request.get("paths") != [normalized_source]
+            or not isinstance(request_report, Mapping)
+            or event_report_path != normalize_s3_uri(report_path)
+            or not isinstance(response_task, Mapping)
+            or response_task.get("taskId") != task_id
+        ):
+            continue
+        matching_task_events.append(event)
+    if len(matching_task_events) != 1:
+        raise ExportError(
+            "completed export inspection requires exactly one matching task creation event"
+        )
+    task_event = matching_task_events[0]
+
+    delete_events = _lookup_cloudtrail_events(
+        cloudtrail,
+        event_name="DeleteDataRepositoryAssociation",
+        started_after=after,
+        started_before=before,
+    )
+    matching_delete_events = [
+        event
+        for event in delete_events
+        if (
+            (request := _request_mapping(
+                event,
+                event_name="DeleteDataRepositoryAssociation",
+            )).get("associationId")
+            == association_id
+            and request.get("deleteDataInFileSystem") is False
+        )
+    ]
+    if len(matching_delete_events) != 1:
+        raise ExportError(
+            "completed export inspection requires exactly one preserving DRA deletion event"
+        )
+    delete_event = matching_delete_events[0]
+
+    event_times = [
+        association_event.get("_event_time"),
+        task_event.get("_event_time"),
+        delete_event.get("_event_time"),
+    ]
+    if any(not isinstance(value, datetime) for value in event_times):
+        raise ExportError("completed export inspection event timeline is incomplete")
+    if not event_times[0] <= event_times[1] <= event_times[2]:
+        raise ExportError("completed export inspection event timeline is out of order")
+    identities = {
+        _event_identity(association_event),
+        _event_identity(task_event),
+        _event_identity(delete_event),
+    }
+    if len(identities) != 1:
+        raise ExportError("completed export inspection events have different caller identities")
+
+    try:
+        association_response = fsx.describe_data_repository_associations(
+            AssociationIds=[association_id]
+        )
+    except ClientError as exc:
+        code = str((exc.response.get("Error") or {}).get("Code") or "")
+        if code != "DataRepositoryAssociationNotFound":
+            raise ExportError(f"Unable to confirm detached export DRA: {exc}") from exc
+        association_response = {"Associations": []}
+    except BotoCoreError as exc:
+        raise ExportError(f"Unable to confirm detached export DRA: {exc}") from exc
+    if association_response.get("Associations"):
+        raise ExportError("completed export inspection found the output DRA still present")
+
+    clone_status_evidence = verify_exported_clone_status_v2_evidence(
+        s3,
+        source_path=normalized_source,
+        destination_s3_uri=normalized_destination,
+        cluster_name=normalized_cluster,
+        destination_analysis_id=destination_analysis_id,
+    )
+    destination_evidence = verify_exported_destination_evidence(
+        s3,
+        source_path=normalized_source,
+        destination_s3_uri=normalized_destination,
+        cluster_name=normalized_cluster,
+        destination_analysis_id=destination_analysis_id,
+    )
+    return {
+        "schema_version": EXPORT_INSPECTION_SCHEMA,
+        "ok": True,
+        "operation": "inspect",
+        "read_only": True,
+        "status": "success",
+        "phase": "complete",
+        "cluster_name": normalized_cluster,
+        "region": region,
+        "fsx_file_system_id": normalized_fsx_id,
+        "association_id": association_id,
+        "source_path": normalized_source,
+        "headnode_path": analysis_headnode_path(normalized_source),
+        "destination_s3_uri": normalized_destination,
+        "destination_analysis_id": destination_analysis_id,
+        "task_id": task_id,
+        "task_lifecycle": "SUCCEEDED",
+        "report_path": report_path,
+        "detached": True,
+        "detach_lifecycle": "DELETED",
+        "delete_data_in_file_system": False,
+        "failure_details": {},
+        "started_after": _utc_iso(after),
+        "started_before": _utc_iso(before),
+        "task_created_at": _utc_iso(_task_timestamp(task, "CreationTime")),
+        "task_completed_at": _utc_iso(_task_timestamp(task, "EndTime")),
+        "cloudtrail": {
+            "create_association": _event_receipt(association_event),
+            "create_task": _event_receipt(task_event),
+            "delete_association": _event_receipt(delete_event),
+        },
+        "clone_status_v2_evidence": clone_status_evidence,
+        "destination_s3_evidence": destination_evidence,
+    }
 
 
 def validate_no_overlapping_export_dra(

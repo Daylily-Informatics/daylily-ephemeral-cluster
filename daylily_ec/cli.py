@@ -3473,6 +3473,44 @@ def runtime_cache_export(
         _exit_headnode_error(exc)
 
 
+def exports_inspect(
+    cluster_name: str = typer.Option(..., "--cluster-name", "--cluster"),
+    fsx_file_system_id: str = typer.Option(..., "--fsx-file-system-id"),
+    source_path: str = typer.Option(..., "--source-path"),
+    destination_s3_uri: str = typer.Option(..., "--destination-s3-uri"),
+    destination_analysis_id: str = typer.Option(..., "--destination-analysis-id"),
+    started_after: str = typer.Option(..., "--started-after"),
+    started_before: str = typer.Option(..., "--started-before"),
+    region: Optional[str] = context_option("aws_region", None, "--region", required=True),
+    profile: Optional[str] = context_option("aws_profile", None, "--profile", required=True),
+) -> None:
+    """Read-only prove one completed transfer after its caller lost the receipt."""
+
+    from daylily_ec.workflow.export_data import inspect_completed_export
+
+    try:
+        payload = inspect_completed_export(
+            cluster_name=cluster_name,
+            fsx_file_system_id=fsx_file_system_id,
+            source_path=source_path,
+            destination_s3_uri=destination_s3_uri,
+            destination_analysis_id=destination_analysis_id,
+            started_after=started_after,
+            started_before=started_before,
+            region=str(region),
+            profile=profile,
+        )
+        _emit_export_payload(
+            payload,
+            text=(
+                f"Completed export verified: {payload['task_id']}\n"
+                f"S3 destination: {payload['destination_s3_uri']}"
+            ),
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
 def exports_attach(
     cluster_name: Optional[str] = typer.Option(None, "--cluster-name", "--cluster"),
     fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
@@ -12503,6 +12541,11 @@ def register(registry, cli_spec) -> None:
         "exports",
         "Explicit FSx output DRA export helpers.",
         [
+            (
+                "inspect",
+                exports_inspect,
+                required_policy(supports_json=True),
+            ),
             (
                 "attach",
                 exports_attach,
