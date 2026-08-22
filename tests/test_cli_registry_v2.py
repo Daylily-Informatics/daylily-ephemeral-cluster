@@ -43,6 +43,7 @@ EXPECTED_COMMANDS = {
     ("cluster", "list"),
     ("cluster", "jobs"),
     ("cluster", "describe"),
+    ("cluster", "inspect"),
     ("cluster", "wait"),
     ("cluster", "compute-fleet"),
     ("cluster", "tags"),
@@ -58,7 +59,8 @@ EXPECTED_COMMANDS = {
     ("identities", "status"),
     ("identities", "evidence"),
     ("delete",),
-    ("resources-dir",),
+    ("resources", "resolve"),
+    ("resources", "materialize"),
     ("set-vars",),
     ("unset-vars",),
     ("agent", "guidance"),
@@ -104,6 +106,9 @@ EXPECTED_COMMANDS = {
     ("headnode", "fsx-usage"),
     ("headnode", "analysis-roots"),
     ("headnode", "dayoa-controllers"),
+    ("headnode", "scheduler-snapshot"),
+    ("headnode", "runtime-identity"),
+    ("headnode", "controller-evidence"),
     ("headnode", "dayoa-controller-action"),
     ("headnode", "slurm-job-action"),
     ("headnode", "slurm-drain"),
@@ -121,6 +126,7 @@ EXPECTED_COMMANDS = {
     ("workflow", "benchmark-report"),
     ("workflow", "stop"),
     ("repositories", "commands"),
+    ("repositories", "deploy-key-secret-status"),
     ("catalog", "list"),
     ("catalog", "show"),
     ("catalog", "validation-compare"),
@@ -402,11 +408,13 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     exports_transfer_cmd = registry.get_command(("exports", "transfer"))
     exports_cleanup_cmd = registry.get_command(("exports", "cleanup"))
     exports_detach_cmd = registry.get_command(("exports", "detach"))
-    resources_dir_cmd = registry.get_command(("resources-dir",))
+    resources_resolve_cmd = registry.get_command(("resources", "resolve"))
+    resources_materialize_cmd = registry.get_command(("resources", "materialize"))
     cluster_info_cmd = registry.get_command(("cluster-info",))
     cluster_list_cmd = registry.get_command(("cluster", "list"))
     cluster_jobs_cmd = registry.get_command(("cluster", "jobs"))
     cluster_describe_cmd = registry.get_command(("cluster", "describe"))
+    cluster_inspect_cmd = registry.get_command(("cluster", "inspect"))
     cluster_wait_cmd = registry.get_command(("cluster", "wait"))
     cluster_tags_cmd = registry.get_command(("cluster", "tags"))
     env_status_cmd = registry.get_command(("env", "status"))
@@ -427,6 +435,13 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     headnode_fsx_usage_cmd = registry.get_command(("headnode", "fsx-usage"))
     headnode_analysis_roots_cmd = registry.get_command(("headnode", "analysis-roots"))
     headnode_dayoa_controllers_cmd = registry.get_command(("headnode", "dayoa-controllers"))
+    headnode_scheduler_snapshot_cmd = registry.get_command(
+        ("headnode", "scheduler-snapshot")
+    )
+    headnode_runtime_identity_cmd = registry.get_command(("headnode", "runtime-identity"))
+    headnode_controller_evidence_cmd = registry.get_command(
+        ("headnode", "controller-evidence")
+    )
     headnode_dayoa_controller_action_cmd = registry.get_command(
         ("headnode", "dayoa-controller-action")
     )
@@ -445,6 +460,9 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     workflow_benchmark_report_cmd = registry.get_command(("workflow", "benchmark-report"))
     workflow_stop_cmd = registry.get_command(("workflow", "stop"))
     repositories_commands_cmd = registry.get_command(("repositories", "commands"))
+    repositories_secret_status_cmd = registry.get_command(
+        ("repositories", "deploy-key-secret-status")
+    )
     catalog_list_cmd = registry.get_command(("catalog", "list"))
     catalog_show_cmd = registry.get_command(("catalog", "show"))
     catalog_validation_compare_cmd = registry.get_command(("catalog", "validation-compare"))
@@ -534,8 +552,12 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
         assert exports_cmd.policy.mutates_state is True
         assert exports_cmd.policy.long_running is True
 
-    assert resources_dir_cmd is not None
-    assert resources_dir_cmd.policy.runtime_guard == "exempt"
+    assert resources_resolve_cmd is not None
+    assert resources_resolve_cmd.policy.supports_json is True
+    assert resources_resolve_cmd.policy.mutates_state is False
+    assert resources_materialize_cmd is not None
+    assert resources_materialize_cmd.policy.supports_json is True
+    assert resources_materialize_cmd.policy.mutates_state is True
 
     assert cluster_info_cmd is not None
     assert cluster_info_cmd.policy.supports_json is True
@@ -550,6 +572,10 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
 
     assert cluster_describe_cmd is not None
     assert cluster_describe_cmd.policy.supports_json is True
+
+    assert cluster_inspect_cmd is not None
+    assert cluster_inspect_cmd.policy.supports_json is True
+    assert cluster_inspect_cmd.policy.mutates_state is False
 
     assert cluster_wait_cmd is not None
     assert cluster_wait_cmd.policy.long_running is True
@@ -617,10 +643,17 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
         headnode_fsx_usage_cmd,
         headnode_analysis_roots_cmd,
         headnode_dayoa_controllers_cmd,
+        headnode_scheduler_snapshot_cmd,
+        headnode_runtime_identity_cmd,
     ):
         assert semantic_read_cmd is not None
         assert semantic_read_cmd.policy.supports_json is True
         assert semantic_read_cmd.policy.mutates_state is False
+
+    assert headnode_controller_evidence_cmd is not None
+    assert headnode_controller_evidence_cmd.policy.supports_json is True
+    assert headnode_controller_evidence_cmd.policy.mutates_state is True
+    assert headnode_controller_evidence_cmd.policy.long_running is True
 
     for semantic_action_cmd in (
         headnode_dayoa_controller_action_cmd,
@@ -679,6 +712,9 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert repositories_commands_cmd is not None
     assert repositories_commands_cmd.policy.supports_json is True
     assert repositories_commands_cmd.policy.runtime_guard == "exempt"
+    assert repositories_secret_status_cmd is not None
+    assert repositories_secret_status_cmd.policy.supports_json is True
+    assert repositories_secret_status_cmd.policy.mutates_state is False
 
     for catalog_read_cmd in (catalog_list_cmd, catalog_show_cmd, catalog_render_cmd):
         assert catalog_read_cmd is not None

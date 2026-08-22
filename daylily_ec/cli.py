@@ -5791,7 +5791,6 @@ def headnode_controller_evidence(
     """Stage and atomically materialize one fixed controller log/DAG evidence pair."""
 
     from daylily_ec.headnode_receipts import (
-        CONTROLLER_EVIDENCE_SCHEMA,
         HeadnodeReceiptError,
         MAX_ENVELOPE_BYTES,
         build_controller_evidence_script,
@@ -7934,6 +7933,50 @@ def repositories_commands(
             error_code="repositories_commands_failed",
             message=str(exc),
         )
+
+
+def repositories_deploy_key_secret_status(
+    secret_arn: str = typer.Argument(
+        ...,
+        help="Exact configured LSMC Bio deploy-key Secrets Manager ARN.",
+    ),
+    profile: Optional[str] = context_option(
+        "aws_profile",
+        None,
+        "--profile",
+        help="Exact AWS CLI profile.",
+        required=True,
+    ),
+    region: Optional[str] = context_option(
+        "aws_region",
+        None,
+        "--region",
+        help="Exact AWS region containing the secret.",
+        required=True,
+    ),
+) -> None:
+    """Inspect deletion state for one exact deploy-key secret without reading it."""
+
+    from dataclasses import asdict
+
+    from daylily_ec.aws.context import AWSContext
+    from daylily_ec.aws.github_deploy_key_secret import inspect_deploy_key_secret
+
+    try:
+        aws_ctx = AWSContext.build_region(str(region), profile=profile)
+        result = inspect_deploy_key_secret(aws_ctx, secret_arn=secret_arn)
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+    payload = {
+        "schema_version": "dyec.repositories.deploy_key_secret_status.v1",
+        **asdict(result),
+        "secret_value_read": False,
+    }
+    if _json_mode():
+        output.emit_json(payload)
+        return
+    typer.echo(json.dumps(payload, indent=2, sort_keys=True))
 
 
 def _catalog_load_command(
@@ -12397,7 +12440,14 @@ def register(registry, cli_spec) -> None:
         registry,
         "repositories",
         "Repository catalog and blessed analysis command helpers.",
-        [("commands", repositories_commands, EXEMPT_JSON)],
+        [
+            ("commands", repositories_commands, EXEMPT_JSON),
+            (
+                "deploy-key-secret-status",
+                repositories_deploy_key_secret_status,
+                REQUIRED_JSON,
+            ),
+        ],
     )
     register_group_commands(
         registry,

@@ -28,9 +28,8 @@ import logging
 import os as _os
 import re
 import shlex
-import stat
 import subprocess
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -3630,7 +3629,7 @@ def run_create_workflow(
                     if value.strip()
                 ),
                 owner_emails=(post_create_inputs.budget_email,),
-                notes=f"Provisioned by dyec create for cluster {cluster_name}.",
+                notes="",
                 actor_arn=aws_ctx.caller_arn,
                 table_name=DEFAULT_COST_CENTER_TABLE,
                 usage_table_name=DEFAULT_COST_CENTER_USAGE_TABLE,

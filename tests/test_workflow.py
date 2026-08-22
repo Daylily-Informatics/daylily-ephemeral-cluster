@@ -12,7 +12,6 @@ Tests cover:
 
 from __future__ import annotations
 
-import hashlib
 import json
 import subprocess
 from decimal import Decimal
@@ -76,7 +75,6 @@ from daylily_ec.workflow.create_cluster import (
     make_repository_catalog_preflight_step,
     normalize_create_cluster_type,
     parse_create_repo_overrides,
-    require_cluster_name_available,
     resolve_cluster_template_yaml,
     resolve_dayoa_deploy_key_inputs,
     resolve_dragen_create_inputs,
@@ -2206,6 +2204,7 @@ class TestRunCreateWorkflow:
         assert records["cost_center_kwargs"]["monthly_cap_usd"] == "200"
         assert records["cost_center_kwargs"]["allowed_users"] == ("ubuntu",)
         assert records["cost_center_kwargs"]["owner_emails"] == ("johnm@lsmc.com",)
+        assert records["cost_center_kwargs"]["notes"] == ""
         assert records["heartbeat_kwargs"]["email"] == "johnm@lsmc.com"
         assert records["heartbeat_kwargs"]["schedule_expression"] == "rate(60 minutes)"
         assert "budget_project" not in records["next_run_values"]

@@ -1402,7 +1402,6 @@ status_v2() {{
 export DAYLILY_STATUS_FILE="$STATUS_FILE"
 export DAYLILY_STATUS_ATTEMPT_ID="$STATUS_ATTEMPT_ID"
 export DAYLILY_CONTROLLER_PID="$BASHPID"
-python3 -c {write_controller_target_python}
 if [[ -n "$PINNED_SOURCE_TEST_OVERRIDE" ]]; then
   if [[ "$REUSE_EXISTING_ANALYSIS_DIR" != "true" \
     || "$REUSE_LOCAL_GIT_REF" != "true" \
@@ -1580,11 +1579,14 @@ if [[ "$REUSE_EXISTING_ANALYSIS_DIR" == "true" ]]; then
   echo "__DAYLILY_GIT_REF__=$DAYOA_GIT_REF"
   echo "__DAYLILY_GIT_COMMIT__=$actual_commit"
 else
-  day-clone \
+  if ! day-clone \
     --destination "$ANALYSIS_ID" \
     --executing-entity "$EXECUTING_ENTITY" \
     --repository {shlex.quote(args.repository)} \
-    --git-tag {shlex.quote(args.git_tag)}
+    --git-tag {shlex.quote(args.git_tag)}; then
+    echo "__DAYLILY_ERROR__=analysis_clone_failed"
+    exit 8
+  fi
 fi
 mkdir -p "$clone_root/bin"
 if [[ -n "${{BASH_SOURCE[0]:-}}" && -f "${{BASH_SOURCE[0]}}" ]]; then
@@ -1603,6 +1605,7 @@ if ! status_v2 start-controller \
   exit 25
 fi
 status_attempt_created=1
+python3 -c {write_controller_target_python}
 mkdir -p "$(dirname "$CONTROLLER_LOG_PATH")" "$(dirname "$CONTROLLER_DAG_PATH")"
 # Keep controller output on a regular file. A tee/process-substitution pipe can
 # remain open when workflow descendants inherit it, delaying foreground shell

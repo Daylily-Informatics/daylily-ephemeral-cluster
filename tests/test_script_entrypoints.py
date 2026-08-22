@@ -7,8 +7,6 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
-import yaml
-
 from daylily_ec.aws.ssm import HeadNodeTarget, SsmError
 from daylily_ec.scripts.common import CommandError
 from daylily_ec.scripts.daylily_cfg_headnode import _load_repo_overrides
@@ -642,6 +640,11 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert '--log-attribution "exact invocation file-set difference"' in script
         assert "dyec.controller_target.v2" in script
         assert "python3 -c " in script
+        assert "if ! day-clone" in script
+        assert "__DAYLILY_ERROR__=analysis_clone_failed" in script
+        assert script.index("status_v2 start-controller") < script.index(
+            "python3 -c 'import json, os, pathlib; path = pathlib.Path(os.environ"
+        )
         assert "DAYLILY_RUN_DIR=%q" in script
         assert "DAYLILY_REPO_PATH=%q" in script
         assert "DAYLILY_TMUX_LOG=%q" in script
@@ -929,7 +932,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         override_reuse_block = override_script.split(
             'if [[ "$REUSE_EXISTING_ANALYSIS_DIR" == "true" ]]; then',
             1,
-        )[1].split("else\n  day-clone", 1)[0]
+        )[1].split("else\n  if ! day-clone", 1)[0]
         assert '&& -z "$PINNED_SOURCE_TEST_OVERRIDE"' in override_reuse_block
         assert 'if [[ -n "$PINNED_SOURCE_TEST_OVERRIDE" ]]; then' in override_reuse_block
         assert 'actual_commit="$(git -C "$repo_path" rev-parse HEAD)"' in override_reuse_block
