@@ -7658,6 +7658,14 @@ def workflow_launch(
         ),
     ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Launch a dry-run workflow command."),
+    rerun_triggers: Optional[List[str]] = typer.Option(
+        None,
+        "--rerun-triggers",
+        help=(
+            "Explicit Snakemake rerun trigger to add to dy-r. Repeat for multiple triggers; "
+            "for example: --rerun-triggers mtime"
+        ),
+    ),
 ) -> None:
     """Launch daylily-omics-analysis inside tmux on the headnode."""
 
@@ -7766,16 +7774,14 @@ def workflow_launch(
                 "--pinned-source-test-override requires --dry-run",
                 param_hint="--pinned-source-test-override",
             )
-        if dy_command is not None:
-            from daylily_ec.scripts.daylily_run_omics_analysis_headnode import (
-                dy_command_has_dry_run_flag,
-            )
-
-            if not dy_command_has_dry_run_flag(dy_command):
-                raise typer.BadParameter(
-                    "--pinned-source-test-override requires --dy-command to include -n",
-                    param_hint="--dy-command",
-                )
+    resolved_rerun_triggers = list(rerun_triggers or [])
+    allowed_rerun_triggers = {"code", "input", "mtime", "params", "software-env"}
+    invalid_rerun_triggers = sorted(set(resolved_rerun_triggers) - allowed_rerun_triggers)
+    if invalid_rerun_triggers:
+        raise typer.BadParameter(
+            "--rerun-triggers accepts only: " + ", ".join(sorted(allowed_rerun_triggers)),
+            param_hint="--rerun-triggers",
+        )
     if manifest_dir is not None:
         if input_contract != "six_manifest":
             raise typer.BadParameter(
@@ -7880,6 +7886,8 @@ def workflow_launch(
     ):
         if value is not None:
             argv.extend([flag, value])
+    for rerun_trigger in resolved_rerun_triggers:
+        argv.extend(["--rerun-triggers", rerun_trigger])
     for flag, value in producer_option_values.items():
         argv.extend([flag, value])
     if pass_on_budget_exceeded:

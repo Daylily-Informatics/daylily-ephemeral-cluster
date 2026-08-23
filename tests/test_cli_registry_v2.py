@@ -4469,6 +4469,8 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
             "true",
             "--strict-project-check",
             "--dry-run",
+            "--rerun-triggers",
+            "mtime",
         ],
     )
 
@@ -4508,6 +4510,7 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     assert argv[argv.index("--produce-dag") + 1] == "true"
     assert "--strict-project-check" in argv
     assert "--dry-run" in argv
+    assert argv[argv.index("--rerun-triggers") + 1] == "mtime"
 
 
 def test_workflow_launch_rejects_embedded_export(monkeypatch) -> None:

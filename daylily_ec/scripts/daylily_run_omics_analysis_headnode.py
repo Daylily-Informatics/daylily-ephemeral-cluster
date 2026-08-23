@@ -41,13 +41,17 @@ from daylily_ec.workflow.snakemake_resources import (
     validate_job_max_runtime_minutes,
 )
 from daylily_ec.workflow.dyr_preflight import (
+    DYR_EXECUTABLES,
     DyrPreflightOptionsError,
+    join_shell_command,
     normalize_dyr_preflight_options,
+    split_shell_command,
 )
 
 
 STAGE_CONFIG_DISCOVERY_TIMEOUT_SECONDS = 180
 CONTROLLER_TARGET_SCHEMA_VERSION = "dyec.controller_target.v2"
+RERUN_TRIGGER_CHOICES = ("code", "input", "mtime", "params", "software-env")
 
 
 def shlex_quote_compressed_python(source: str) -> str:
@@ -566,6 +570,67 @@ def dy_command_has_dry_run_flag(command: str) -> bool:
     )
 
 
+def apply_workflow_execution_options(
+    command: str,
+    *,
+    dry_run: bool,
+    rerun_triggers: List[str],
+) -> str:
+    """Apply public controller execution options to exactly one dy-r command.
+
+    `--dry-run` and `--rerun-triggers` are controller contracts, so they must
+    affect custom ``--dy-command`` values as well as DYEC's default command.
+    Existing caller-supplied rerun triggers are retained only when the public
+    option is omitted; supplying both forms is rejected rather than silently
+    composing two conflicting trigger declarations.
+    """
+
+    if not dry_run and not rerun_triggers:
+        return command
+    try:
+        tokens = split_shell_command(command)
+    except ValueError as exc:
+        raise CommandError(f"Unable to parse --dy-command: {exc}") from exc
+
+    executor_indexes = [index for index, token in enumerate(tokens) if token in DYR_EXECUTABLES]
+    if len(executor_indexes) != 1:
+        raise CommandError(
+            "--dry-run and --rerun-triggers require exactly one dy-r or bin/day_run command."
+        )
+    executor_index = executor_indexes[0]
+    segment_end = next(
+        (
+            index
+            for index in range(executor_index + 1, len(tokens))
+            if tokens[index] in {";", "&&", "||"}
+        ),
+        len(tokens),
+    )
+    command_segment = tokens[executor_index:segment_end]
+    has_dry_run = any(
+        token == "--dry-run"
+        or (token.startswith("-") and not token.startswith("--") and "n" in token[1:])
+        for token in command_segment
+    )
+    has_rerun_triggers = any(
+        token == "--rerun-triggers" or token.startswith("--rerun-triggers=")
+        for token in command_segment
+    )
+    if rerun_triggers and has_rerun_triggers:
+        raise CommandError(
+            "--rerun-triggers cannot be combined with --rerun-triggers embedded in --dy-command."
+        )
+
+    injected: List[str] = []
+    if rerun_triggers:
+        injected.extend(("--rerun-triggers", *rerun_triggers))
+    if dry_run and not has_dry_run:
+        injected.append("-n")
+    if not injected:
+        return command
+    return join_shell_command(tokens[:segment_end] + injected + tokens[segment_end:])
+
+
 def _normalize_payload_staging_s3_uri(value: str) -> str:
     cleaned = str(value or "").strip().rstrip("/")
     if not cleaned.startswith("s3://"):
@@ -822,6 +887,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--sv-callers", default="")
     parser.add_argument("--target", default="produce_snv_concordances")
     parser.add_argument("--dy-command", help="Override the dy-r command entirely")
+    parser.add_argument(
+        "--rerun-triggers",
+        action="append",
+        choices=RERUN_TRIGGER_CHOICES,
+        default=[],
+        help=(
+            "Explicit Snakemake rerun trigger to add to dy-r. Repeat for multiple triggers; "
+            "for example: --rerun-triggers mtime"
+        ),
+    )
     parser.add_argument("--snakemake-extra", help="Additional arguments appended to dy-r")
     parser.add_argument(
         "--produce-analysis-artifact-manifest", help="Pass true or false to dy-r"
@@ -1213,6 +1288,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     dy_command = append_default_job_runtime(
         dy_command,
         max_runtime_minutes=args.max_runtime_minutes,
+    )
+    dy_command = apply_workflow_execution_options(
+        dy_command,
+        dry_run=args.dry_run,
+        rerun_triggers=args.rerun_triggers,
     )
     if (
         args.pinned_source_test_override is not None

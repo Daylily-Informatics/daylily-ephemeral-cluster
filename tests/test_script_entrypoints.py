@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import posixpath
+import shlex
 import subprocess
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -399,6 +400,28 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "--produce-rulegraph false" in overridden
         assert "--produce-filegraph true" in overridden
         assert "--produce-dag true" in overridden
+
+    def test_apply_workflow_execution_options_enforces_dry_run_for_custom_command(self):
+        command = run_omics_module.apply_workflow_execution_options(
+            "dy-r produce_sentdhiomr2_kitchensink -p -k -j 6",
+            dry_run=True,
+            rerun_triggers=["mtime"],
+        )
+
+        tokens = shlex.split(command)
+        assert tokens[-3:] == ["--rerun-triggers", "mtime", "-n"]
+        assert run_omics_module.dy_command_has_dry_run_flag(command)
+
+    def test_apply_workflow_execution_options_rejects_duplicate_rerun_trigger_contract(self):
+        with pytest.raises(
+            CommandError,
+            match="cannot be combined with --rerun-triggers embedded in --dy-command",
+        ):
+            run_omics_module.apply_workflow_execution_options(
+                "dy-r produce_sentdhiomr2_kitchensink -p -k -j 6 --rerun-triggers mtime",
+                dry_run=True,
+                rerun_triggers=["mtime"],
+            )
 
     def test_main_rejects_removed_provider_registration_options(self):
         with pytest.raises(SystemExit) as exc_info:
