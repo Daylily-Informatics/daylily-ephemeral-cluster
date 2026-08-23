@@ -43,7 +43,7 @@ ephemeral_cluster:
 
     # --- identity ------------------------------------------------------------
     # Distinctive name so a delete prompt can never be confused with a live run.
-    cluster_name:            [USESETVALUE, "", "dayec-boundary-0820"]
+    cluster_name:            [USESETVALUE, "", "dayec-p5d-0823"]
 
     # --- budget --------------------------------------------------------------
     budget_email:            [USESETVALUE, "", "joshd@lsmc.com"]
