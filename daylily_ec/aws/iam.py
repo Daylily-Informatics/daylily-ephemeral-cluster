@@ -10,15 +10,11 @@ Implements CP-007 from the refactor spec:
 
 from __future__ import annotations
 
-import json
 import logging
 import os
-import shutil
-import subprocess
 from typing import Any, List, Optional, Tuple
 
 from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport
-from daylily_ec.resources import resource_path
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +25,32 @@ logger = logging.getLogger(__name__)
 GLOBAL_POLICY_NAME = "DaylilyGlobalEClusterPolicy"
 REGIONAL_POLICY_PREFIX = "DaylilyRegionalEClusterPolicy"
 
+# NOTE (2026-08-19): this policy appears to be vestigial, and the check below is
+# a gate on an object that has never done anything.
+#
+#   origin        legacy bash: "# Ensure 'pcluster-omics-analysis' policy exists
+#                 (spot SL role)" — it granted iam:CreateServiceLinkedRole for
+#                 spot.amazonaws.com so the EC2 Spot SLR could be created once.
+#   ever attached NEVER. The legacy block ends at `create-policy`; no attach-*
+#                 call exists anywhere in it. DYEC ported the omission faithfully.
+#   purpose met   AWSServiceRoleForEC2Spot was created 2025-02-23, four days
+#                 after this policy, by something else. SLRs are once-per-account.
+#   attachments   0
+#   cloudtrail    zero events naming it across a 90-day window
+#   versions      v1 only, never edited since 2025-02-19
+#
+# The clean-slate case it nominally guarded is covered better by the
+# DaylilyDeployer permission set, which grants iam:CreateServiceLinkedRole
+# directly, conditioned on iam:AWSServiceName. A conditioned grant on the
+# principal that needs it beats an unattached side-policy that never worked.
+#
+# Retained rather than removed pending confirmation from the original author
+# that it was not meant to be attached somewhere. See
+# docs/plans/ for the deprecation plan.
 PCLUSTER_OMICS_POLICY_NAME = "pcluster-omics-analysis"
+# Retained after the create path was removed: this is the reference for what
+# the policy should contain if it ever genuinely needs recreating, and the
+# Layer-0 Terraform should match it. No production code path uses it.
 PCLUSTER_OMICS_POLICY_DOCUMENT: dict = {
     "Version": "2012-10-17",
     "Statement": [
@@ -57,8 +78,6 @@ HEARTBEAT_DEFAULT_ROLE_NAMES: List[str] = [
     "eventbridge-scheduler-to-sns",
     "daylily-eventbridge-scheduler",
 ]
-
-CREATE_SCHEDULER_SCRIPT = "bin/admin/create_scheduler_role_for_sns.sh"
 
 
 # ---------------------------------------------------------------------------
@@ -215,8 +234,8 @@ def ensure_pcluster_omics_policy(
     """Ensure ``pcluster-omics-analysis`` managed policy exists.
 
     If the policy already exists, return PASS.
-    If missing, create it with the exact policy document from Bash.
-    On error, return FAIL.
+    The policy is VERIFIED, never created. See the notes below on why it is
+    also almost certainly dead.
     """
     try:
         paginator = iam_client.get_paginator("list_policies")
@@ -229,39 +248,34 @@ def ensure_pcluster_omics_policy(
                         details={
                             "policy": PCLUSTER_OMICS_POLICY_NAME,
                             "arn": pol.get("Arn", ""),
-                            "action": "already_exists",
+                            "action": "verified",
                         },
                     )
-    except Exception as exc:
-        logger.debug("Error listing policies: %s", exc)
-
-    # Policy not found — create it
-    try:
-        resp = iam_client.create_policy(
-            PolicyName=PCLUSTER_OMICS_POLICY_NAME,
-            PolicyDocument=json.dumps(PCLUSTER_OMICS_POLICY_DOCUMENT),
-        )
-        arn = resp.get("Policy", {}).get("Arn", "")
-        logger.info("Created IAM policy %s: %s", PCLUSTER_OMICS_POLICY_NAME, arn)
-        return CheckResult(
-            id="iam.pcluster_omics_policy",
-            status=CheckStatus.PASS,
-            details={
-                "policy": PCLUSTER_OMICS_POLICY_NAME,
-                "arn": arn,
-                "action": "created",
-            },
-        )
     except Exception as exc:
         return CheckResult(
             id="iam.pcluster_omics_policy",
             status=CheckStatus.FAIL,
             details={"policy": PCLUSTER_OMICS_POLICY_NAME, "error": str(exc)},
             remediation=(
-                f"Failed to create IAM policy '{PCLUSTER_OMICS_POLICY_NAME}': "
-                f"{exc}. Create it manually or ensure IAM permissions."
+                f"Could not list IAM policies to verify "
+                f"{PCLUSTER_OMICS_POLICY_NAME!r}: {exc}. The deploying principal "
+                "needs iam:ListPolicies."
             ),
         )
+
+    return CheckResult(
+        id="iam.pcluster_omics_policy",
+        status=CheckStatus.FAIL,
+        details={"policy": PCLUSTER_OMICS_POLICY_NAME, "action": "missing"},
+        remediation=(
+            f"IAM policy {PCLUSTER_OMICS_POLICY_NAME!r} does not exist. DYEC no "
+            "longer creates it: a deploy path must not perform one-time IAM "
+            "setup. Apply the Layer-0 Terraform in lsmc-infra "
+            "(terraform/management/identity-center) and retry.\n\n"
+            "Before creating it, check whether it is needed at all — see the "
+            "note in this module. On the evidence it is dead."
+        ),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -286,7 +300,21 @@ def resolve_scheduler_role(
        ``DAYLILY_SCHEDULER_ROLE_ARN``.
     3. Existing role names: ``eventbridge-scheduler-to-sns``,
        ``daylily-eventbridge-scheduler``.
-    4. Create via ``bin/admin/create_scheduler_role_for_sns.sh`` if available.
+
+    There is deliberately no fourth step. This previously shelled out to
+    ``bin/admin/create_scheduler_role_for_sns.sh``, which calls iam:CreateRole,
+    **iam:UpdateAssumeRolePolicy**, iam:PutRolePolicy and iam:TagRole — one-time
+    setup on the every-deploy path, and two of the more dangerous IAM verbs
+    hiding in a branch that only fires on a clean-slate region.
+
+    A miss is now a clean ``(None, "not_found")``. The caller reports it and the
+    heartbeat is skipped; the role is created by the Layer-0 Terraform in
+    lsmc-infra, once, under review.
+
+    Args:
+        region, profile: accepted and ignored. They fed only the removed
+            create-via-script step; the signature is kept so the caller in
+            create_cluster.py needs no change.
 
     Returns:
         Tuple of (role_arn_or_None, source_description).
@@ -310,36 +338,6 @@ def resolve_scheduler_role(
                 return arn, f"existing_role:{role_name}"
         except Exception:
             continue
-
-    # 4. Create via script
-    script_path = shutil.which(CREATE_SCHEDULER_SCRIPT) or ""
-    if not script_path and os.path.isfile(CREATE_SCHEDULER_SCRIPT):
-        script_path = CREATE_SCHEDULER_SCRIPT
-    elif not script_path:
-        # When installed via pip, use the packaged script.
-        try:
-            script_path = str(resource_path(CREATE_SCHEDULER_SCRIPT))
-        except FileNotFoundError:
-            script_path = ""
-
-    if script_path:
-        cmd: List[str] = [script_path, "--region", region]
-        if profile:
-            cmd.extend(["--profile", profile])
-
-        try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-            if result.returncode == 0:
-                # Parse "ROLE ARN: arn:aws:iam::..." from output
-                for line in result.stdout.splitlines():
-                    if "ROLE ARN:" in line:
-                        parts = line.split("ROLE ARN:")
-                        if len(parts) >= 2:
-                            arn = parts[1].strip()
-                            if arn:
-                                return arn, "created_by_script"
-        except Exception as exc:
-            logger.error("Scheduler role creation script failed: %s", exc)
 
     return None, "not_found"
 

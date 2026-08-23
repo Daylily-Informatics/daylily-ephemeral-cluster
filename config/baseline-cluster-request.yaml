@@ -1,0 +1,144 @@
+# Daylily baseline-capture cluster — us-west-2d — DYEC 18.0.17 / DayOA 15.0.9
+#
+# Purpose: observe every AWS API call a real deploy makes, so the DaylilyDeployer
+# policy and DayecClusterNodeBoundary can be derived from evidence rather than
+# documentation. This cluster exists to be watched, not to compute.
+#
+# Ported from the DYEC 7.0.0 version (preserved on branch
+# wip/iss75-80-99-baseline-tooling-at-7.0.0). Key set mirrors the 18.0.17
+# template `config/daylily_ephemeral_cluster_template.yaml` exactly — all 46
+# keys, every one USESETVALUE so the run never blocks on a prompt.
+#
+# Deliberately NOT carried forward from 7.0.0 (verified dead at 18.0.17):
+#   auto_delete_fsx      REGSUB_SAVE_FSX is hardcoded "Delete" (create_cluster.py:3468)
+#   slurm_accounting_*   tokens come from slurm_accounting.py via --slurm-accounting
+#   max_count_*I_C/_M/_R/_NVME/_HUGENVME subtypes — 18.0.17 logs
+#                        "Ignoring legacy unprompted subtype max-count keys;
+#                         the five prompted family max-count values are
+#                         authoritative" and discards them
+#
+# Run INTERACTIVE with --pass-on-warn. At 18.0.17 the preflight still calls
+# check_daylily_policies() with an IAM username (iam.py:369), which cannot
+# resolve under an assumed role; the result is WARN when interactive and a hard
+# FAIL when --non-interactive.
+#
+# Subnets confirmed 2026-08-16 (pcluster-vpc-stack-2d):
+#   PublicSubnet   subnet-0e9acb65aba5a0330  us-west-2d  10.0.0.0/24  247 free
+#   PrivateSubnet  subnet-087a4872d0c34e642  us-west-2d  10.0.1.0/24  245 free
+
+ephemeral_cluster:
+  config:
+    # --- data planes ---------------------------------------------------------
+    reference_s3_uri:        [USESETVALUE, "", "s3://lsmc-dayoa-references-usw2/"]
+    control_data_s3_uri:     [USESETVALUE, "", "s3://lsmc-dayoa-control-data-usw2/"]
+    stage_s3_uri:            [USESETVALUE, "", "s3://lsmc-ssf-sequencing-data/staged_external_data/"]
+    # 'derived' is contract-enforced by s3.py ROLE_REQUIRED_PREFIXES.
+    export_destination_s3_uri: [USESETVALUE, "", "s3://lsmc-ssf-sequencing-data/derived/"]
+
+    # --- network: pcluster-vpc-stack-2d --------------------------------------
+    public_subnet_id:        [USESETVALUE, "", "subnet-0e9acb65aba5a0330"]
+    private_subnet_id:       [USESETVALUE, "", "subnet-087a4872d0c34e642"]
+    iam_policy_arn:          [USESETVALUE, "", "arn:aws:iam::108782052779:policy/pclusterTagsAndBudget"]
+    pcluster_backport_manifest: [USESETVALUE, "", ""]
+
+    # --- identity ------------------------------------------------------------
+    # Distinctive name so a delete prompt can never be confused with a live run.
+    cluster_name:            [USESETVALUE, "", "dayec-p5d-0823"]
+
+    # --- budget --------------------------------------------------------------
+    budget_email:            [USESETVALUE, "", "joshd@lsmc.com"]
+    allowed_budget_users:    [USESETVALUE, "", "ubuntu"]
+    budget_amount:           [USESETVALUE, "", "200"]
+    global_allowed_budget_users: [USESETVALUE, "", "ubuntu"]
+    global_budget_amount:    [USESETVALUE, "", "200"]
+    # 'true' matches production. Budgets run post-create and are non-fatal, so
+    # this does not gate cluster creation; it gates dyoainit's project/budget
+    # check on the headnode. The 2026-08-14 run used 'skip' — a deliberate
+    # difference, recorded so the two captures are compared knowingly.
+    enforce_budget:          [USESETVALUE, "", "true"]
+
+    # --- cost centre ---------------------------------------------------------
+    # New at 18.0.17 and PROMPTUSER, so omitting these blocks on a prompt.
+    # The name is the value dyec offered as its own default.
+    cost_center_name:        [USESETVALUE, "", "dayec-boundary-0820-cc"]
+    cost_center_monthly_cap_usd: [USESETVALUE, "", "200"]
+    cost_center_allowed_users:   [USESETVALUE, "", "ubuntu"]
+
+    # --- cluster shape -------------------------------------------------------
+    # Templates are per-AZ at 18.0.17; the flat config/day_cluster/prod_cluster.yaml
+    # used at 7.0.0 no longer exists.
+    cluster_template_yaml:   [USESETVALUE, "", "config/day_cluster/intel/us-west-2/us-west-2d/prod_cluster_intel_spot_us-west-2d.yaml"]
+    headnode_instance_type:  [USESETVALUE, "", "r7i.2xlarge"]
+
+    # --- FSx -----------------------------------------------------------------
+    # 9600 GiB PERSISTENT_2, not 4800 SCRATCH_2. The head node boot script blocks
+    # until reference paths appear under /fsx and exits 1 at 1800s; those paths
+    # arrive via an FSx metadata import of ~2.45M objects whose rate scales with
+    # capacity. On 2026-08-14 at 4800/SCRATCH_2 it cleared that gate with 80
+    # seconds to spare. PERSISTENT_2 + 1000 MB/s/TiB + AUTOMATIC metadata should
+    # improve on that substantially; 9600 matches production.
+    fsx_fs_size:             [USESETVALUE, "", "9600"]
+    fsx_deployment_type:     [USESETVALUE, "", "PERSISTENT_2"]
+    fsx_throughput_mbps_per_tib: [USESETVALUE, "", "1000"]
+    fsx_lustre_version:      [USESETVALUE, "", "2.15"]
+    fsx_metadata_mode:       [USESETVALUE, "", "AUTOMATIC"]
+    fsx_encryption_mode:     [USESETVALUE, "", "AWS_MANAGED_FSX"]
+    fsx_owner:               [USESETVALUE, "", "DYEC"]
+    fsx_lifecycle:           [USESETVALUE, "", "CLUSTER_BOUND"]
+
+    # --- protection ----------------------------------------------------------
+    # This key does NOT protect the cluster from deletion. It is consumed at
+    # create_cluster.py:3594 as Persistent2Spec.sweep_preserve and governs DYEC's
+    # own PERSISTENT_2 **FSx** sweeping only.
+    #
+    # Cluster deletion is a separate mechanism: Ursa's sweeper removes an idle
+    # cluster after idle_minutes (default 60) + grace_minutes (default 30),
+    # polled every 900s — roughly 90-105 minutes with no running jobs. It defers
+    # only on an `ursa-preserve=true` cluster tag, which DYEC does not set.
+    #
+    # Not wired deliberately: a capture run is well under 90 minutes, so the
+    # window never opens. If a run ever needs to sit idle longer, tag the cluster
+    # `ursa-preserve=true` rather than assuming this key covers it.
+    sweep_protection_tag:    [USESETVALUE, "", "dyec-preserve=true"]
+
+    enable_detailed_monitoring: [USESETVALUE, "", "false"]
+    delete_local_root:       [USESETVALUE, "", "true"]
+
+    # --- dragen: unused by this baseline, but PROMPTUSER so must be present ---
+    dragen_license_policy_arn: [USESETVALUE, "", ""]
+    dragen_license_secret_arn: [USESETVALUE, "", ""]
+
+    # --- deploy keys (headnode clones DYEC + DayOA from lsmc-bio) ------------
+    # Pointed at a Daylily-owned single-statement policy rather than the shared
+    # DayECHeadnodeGitHubClone. That shared policy gained a second statement on
+    # 2026-08-19 (a dayec/github-token grant) and switched its region to "*";
+    # DYEC's preflight requires exactly one statement whose resource string
+    # matches the configured secret ARN's region exactly, so it now fails for
+    # everyone. See docs/plans/20260820T010000Z_deploy_key_policy_split_plan.md.
+    # This does NOT fix the account-wide breakage — it only unblocks this config.
+    dyec_deploy_key_policy_arn:  [USESETVALUE, "", "arn:aws:iam::108782052779:policy/daylily/DayecHeadnodeDeployKeyRead"]
+    dyec_deploy_key_secret_arn:  [USESETVALUE, "", "arn:aws:secretsmanager:us-west-2:108782052779:secret:dayec/github-deploy-keys/lsmc-bio/daylily-ephemeral-cluster-pE4FFN"]
+    dayoa_deploy_key_policy_arn: [USESETVALUE, "", "arn:aws:iam::108782052779:policy/daylily/DayecHeadnodeDeployKeyRead"]
+    dayoa_deploy_key_secret_arn: [USESETVALUE, "", "arn:aws:secretsmanager:us-west-2:108782052779:secret:dayec/github-deploy-keys/lsmc-bio-daylily-omics-analysis-igtfHD"]
+
+    # --- heartbeat -----------------------------------------------------------
+    # Supplying the role ARN avoids resolve_scheduler_role() having to find it.
+    # Verified present 2026-08-16. Note sns:CreateTopic was AccessDenied for
+    # DaylilyBaselineDeploy on 2026-08-14, so heartbeat setup may still fail
+    # non-fatally; that failure is itself useful capture evidence.
+    heartbeat_email:         [USESETVALUE, "", "joshd@lsmc.com"]
+    heartbeat_schedule:      [USESETVALUE, "", "rate(60 minutes)"]
+    heartbeat_scheduler_role_arn: [USESETVALUE, "", "arn:aws:iam::108782052779:role/eventbridge-scheduler-to-sns"]
+
+    spot_instance_allocation_strategy: [USESETVALUE, "", "price-capacity-optimized"]
+
+    # --- queue caps: the five authoritative families, all 1 -------------------
+    # 18.0.17 derives the us-west-2d template's 17 ${REGSUB_MAX_COUNT_*} tokens
+    # from these five. Supplying the subtypes directly is legacy and ignored.
+    max_count_8I:            [USESETVALUE, "", "1"]
+    max_count_96I_NVME:      [USESETVALUE, "", "1"]
+    max_count_128I:          [USESETVALUE, "", "1"]
+    max_count_192I:          [USESETVALUE, "", "1"]
+    max_count_384I:          [USESETVALUE, "", "1"]
+
+  template_defaults: {}

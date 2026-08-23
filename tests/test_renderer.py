@@ -52,7 +52,7 @@ def _full_subs() -> dict[str, str]:
 
 class TestConstants:
     def test_all_keys_count(self):
-        assert len(ALL_SUBSTITUTION_KEYS) == 57
+        assert len(ALL_SUBSTITUTION_KEYS) == 58
 
     def test_required_keys_subset(self):
         assert REQUIRED_KEYS.issubset(ALL_SUBSTITUTION_KEYS)
@@ -205,6 +205,8 @@ class TestAllSubstitutionKeys:
             "REGSUB_SLURM_ACCOUNTING_HEADNODE_NETWORKING",
             "REGSUB_SLURM_ACCOUNTING_DATABASE",
             "REGSUB_SPOT_PRICE_WARN_THRESHOLD",
+            # ISS-80 cluster IAM containment; see tests/test_iam_containment.py
+            "REGSUB_IAM_CLUSTER_BLOCK",
         }
         assert ALL_SUBSTITUTION_KEYS == expected
 

@@ -1,4 +1,9 @@
 Region: ${REGSUB_REGION}
+# Cluster-level IAM containment (ISS-80). The token lives inside this comment so
+# the UNRENDERED template still parses as YAML — several code paths load it raw.
+# Renders to nothing unless DAY_IAM_PERMISSIONS_BOUNDARY is set, so the default
+# output is byte-identical to before.
+# ${REGSUB_IAM_CLUSTER_BLOCK}
 Image:
   Os: ubuntu2204
 HeadNode:
