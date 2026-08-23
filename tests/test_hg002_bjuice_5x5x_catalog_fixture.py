@@ -77,7 +77,7 @@ def test_inflection_v09_slim_clone_changes_only_the_input_contract() -> None:
     assert slim.dy_command == full.dy_command
     assert slim.dryrun_dy_command == full.dryrun_dy_command
     assert slim.runtime_parameters == full.runtime_parameters
-    assert slim.git_tag == full.git_tag == "16.0.4"
+    assert slim.git_tag == full.git_tag == "16.0.5"
     assert slim.return_results is False
     assert "schema" in slim.description
     assert "identical calls" in slim.description

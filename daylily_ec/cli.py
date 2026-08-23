@@ -477,7 +477,8 @@ def agent_guidance() -> None:
             "Inside tmux, run setup as separate commands: source dyoainit; dy-a <profile> <genome>; dy-r <targets> <flags>.",
             "Never invoke raw snakemake for DayOA workflow execution.",
             "Use explicit DayOA tags for new clones: day-clone -t <tag> -d <analysis-id>.",
-            "A successful dry controller validates the live command in the same analysis ID/root/checkout, staged inputs, and runtime config; remove only -n for live.",
+            "For direct workflow launch, --dry-run adds -n to the effective command even with --dy-command; remove only --dry-run for live and retain any --rerun-triggers selection.",
+            "A successful dry controller validates the live command in the same analysis ID/root/checkout, staged inputs, and runtime config; remove only -n from the effective dy-r command for live.",
             "The -dry and -live labels may name controller sessions, never separate analysis directories. A changed command, pin, inputs, or config requires a deliberate new analysis and dry run.",
         ],
         "analysis_root_safety": [
@@ -7657,7 +7658,19 @@ def workflow_launch(
             "Requires local ref+commit, --dry-run, and no export."
         ),
     ),
-    dry_run: bool = typer.Option(False, "--dry-run", help="Launch a dry-run workflow command."),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Append -n to the effective workflow command, including a supplied --dy-command.",
+    ),
+    rerun_triggers: Optional[List[str]] = typer.Option(
+        None,
+        "--rerun-triggers",
+        help=(
+            "Explicit Snakemake rerun trigger to add to dy-r. Repeat for multiple triggers; "
+            "do not also embed it in --dy-command. For example: --rerun-triggers mtime"
+        ),
+    ),
 ) -> None:
     """Launch daylily-omics-analysis inside tmux on the headnode."""
 
@@ -7766,16 +7779,14 @@ def workflow_launch(
                 "--pinned-source-test-override requires --dry-run",
                 param_hint="--pinned-source-test-override",
             )
-        if dy_command is not None:
-            from daylily_ec.scripts.daylily_run_omics_analysis_headnode import (
-                dy_command_has_dry_run_flag,
-            )
-
-            if not dy_command_has_dry_run_flag(dy_command):
-                raise typer.BadParameter(
-                    "--pinned-source-test-override requires --dy-command to include -n",
-                    param_hint="--dy-command",
-                )
+    resolved_rerun_triggers = list(rerun_triggers or [])
+    allowed_rerun_triggers = {"code", "input", "mtime", "params", "software-env"}
+    invalid_rerun_triggers = sorted(set(resolved_rerun_triggers) - allowed_rerun_triggers)
+    if invalid_rerun_triggers:
+        raise typer.BadParameter(
+            "--rerun-triggers accepts only: " + ", ".join(sorted(allowed_rerun_triggers)),
+            param_hint="--rerun-triggers",
+        )
     if manifest_dir is not None:
         if input_contract != "six_manifest":
             raise typer.BadParameter(
@@ -7880,6 +7891,8 @@ def workflow_launch(
     ):
         if value is not None:
             argv.extend([flag, value])
+    for rerun_trigger in resolved_rerun_triggers:
+        argv.extend(["--rerun-triggers", rerun_trigger])
     for flag, value in producer_option_values.items():
         argv.extend([flag, value])
     if pass_on_budget_exceeded:

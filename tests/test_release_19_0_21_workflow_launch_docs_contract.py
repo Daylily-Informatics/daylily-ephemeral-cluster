@@ -11,8 +11,9 @@ PACKAGED_CATALOG = (
 )
 
 
-def test_19_0_19_keeps_the_19_0_18_catalog_snapshot() -> None:
+def test_19_0_21_keeps_19_0_20_immutable() -> None:
     assert SOURCE_CATALOG.read_bytes() == PACKAGED_CATALOG.read_bytes()
     builds = yaml.safe_load(SOURCE_CATALOG.read_text(encoding="utf-8"))["dyec_builds"]
 
-    assert builds["19.0.19"] == builds["19.0.18"]
+    assert builds["19.0.21"] == builds["19.0.20"]
+    assert builds["19.0.20"] == builds["19.0.19"]

@@ -214,12 +214,12 @@ Large local payloads are staged through S3 with `--payload-staging-s3-uri`. DYEC
 ### Immutable command shapes
 
 Catalog version 6 requires an exact numeric `--dyec-version` for every public
-catalog action. The `19.0.19` snapshot is immutable; there is no mutable
+catalog action. The `19.0.22` snapshot is immutable; there is no mutable
 `current` alias or implicit catalog selection:
 
 ```bash
-dyec --json catalog list --dyec-version 19.0.19 --type prod
-dyec --json catalog render <command-id> --dyec-version 19.0.19 ...
+dyec --json catalog list --dyec-version 19.0.22 --type prod
+dyec --json catalog render <command-id> --dyec-version 19.0.22 ...
 ```
 
 A build may also declare one-hop, same-build aliases. An alias inherits one
@@ -230,7 +230,7 @@ bases, duplicate IDs, mixed extension/replacement modes, and partial command
 replacements fail catalog validation. Existing catalog APIs return aliases as
 fully resolved `AnalysisCommand` records.
 
-The `19.0.19` catalog targets DayOA `16.0.4`. Public catalog output includes a
+The `19.0.22` catalog targets DayOA `16.0.5`. Public catalog output includes a
 derived `validation_pending` field: `true` means the command now targets a
 different DayOA tag than its retained `validated_version`. It is a visibility
 signal only; it does not relabel older validation receipts or block a launch.
@@ -241,7 +241,7 @@ prefix must contain `command_registry.json` and `summary.json` from a successful
 
 ```bash
 dyec --json catalog validation-compare <command-id> \
-  --dyec-version 19.0.19 --profile "$AWS_PROFILE" --region "$REGION"
+  --dyec-version 19.0.22 --profile "$AWS_PROFILE" --region "$REGION"
 ```
 
 The comparison fails hard when no prefix is declared, the receipts are missing,
@@ -264,10 +264,18 @@ dyec workflow launch \
   --session-name "$ANALYSIS_ID" \
   --project RnD \
   --cost-center "$COST_CENTER" \
-  --dy-command "dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv -j 100 -p -T 0 --rerun-triggers mtime --rerun-incomplete"
+  --dry-run \
+  --rerun-triggers mtime \
+  --dy-command "dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv -j 100 -p -T 0 --rerun-incomplete"
 ```
 
-Dry-run first by using the DayOA wrapper command’s dry-run flag inside `--dy-command`, or by launching through `dyec catalog ... --dry-run` when the command is catalog-backed.
+`--dry-run` appends `-n` to the effective `dy-r` command even when
+`--dy-command` is supplied; do not duplicate `-n` merely to make a direct
+launch dry. Use repeatable `--rerun-triggers` for explicit Snakemake trigger
+selection (for example, `mtime`). When that public option is present,
+`--dy-command` must not also contain `--rerun-triggers`. For the same-root live
+continuation, remove only `--dry-run` and retain the same rerun-trigger option,
+analysis ID, DayOA commit, manifests, and in-clone configuration.
 
 ## Six-manifest DayOA inputs
 
@@ -578,4 +586,4 @@ python -m pytest --run-catalog-snapshot-tests \
   tests/test_repository_catalog_aliases.py
 ```
 
-Release tags are numeric, annotated semver tags with no leading `v`. Do not move pushed tags. The checked-in release target is `19.0.19`; tag only the exact clean release commit after required acceptance.
+Release tags are numeric, annotated semver tags with no leading `v`. Do not move pushed tags. The checked-in release target is `19.0.22`; tag only the exact clean release commit after required acceptance.

@@ -235,6 +235,13 @@ dyec workflow launch \
   --snakemake-extra "--config run_context_file=config/runs.tsv"
 ```
 
+For a direct `dyec workflow launch` dry run, put `--dry-run` on the DYEC
+command rather than embedding `-n` in `--dy-command`: DYEC appends `-n` to the
+effective DayOA command, including a supplied custom command. Add an explicit
+trigger with repeatable `--rerun-triggers mtime` when required, and do not also
+place `--rerun-triggers` in `--dy-command`. A same-root live continuation
+removes only `--dry-run` and retains the identical trigger selection.
+
 ## 7. Monitor
 
 ```bash

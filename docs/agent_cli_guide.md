@@ -210,6 +210,13 @@ A dry controller passes only when it returns `rc=0` and submits zero workflow
 work. Capture the rendered effective command and the controller status in the
 ledger.
 
+For a direct `dyec workflow launch`, `--dry-run` appends `-n` to the effective
+`dy-r`/`bin/day_run` command even when the caller supplies `--dy-command`.
+Use repeatable `--rerun-triggers` for an explicit trigger set, for example
+`--rerun-triggers mtime`; do not embed that option in `--dy-command` as well.
+For a same-root live continuation, remove only `--dry-run` and retain the
+identical trigger selection, DayOA commit, manifests, and in-clone config.
+
 `$ANALYSIS_ID` names one analysis capsule: its FSx root, DayOA checkout/commit,
 staged inputs, and runtime config. The `-dry` and `-live` suffixes below are
 only controller-session labels. A passing dry run is the preflight of the live

@@ -117,8 +117,16 @@ dyec workflow launch \
   --git-tag 15.0.37 \
   --manifest-dir ./config \
   --payload-staging-s3-uri s3://<bucket>/<temporary-relay-prefix>/ \
+  --dry-run \
+  --rerun-triggers mtime \
   --dy-command "dy-r <exact-target> -p -k -j 6"
 ```
+
+For a direct workflow launch, `--dry-run` injects the effective `dy-r -n`
+flag even when `--dy-command` is supplied. Keep `-n` out of that command and
+use the public repeatable `--rerun-triggers` option instead of embedding it in
+the command. The same-root live continuation removes only `--dry-run` and
+retains the same trigger selection and analysis capsule.
 
 ## Export and deletion
 
