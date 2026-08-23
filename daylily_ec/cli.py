@@ -477,7 +477,8 @@ def agent_guidance() -> None:
             "Inside tmux, run setup as separate commands: source dyoainit; dy-a <profile> <genome>; dy-r <targets> <flags>.",
             "Never invoke raw snakemake for DayOA workflow execution.",
             "Use explicit DayOA tags for new clones: day-clone -t <tag> -d <analysis-id>.",
-            "A successful dry controller validates the live command in the same analysis ID/root/checkout, staged inputs, and runtime config; remove only -n for live.",
+            "For direct workflow launch, --dry-run adds -n to the effective command even with --dy-command; remove only --dry-run for live and retain any --rerun-triggers selection.",
+            "A successful dry controller validates the live command in the same analysis ID/root/checkout, staged inputs, and runtime config; remove only -n from the effective dy-r command for live.",
             "The -dry and -live labels may name controller sessions, never separate analysis directories. A changed command, pin, inputs, or config requires a deliberate new analysis and dry run.",
         ],
         "analysis_root_safety": [
@@ -7657,13 +7658,17 @@ def workflow_launch(
             "Requires local ref+commit, --dry-run, and no export."
         ),
     ),
-    dry_run: bool = typer.Option(False, "--dry-run", help="Launch a dry-run workflow command."),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Append -n to the effective workflow command, including a supplied --dy-command.",
+    ),
     rerun_triggers: Optional[List[str]] = typer.Option(
         None,
         "--rerun-triggers",
         help=(
             "Explicit Snakemake rerun trigger to add to dy-r. Repeat for multiple triggers; "
-            "for example: --rerun-triggers mtime"
+            "do not also embed it in --dy-command. For example: --rerun-triggers mtime"
         ),
     ),
 ) -> None:

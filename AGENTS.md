@@ -18,6 +18,11 @@ invent a fallback or bypass the supported DYEC/DAYOA CLI path.
   `dyec workflow launch --reuse-existing-analysis-dir --input-contract none
   --no-input-staging --reuse-local-git-ref --reuse-local-git-commit <sha>`.
   The continued `dy-r` command must differ only by removal of `-n`.
+- `dyec workflow launch --dry-run` itself adds `-n` to the effective `dy-r`
+  command, including a supplied `--dy-command`; do not rely on a caller to
+  embed it. Use repeatable `--rerun-triggers <code|input|mtime|params|software-env>`
+  for explicit rerun controls, and do not also embed `--rerun-triggers` in
+  `--dy-command`.
 - Do not use `dyec tests command-catalog` as a live dry-to-live controller: it
   creates separate warmup, dry, and live analysis IDs. Use only an explicit
   supplied six-manifest directory; never synthesize or discover a replacement.
