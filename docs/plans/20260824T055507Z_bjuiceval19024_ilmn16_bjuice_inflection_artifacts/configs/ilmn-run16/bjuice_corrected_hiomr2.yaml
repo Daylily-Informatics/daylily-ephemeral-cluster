@@ -1,0 +1,72 @@
+ont_fastq_hour_window_mode: per_analysis_unit
+sentdhiomr2:
+  hg38_sentdhiomr2_chrms: 1-25
+  lr_input_mode_by_sample:
+    BUCCAL1: fastq
+    BUCCAL10: fastq
+    BUCCAL2: fastq
+    BUCCAL3: fastq
+    CASE1-F: fastq
+    CASE1-M: fastq
+    CASE1-P: fastq
+    CASE10-F: fastq
+    CASE10-M: fastq
+    CASE10-P: fastq
+    CASE11-M: fastq
+    CASE11-P: fastq
+    CASE12-M: fastq
+    CASE12-P: fastq
+    CASE13-F: fastq
+    CASE13-M: fastq
+    CASE13-P: fastq
+    CASE14-F: fastq
+    CASE14-M: fastq
+    CASE14-P: fastq
+    CASE15-P: fastq
+    CASE16-M: fastq
+    CASE16-P: fastq
+    CASE17: fastq
+    CASE18: fastq
+    CASE19-M: fastq
+    CASE19-P: fastq
+    CASE2-P: fastq
+    CASE5-F: fastq
+    CASE5-M: fastq
+    CASE5-P: fastq
+    CASE6-P: fastq
+    CASE7-F: fastq
+    CASE7-M: fastq
+    CASE7-P: fastq
+    CASE8-P: fastq
+    CASE9-M: fastq
+    CASE9-P: fastq
+  provenance_run_id: corrected_bjuice_ilmn-run16
+  retain_stage_artifacts: true
+multiqc_qc:
+  enable_tools:
+  - unmapped_metagenomics_ganon2
+  library_summary:
+    primary_alignments:
+      sr:
+        aligner: sentdhiomr2sr
+        deduper: smd
+      ont:
+        aligner: sentdhiomr2lr
+        deduper: na
+    contamination_method: site_mix
+sentdhiomr2_nicu_research:
+  enabled: false
+  fastq_recoverability_enabled: false
+sentdhiomr2_slim_consensus:
+  enabled: true
+sentdhiomr2_jasmine:
+  enabled: false
+truvari_sv_benchmark:
+  enabled: true
+  env_yaml: ../envs/truvari_v0.2.yaml
+  threads: 32
+  mem_mb: 64000
+  partition: i128nvme,i192nvme,i192hugenvme,i384nvme
+  extra_args: --passonly --sizemin 50 --sizefilt 50 --sizemax -1 --refdist 500 --pctsize
+    0.7 --pctseq 0.7 --pctovl 0 --pick single
+  truthsets: {}

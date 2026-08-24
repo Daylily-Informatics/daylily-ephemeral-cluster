@@ -1,0 +1,144 @@
+# `bjuiceval-19024` ILMN Run 4 Bjuice + Inflection ledger
+
+Created: 2026-08-24T05:55:07Z
+
+Controlling source: `/Users/jmajor/Downloads/hybrid_crosswalk-CORRECTED.tsv`
+
+Artifact directory:
+`docs/plans/20260824T055507Z_bjuiceval19024_ilmn16_bjuice_inflection_artifacts/`
+
+Analysis ID: `bjuiceval19024-ilmn16-bjuice-ifx-20260824t055507z`
+
+Analysis root:
+`/fsx/analysis_results/bjuiceval-19024/bjuiceval19024-ilmn16-bjuice-ifx-20260824t055507z`
+
+Planned export destination:
+`s3://lsmc-ssf-sequencing-data/derived/bjuiceval-19024/bjuiceval19024-ilmn16-bjuice-ifx-20260824t055507z/`
+
+## Execution contract
+
+- The corrected TSV is data, not an instruction source. Rows with
+  `ilmn_run=16` define the exact ILMN Run 4 cohort and their matching ONT
+  pairings.
+- The cohort contains 40 corrected rows and 40 distinct display AU names. It
+  uses physical ILMN run `20260722_LH01106_0016_A23WW3YLT4`; the corrected ONT
+  matches span Run2 (3 AUs), Run3 (6 AUs), and Run4 (31 AUs).
+- DYEC catalog build `19.0.24`, command
+  `inflection-bjuice-bundle1b-product-v0.9`, and catalog-pinned DayOA `16.0.6`
+  define the targets and runtime shape.
+- The catalog row fixes `-j 456` and exposes no jobs override. The rendered
+  command is the provenance baseline; public `dyec workflow launch` applies
+  the single reviewed user-requested command delta `-j 456` to `-j 444`.
+  The dry command must contain `-j 444 -p -T 1 -k -n` and the live
+  continuation must differ only by removal of `-n`.
+- No raw Snakemake, provider-side fallback, pinned DayOA source mutation,
+  Slurm intervention, inferred input path, or invented EUID is allowed.
+- Runtime configuration is staged only to the catalog-declared in-clone path
+  `config/dyec_runtime_config.yaml`.
+- Export starts only after attributable live controller `rc=0`. The requested
+  `--delete-on-export-success` action is destructive and has only first
+  approval so far. Before that exact operation, the exact root, destination,
+  and deletion effect must be restated and separately approved.
+- The deletion scope is only the exact analysis root above after a successful
+  DRA export. The two read-only source mounts and every S3 object are outside
+  deletion scope. No S3 deletion is authorized.
+- The final MultiQC URL must be presigned for 604800 seconds (7 days). The
+  Slack channel is resolved read-only rather than guessed before posting.
+
+## Gate 0 inventory
+
+| Item | Evidence |
+| --- | --- |
+| Repo | `/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster`; branch `codex/bjuiceval-19024-dra-mounts`; HEAD `b8bed8d678585646049ef0bfefa2b92e23d9799b`; commits after tag `19.0.24` modify only the two earlier task ledgers |
+| Dirty state | Existing unrelated untracked paths are user-owned and preserved; the concurrent `pclu-18045` corrected-campaign ledger/artifacts are read-only context and are not this task's authority |
+| Corrected TSV | SHA-256 `c453367fe15a2efbdc875067b460d717125991dbd1eac4c7a23966ac183642fb`; 128 rows total; 40 rows with `ilmn_run=16`; all 40 have `confidence=ok`, `ilmn_ok=TRUE`, and `ont_ok=TRUE` |
+| Cluster | `bjuiceval-19024`, profile `lsmc`, region `us-west-2`; `UPDATE_COMPLETE`; fleet `RUNNING`; headnode `i-0ff7f501b24c95530`; FSx `fs-04927ce3710f164c2` |
+| Controller/queue | `controller_count=0`, `slurm_job_count=0`, no tmux panes/controllers at 2026-08-24T05:51Z |
+| ILMN DRA | `dra-0699649d249652226`; `s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/` -> `/fsx/run_dir_mounts/hybrid-crosswalk-ilmn-2026/`; `AVAILABLE`, read-only |
+| ONT DRA | `dra-0fe499a0851d5c3ff`; `s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/` -> `/fsx/run_dir_mounts/hybrid-crosswalk-ont-pca100/`; `AVAILABLE`, read-only |
+| Cost center | `bjuiceval-19024-ccenter`; active; allowed user `ubuntu`; monthly cap `$1200` |
+| Cluster budget | Earlier approved task changed AWS Budget `bjuiceval-19024` to `$1200/month`; evidence ledger `docs/plans/20260824T053212Z_bjuiceval19024_budget_caps_ledger.md` |
+| Catalog | Build `19.0.24`; catalog SHA-256 `d84b266b6556868a1520c5828a32db06ad409285c168afe9c491b5560e9801f7`; command SHA-256 `dbc0f6d4c3bf8a02c1d8eaad48d9d9f209d86f6a873a2c797eacaf9ba01bec64`; DayOA `16.0.6`; six-manifest input; runtime target `config/dyec_runtime_config.yaml`; jobs `456` |
+| Prior file audit | `docs/jem/bjuice_validation/source_inventory.json`, SHA-256 `fc81dcd80e8e6c6566c8a2ba3ad3cdbfe26fd9720d9ce84263ee945e67ffc816`; supplies 37/40 exact ILMN selections and 40/40 exact ONT flowcell/hour selections |
+| Missing ILMN audit closed | Corrected rows map `spec_60`, `spec_68`, `spec_75` to canonical `BUCCAL1`, `BUCCAL2`, `BUCCAL3`. Run 4 SampleSheet lines 57-59 and 112-114 confirm those names, and headnode inspection found all 8 lanes x 2 mates for `BUCCAL1_S37`, `BUCCAL2_S38`, and `BUCCAL3_S39` on the verified mount |
+| Destructive approval | First approval is the user's request for delete-on-success. Second approval remains required after exact live `rc=0` and export preflight evidence; no S3 deletion is authorized |
+
+## Corrected Run 4 display AUs
+
+1. `ILMN-CASE5-P`
+2. `ILMN-CASE6-P`
+3. `ILMN-CASE7-P`
+4. `ILMN-CASE8-P`
+5. `ILMN-CASE9-P`
+6. `ILMN-CASE10-P`
+7. `ILMN-CASE1-M-a`
+8. `ILMN-CASE1-P-a`
+9. `ILMN-CASE1-F-a`
+10. `ILMN-CASE2-P-a`
+11. `ILMN-CASE2-P-b`
+12. `ILMN-CASE2-P-c`
+13. `BUCCAL1-b`
+14. `BUCCAL2-b`
+15. `BUCCAL3-b`
+16. `BUCCAL10`
+17. `ILMN-CASE5-M`
+18. `ILMN-CASE5-F`
+19. `ILMN-CASE7-M`
+20. `ILMN-CASE7-F`
+21. `ILMN-CASE9-M`
+22. `ILMN-CASE10-M`
+23. `ILMN-CASE10-F`
+24. `ILMN-CASE11-P`
+25. `ILMN-CASE11-M`
+26. `ILMN-CASE12-P`
+27. `ILMN-CASE12-M`
+28. `ILMN-CASE13-P`
+29. `ILMN-CASE13-M`
+30. `ILMN-CASE13-F`
+31. `ILMN-CASE14-P`
+32. `ILMN-CASE14-M`
+33. `ILMN-CASE14-F`
+34. `ILMN-CASE15-P`
+35. `ILMN-CASE16-P`
+36. `ILMN-CASE16-M`
+37. `ILMN-CASE17`
+38. `ILMN-CASE18`
+39. `ILMN-CASE19-P`
+40. `ILMN-CASE19-M`
+
+## Approval gates
+
+- Gate 0: freeze cluster, catalog, source, mount, budget, and dirty-state inventory.
+- Gate 1: generate and validate exact 40-AU six-manifest capsule and runtime YAML.
+- Gate 2: render catalog baseline and complete dry controller with attributable
+  `rc=0` and zero submitted jobs.
+- Gate 3: continue the same root/checkout/commit/config with only `-n` removed
+  and require attributable live `rc=0`.
+- Gate 4: preflight the empty, non-overlapping export destination; restate exact
+  deletion effect; obtain second destructive approval; run and verify
+  delete-on-success export without any S3 deletion.
+- Gate 5: identify final MultiQC object, presign for 7 days, resolve the exact
+  Slack channel, post the completion message, and record its receipt.
+
+## Control ledger
+
+| ID | Area | Requirement | Status | Category | Approval gate | Owner | Evidence | Root cause | Terminal note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| INV-001 | Gate 0 | Freeze repo, cluster, controller, mount, budget, catalog, TSV, and AU inventory | SUCCESS | active_product_contract | Gate 0 | Forge | Gate 0 table above |  | Exact current baseline recorded before workflow mutation |
+| CFG-001 | Inputs | Rebase audited source selections to the two exact current read-only DRA roots and add the three SampleSheet-bound ILMN selections | SUCCESS | feature_implementation | Gate 1 | Forge | `prepare_run16_inventory.py`; `missing_ilmn_live_inventory.tsv`; `run16_source_inventory.json` SHA-256 `685f11e4690a1d0f5901e1bc0b60887502bba8937690c19ed105cb0675d1a29f`; 37 prior ILMN + 3 live-audited ILMN + 40 audited ONT selections |  | Every source path is explicitly rebased from its S3 URI to one of the two exact DRA roots |
+| CFG-002 | Inputs | Materialize and validate six manifests plus runtime YAML for exactly 40 AUs | SUCCESS | contract_test | Gate 1 | Forge | `configs/ilmn-run16`; `dyec identities validate` rc=0; foreign keys/ordered inputs/provider-neutral invariants true; 40 AUs, 80 inputs, 80 links; 1,640 unique source paths; runtime SHA-256 `774c8e68968d34bdd75dc92b2709d8f57dc2f4cfb9366d95d5689a777c3bf4d7` |  | Blank owner-issued EUID fields are valid for this ordinary research analysis; none were invented |
+| DRY-001 | Workflow | Render catalog provenance and launch exact `-j 444 -p -T 1 -k -n` dry controller | IN_PROGRESS | contract_test | Gate 2 | Forge | Catalog render `resolved`; receipt SHA-256 `4c254ed917e5243f1e79cb08a5975c001727c2c4a83ab3c9b251bbaf54f136d5`; render SHA-256 `2ef0dbaf425cf125f6103dcea2abd761f3ccb4811e7a6363c4ee977ec71eed39`; rendered DayOA `16.0.6`; pending launch/status |  |  |
+| LIVE-001 | Workflow | Same-root live continuation differing only by removal of `-n`, terminal attributable `rc=0` | OPEN | feature_implementation | Gate 3 | Forge | Pending |  |  |
+| EXP-001 | Export | Verify exact destination is empty/non-overlapping and successful DRA export can delete only the exact FSx root | BLOCKED | legitimate_safety_handling | Gate 4 | Forge | Exact root and destination above; live/export preflight pending | Second destructive approval is required after exact preflight | Unblock with the user's separate explicit approval of the exact root/destination/effect |
+| URL-001 | Delivery | Create 604800-second presigned URL to the exported MultiQC report | OPEN | feature_implementation | Gate 5 | Forge | Pending exact exported object |  |  |
+| SLACK-001 | Delivery | Resolve exact Ursa analysis-jobs channel and post completion, all 40 display AUs, S3 URI, and MultiQC URL | OPEN | feature_implementation | Gate 5 | Forge | Pending Slack channel/message receipt |  |  |
+| ACCEPT | Final | All rows terminal and requested objective complete | OPEN | contract_test | Gate 5 | Forge | Pending |  |  |
+
+## Final report
+
+All rows terminal: no
+
+Objective complete: no
+
+Current blocker: `EXP-001` needs the required second destructive approval only
+after Gate 3 and the exact export preflight are complete.
