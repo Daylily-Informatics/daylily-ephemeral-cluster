@@ -294,6 +294,11 @@ dyec workflow logs \
   --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
   --session <session-name> --stream snakemake --lines 200
 
+dyec workflow logs \
+  --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
+  --session <session-name> --stream snakemake \
+  --match "Error in rule" --before-lines 40 --after-lines 80 --max-matches 1
+
 dyec analysis status full \
   --analysis-root "$ANALYSIS_ROOT" \
   --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
@@ -306,6 +311,8 @@ inspect the explicit returned-count and truncation fields.
 
 For a manual/recovery controller, provide the explicit `--repo-path` and
 `--controller-pid`; do not use newest-log or newest-repository discovery.
+Use literal `--match` mode when verbose `-p` output has pushed an attributable
+error beyond the largest safe line-count tail.
 
 ## 8. Export a successful root without deletion
 

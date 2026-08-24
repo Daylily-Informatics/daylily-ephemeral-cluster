@@ -20,8 +20,8 @@ from pathlib import Path, PurePosixPath
 from typing import Any, Optional
 
 from daylily_ec.execution_status import (
-    ExecutionStatusError,
     STATUS_SCHEMA_VERSION,
+    ExecutionStatusError,
     attempt_exit_codes,
     controller_attempt,
     read_execution_status,
@@ -35,6 +35,9 @@ SNAKEMAKE_TAIL_ENCODING = "zlib+base64"
 MAX_SNAKEMAKE_TAIL_BYTES = 8 * 1024 * 1024
 MAX_ENCODED_SNAKEMAKE_TAIL_BYTES = 12 * 1024
 MAX_TRANSPORT_COLLECTION_RECORDS = 20
+MAX_SNAKEMAKE_MATCH_TEXT_BYTES = 512
+MAX_SNAKEMAKE_MATCH_CONTEXT_LINES = 200
+MAX_SNAKEMAKE_MATCHES = 10
 
 SUBMITTED_RE = re.compile(
     r"^Submitted job (?P<job_id>\d+) with external jobid ['\"](?P<external_id>[^'\"]+)['\"]\.\s*$"
@@ -248,13 +251,107 @@ def _encoded_snakemake_tail(path: str, *, tail_lines: int) -> dict[str, Any]:
     }
 
 
-def decode_snakemake_tail(payload: Any) -> str:
-    """Decode and integrity-check a Snakemake tail returned by the remote probe."""
+def _normalize_match_text(value: str) -> str:
+    resolved = str(value or "")
+    if (
+        not resolved
+        or any(character in resolved for character in ("\x00", "\n", "\r"))
+        or len(resolved.encode("utf-8")) > MAX_SNAKEMAKE_MATCH_TEXT_BYTES
+    ):
+        raise WorkflowObservabilityError(
+            "--match must be one non-empty literal line fragment of at most 512 UTF-8 bytes"
+        )
+    return resolved
+
+
+def _encoded_snakemake_match_context(
+    path: str,
+    *,
+    match_text: str,
+    before_lines: int,
+    after_lines: int,
+    max_matches: int,
+) -> dict[str, Any]:
+    """Find bounded literal-match context in one exact attributed log."""
+
+    resolved_match = _normalize_match_text(match_text)
+    for value, label in ((before_lines, "--before-lines"), (after_lines, "--after-lines")):
+        if isinstance(value, bool) or value < 0 or value > MAX_SNAKEMAKE_MATCH_CONTEXT_LINES:
+            raise WorkflowObservabilityError(f"{label} must be between 0 and 200")
+    if isinstance(max_matches, bool) or max_matches < 1 or max_matches > MAX_SNAKEMAKE_MATCHES:
+        raise WorkflowObservabilityError("--max-matches must be between 1 and 10")
+
+    log_path = Path(path)
+    if not log_path.is_file():
+        raise WorkflowObservabilityError(f"attributed Snakemake log is missing: {path}")
+    preceding: deque[tuple[int, str]] = deque(maxlen=before_lines)
+    contexts: list[dict[str, Any]] = []
+    current: Optional[dict[str, Any]] = None
+    try:
+        with log_path.open("r", encoding="utf-8", errors="replace") as handle:
+            for line_number, line in enumerate(handle, start=1):
+                if current is not None:
+                    current["lines"].append((line_number, line))
+                    current["after_remaining"] -= 1
+                    if current["after_remaining"] == 0:
+                        contexts.append(current)
+                        current = None
+                elif resolved_match in line and len(contexts) < max_matches:
+                    current = {
+                        "match_line": line_number,
+                        "lines": [*preceding, (line_number, line)],
+                        "after_remaining": after_lines,
+                    }
+                    if after_lines == 0:
+                        contexts.append(current)
+                        current = None
+                preceding.append((line_number, line))
+                if current is None and len(contexts) >= max_matches:
+                    break
+    except OSError as exc:
+        raise WorkflowObservabilityError(
+            f"unable to search attributed Snakemake log: {path}"
+        ) from exc
+    if current is not None:
+        contexts.append(current)
+
+    rendered: list[str] = []
+    matched_line_numbers: list[int] = []
+    for index, context in enumerate(contexts, start=1):
+        match_line = int(context["match_line"])
+        matched_line_numbers.append(match_line)
+        rendered.append(f"=== literal match {index} at line {match_line} ===\n")
+        for line_number, line in context["lines"]:
+            suffix = "" if line.endswith("\n") else "\n"
+            rendered.append(f"{line_number}:{line}{suffix}")
+    raw = "".join(rendered).encode("utf-8")
+    encoded = base64.b64encode(zlib.compress(raw, level=9)).decode("ascii")
+    if len(encoded.encode("ascii")) > MAX_ENCODED_SNAKEMAKE_TAIL_BYTES:
+        raise WorkflowObservabilityError(
+            "compressed Snakemake match context exceeds the SSM output limit; "
+            "use fewer context lines or matches"
+        )
+    return {
+        "encoding": SNAKEMAKE_TAIL_ENCODING,
+        "data": encoded,
+        "byte_count": len(raw),
+        "sha256": hashlib.sha256(raw).hexdigest(),
+        "literal_match": resolved_match,
+        "before_lines": before_lines,
+        "after_lines": after_lines,
+        "max_matches": max_matches,
+        "match_count": len(contexts),
+        "matched_line_numbers": matched_line_numbers,
+    }
+
+
+def _decode_compressed_log_text(payload: Any, *, label: str) -> str:
+    """Decode and integrity-check bounded text returned by the remote probe."""
 
     if not isinstance(payload, dict):
-        raise WorkflowObservabilityError("Snakemake tail payload is missing")
+        raise WorkflowObservabilityError(f"Snakemake {label} payload is missing")
     if payload.get("encoding") != SNAKEMAKE_TAIL_ENCODING:
-        raise WorkflowObservabilityError("Snakemake tail payload has an unsupported encoding")
+        raise WorkflowObservabilityError(f"Snakemake {label} payload has an unsupported encoding")
     encoded = payload.get("data")
     byte_count = payload.get("byte_count")
     expected_sha256 = payload.get("sha256")
@@ -267,14 +364,26 @@ def decode_snakemake_tail(payload: Any) -> str:
         or not isinstance(expected_sha256, str)
         or not re.fullmatch(r"[0-9a-f]{64}", expected_sha256)
     ):
-        raise WorkflowObservabilityError("Snakemake tail payload fields are invalid")
+        raise WorkflowObservabilityError(f"Snakemake {label} payload fields are invalid")
     try:
         raw = zlib.decompress(base64.b64decode(encoded, validate=True))
     except (binascii.Error, zlib.error) as exc:
-        raise WorkflowObservabilityError("Snakemake tail payload is corrupt") from exc
+        raise WorkflowObservabilityError(f"Snakemake {label} payload is corrupt") from exc
     if len(raw) != byte_count or hashlib.sha256(raw).hexdigest() != expected_sha256:
-        raise WorkflowObservabilityError("Snakemake tail payload failed integrity validation")
+        raise WorkflowObservabilityError(f"Snakemake {label} payload failed integrity validation")
     return raw.decode("utf-8", errors="replace")
+
+
+def decode_snakemake_tail(payload: Any) -> str:
+    """Decode and integrity-check a Snakemake tail returned by the remote probe."""
+
+    return _decode_compressed_log_text(payload, label="tail")
+
+
+def decode_snakemake_match_context(payload: Any) -> str:
+    """Decode bounded literal-match context returned by the remote probe."""
+
+    return _decode_compressed_log_text(payload, label="match context")
 
 
 def _read_json_object(path: Path, *, label: str) -> dict[str, Any]:
@@ -503,11 +612,17 @@ def collect_workflow_observability(
     controller_pid: Optional[int] = None,
     snakemake_log: Optional[str] = None,
     tail_lines: Optional[int] = None,
+    match_text: Optional[str] = None,
+    before_lines: int = 40,
+    after_lines: int = 80,
+    max_matches: int = 1,
 ) -> dict[str, Any]:
     """Collect exact local headnode evidence for one controller invocation."""
 
     if mode not in {"launched", "manual"}:
         raise WorkflowObservabilityError("mode must be launched or manual")
+    if tail_lines is not None and match_text is not None:
+        raise WorkflowObservabilityError("--tail-lines and --match are mutually exclusive")
     status_payload: Optional[dict[str, Any]] = None
     status_attempt: Optional[dict[str, Any]] = None
     status_path: Optional[Path] = None
@@ -666,6 +781,14 @@ def collect_workflow_observability(
             log_path,
             tail_lines=tail_lines,
         )
+    if match_text is not None and log_path is not None:
+        snakemake_log_payload["match_context"] = _encoded_snakemake_match_context(
+            log_path,
+            match_text=match_text,
+            before_lines=before_lines,
+            after_lines=after_lines,
+            max_matches=max_matches,
+        )
     return {
         "schema_version": WORKFLOW_OBSERVABILITY_SCHEMA,
         "state": state,
@@ -728,6 +851,10 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--controller-pid", type=int)
     parser.add_argument("--snakemake-log")
     parser.add_argument("--tail-lines", type=int)
+    parser.add_argument("--match")
+    parser.add_argument("--before-lines", type=int, default=40)
+    parser.add_argument("--after-lines", type=int, default=80)
+    parser.add_argument("--max-matches", type=int, default=1)
     return parser
 
 
@@ -742,11 +869,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             controller_pid=args.controller_pid,
             snakemake_log=args.snakemake_log,
             tail_lines=args.tail_lines,
+            match_text=args.match,
+            before_lines=args.before_lines,
+            after_lines=args.after_lines,
+            max_matches=args.max_matches,
         )
     except WorkflowObservabilityError as exc:
         print(f"DYEC workflow observability error: {exc}", file=sys.stderr)
         return 2
-    if args.tail_lines is not None:
+    if args.tail_lines is not None or args.match is not None:
         payload = {
             "schema_version": payload["schema_version"],
             "repo_path": payload["repo_path"],

@@ -14,6 +14,7 @@ from daylily_ec.workflow_observability import (
     bounded_transport_payload,
     build_remote_probe_command,
     collect_workflow_observability,
+    decode_snakemake_match_context,
     decode_snakemake_tail,
     derive_state,
     normalize_snakemake_log,
@@ -92,6 +93,53 @@ def test_exact_tail_round_trips_through_compressed_probe_payload(
     assert decode_snakemake_tail(transported) == (
         "Submitted job 21 with external jobid '82'.\n12 of 195 steps (6%) done\n"
     )
+
+
+def test_literal_match_context_round_trips_with_line_numbers(tmp_path: Path) -> None:
+    log_path = tmp_path / "current.snakemake.log"
+    log_path.write_text(
+        "before one\nbefore two\nError in rule example_rule:\n    jobid: 21\nafter two\n",
+        encoding="utf-8",
+    )
+
+    encoded = workflow_observability._encoded_snakemake_match_context(
+        str(log_path),
+        match_text="Error in rule",
+        before_lines=1,
+        after_lines=1,
+        max_matches=1,
+    )
+
+    assert encoded["match_count"] == 1
+    assert encoded["matched_line_numbers"] == [3]
+    assert decode_snakemake_match_context(encoded) == (
+        "=== literal match 1 at line 3 ===\n"
+        "2:before two\n"
+        "3:Error in rule example_rule:\n"
+        "4:    jobid: 21\n"
+    )
+
+
+def test_literal_match_rejects_multiline_or_unbounded_requests(tmp_path: Path) -> None:
+    log_path = tmp_path / "current.snakemake.log"
+    log_path.write_text("Error in rule example_rule:\n", encoding="utf-8")
+
+    with pytest.raises(WorkflowObservabilityError, match="literal line fragment"):
+        workflow_observability._encoded_snakemake_match_context(
+            str(log_path),
+            match_text="Error\nin rule",
+            before_lines=1,
+            after_lines=1,
+            max_matches=1,
+        )
+    with pytest.raises(WorkflowObservabilityError, match="between 0 and 200"):
+        workflow_observability._encoded_snakemake_match_context(
+            str(log_path),
+            match_text="Error in rule",
+            before_lines=201,
+            after_lines=1,
+            max_matches=1,
+        )
 
 
 def _launched_receipts(

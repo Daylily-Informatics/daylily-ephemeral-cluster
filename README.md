@@ -404,6 +404,11 @@ dyec workflow logs \
   --session "$ANALYSIS_ID" \
   --stream snakemake \
   --lines 200
+
+dyec workflow logs \
+  --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
+  --session "$ANALYSIS_ID" --stream snakemake \
+  --match "Error in rule" --before-lines 40 --after-lines 80 --max-matches 1
 ```
 
 `workflow status` emits exactly one derived `state`: `RUNNING`, `SUCCEEDED`,
@@ -422,6 +427,9 @@ The Snakemake stream attributes and reads the log in one remote probe. Its
 requested tail is compressed, integrity-checked, and decoded locally, avoiding
 a second SSM round trip. If a requested tail cannot fit the bounded SSM
 transport, DYEC fails clearly and asks for fewer `--lines`.
+Literal `--match` mode searches the complete exact attributed log and returns
+only bounded, compressed context, allowing old errors to be retrieved after a
+verbose `-p` log has rolled beyond the largest safe tail.
 
 For a controller started manually during recovery, provide its identity
 explicitly; DYEC does not discover a checkout or guess the newest log:

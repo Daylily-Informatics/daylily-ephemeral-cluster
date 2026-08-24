@@ -1121,6 +1121,11 @@ dyec workflow logs \
   --session "$ANALYSIS_ID" \
   --stream snakemake \
   --lines 200
+
+dyec workflow logs \
+  --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
+  --session "$ANALYSIS_ID" --stream snakemake \
+  --match "Error in rule" --before-lines 40 --after-lines 80 --max-matches 1
 ```
 
 `workflow status` combines the exact controller target and matching
@@ -1158,6 +1163,10 @@ CLI. It does not import the new probe module from the headnode's installed DYEC
 package, so a local CLI may inspect a cluster built with an earlier DYEC package
 without silently changing that cluster. Remote failures preserve SSM command
 ID, response code, stdout, and stderr in the CLI error response.
+`--match` is a literal full-log search available only for the exact attributed
+Snakemake stream. It returns bounded before/after context with source line
+numbers and fails clearly if the compressed context would exceed the SSM
+response limit.
 `workflow logs --stream snakemake` performs attribution and the exact tail read
 inside that same probe, then transports a compressed tail with byte-count and
 SHA-256 integrity metadata. This avoids a second SSM round trip. If the bounded

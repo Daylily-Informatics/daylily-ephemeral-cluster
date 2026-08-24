@@ -5232,6 +5232,77 @@ def test_workflow_logs_snakemake_tails_only_attributed_path(monkeypatch) -> None
     assert calls["tail_lines"] == 200
 
 
+def test_workflow_logs_snakemake_searches_exact_attributed_log(monkeypatch) -> None:
+    _activate_dayec_runtime(monkeypatch)
+    calls: dict[str, object] = {}
+    repo_path = "/fsx/analysis_results/cluster-a/run-1/daylily-omics-analysis"
+    log_path = f"{repo_path}/.snakemake/log/2026-08-10T072121.snakemake.log"
+
+    context_text = (
+        "=== literal match 1 at line 42 ===\n"
+        "41:Select jobs to execute...\n"
+        "42:Error in rule example_rule:\n"
+        "43:    jobid: 21\n"
+    )
+    raw_context = context_text.encode("utf-8")
+    monkeypatch.setattr(
+        cli_module,
+        "_collect_workflow_observability",
+        lambda **kwargs: (
+            calls.update(kwargs)
+            or {
+                "state": "RUNNING",
+                "repo_path": repo_path,
+                "snakemake_log": {
+                    "path": log_path,
+                    "problem": None,
+                    "match_context": {
+                        "encoding": "zlib+base64",
+                        "data": base64.b64encode(zlib.compress(raw_context, 9)).decode("ascii"),
+                        "byte_count": len(raw_context),
+                        "sha256": hashlib.sha256(raw_context).hexdigest(),
+                        "match_count": 1,
+                    },
+                },
+            }
+        ),
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "workflow",
+            "logs",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--session",
+            "session-1",
+            "--stream",
+            "snakemake",
+            "--match",
+            "Error in rule",
+            "--before-lines",
+            "40",
+            "--after-lines",
+            "80",
+            "--max-matches",
+            "1",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "Error in rule example_rule" in result.output
+    assert calls["tail_lines"] is None
+    assert calls["match_text"] == "Error in rule"
+    assert calls["before_lines"] == 40
+    assert calls["after_lines"] == 80
+    assert calls["max_matches"] == 1
+
+
 def test_workflow_logs_snakemake_fails_when_exact_log_is_ambiguous(monkeypatch) -> None:
     _activate_dayec_runtime(monkeypatch)
     monkeypatch.setattr(

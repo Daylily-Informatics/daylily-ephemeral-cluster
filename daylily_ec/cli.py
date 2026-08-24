@@ -9657,6 +9657,10 @@ def _collect_workflow_observability(
     snakemake_log: Optional[str],
     remote_user: str,
     tail_lines: Optional[int] = None,
+    match_text: Optional[str] = None,
+    before_lines: int = 40,
+    after_lines: int = 80,
+    max_matches: int = 1,
 ) -> dict[str, Any]:
     """Collect invocation-attributed controller, log, progress, and Slurm evidence."""
 
@@ -9735,6 +9739,21 @@ def _collect_workflow_observability(
         if isinstance(tail_lines, bool) or tail_lines < 1:
             raise CommandError("--lines must be a positive integer.")
         probe_arguments.extend(["--tail-lines", str(tail_lines)])
+    if match_text is not None:
+        if tail_lines is not None:
+            raise CommandError("--lines tailing and --match search are mutually exclusive.")
+        probe_arguments.extend(
+            [
+                "--match",
+                match_text,
+                "--before-lines",
+                str(before_lines),
+                "--after-lines",
+                str(after_lines),
+                "--max-matches",
+                str(max_matches),
+            ]
+        )
     result = run_shell(
         target.instance_id,
         resolved_region,
@@ -10203,8 +10222,34 @@ def workflow_logs(
         "--stream",
         help="Log stream: tmux, controller, or snakemake.",
     ),
+    match: Optional[str] = typer.Option(
+        None,
+        "--match",
+        help="Search the exact attributed Snakemake log for one literal line fragment.",
+    ),
+    before_lines: int = typer.Option(
+        40,
+        "--before-lines",
+        min=0,
+        max=200,
+        help="Context lines before each literal match.",
+    ),
+    after_lines: int = typer.Option(
+        80,
+        "--after-lines",
+        min=0,
+        max=200,
+        help="Context lines after each literal match.",
+    ),
+    max_matches: int = typer.Option(
+        1,
+        "--max-matches",
+        min=1,
+        max=10,
+        help="Maximum literal matches to return.",
+    ),
 ) -> None:
-    """Tail a workflow tmux, controller, or exact active Snakemake log."""
+    """Tail or search a workflow tmux, controller, or exact Snakemake log."""
 
     from daylily_ec.aws.ssm import SsmCommandFailedError, SsmError
     from daylily_ec.scripts.common import CommandError
@@ -10212,6 +10257,10 @@ def workflow_logs(
     _warn_if_dayec_env_inactive()
     normalized_stream = stream.strip().lower()
     try:
+        if match is not None and normalized_stream != "snakemake":
+            raise CommandError("--match applies only to --stream snakemake.")
+        if match is None and (before_lines != 40 or after_lines != 80 or max_matches != 1):
+            raise CommandError("--before-lines, --after-lines, and --max-matches require --match.")
         if normalized_stream in {"tmux", "controller"} and any(
             value is not None for value in (repo_path, controller_pid, snakemake_log)
         ):
@@ -10251,7 +10300,11 @@ def workflow_logs(
                 controller_pid=controller_pid,
                 snakemake_log=snakemake_log,
                 remote_user=remote_user,
-                tail_lines=lines,
+                tail_lines=None if match is not None else lines,
+                match_text=match,
+                before_lines=before_lines,
+                after_lines=after_lines,
+                max_matches=max_matches,
             )
             log = payload.get("snakemake_log")
             attributed_repo = payload.get("repo_path")
@@ -10261,11 +10314,24 @@ def workflow_logs(
             if not isinstance(attributed_log, str) or not attributed_log:
                 problem = str(log.get("problem") or "exact attribution is unavailable")
                 raise CommandError(f"Cannot read Snakemake log: {problem}.")
-            from daylily_ec.workflow_observability import decode_snakemake_tail
+            from daylily_ec.workflow_observability import (
+                decode_snakemake_match_context,
+                decode_snakemake_tail,
+            )
 
-            tail = decode_snakemake_tail(log.get("tail"))
-            if tail:
-                typer.echo(tail, nl=False)
+            if match is not None:
+                match_payload = log.get("match_context")
+                if not isinstance(match_payload, dict) or match_payload.get("match_count") == 0:
+                    raise CommandError(
+                        "The exact attributed Snakemake log contains no requested literal match."
+                    )
+                context = decode_snakemake_match_context(match_payload)
+                if context:
+                    typer.echo(context, nl=False)
+            else:
+                tail = decode_snakemake_tail(log.get("tail"))
+                if tail:
+                    typer.echo(tail, nl=False)
             return
         else:
             raise typer.BadParameter(
