@@ -3782,6 +3782,58 @@ def exports_detach(
         _exit_headnode_error(exc)
 
 
+def aws_s3_presign(
+    s3_uri: str = typer.Option(
+        ...,
+        "--s3-uri",
+        help="Exact existing S3 object URI to presign for read-only GET access.",
+    ),
+    expires_in_seconds: int = typer.Option(
+        ...,
+        "--expires-in-seconds",
+        min=1,
+        max=604800,
+        help="URL lifetime in seconds; AWS SigV4 permits at most seven days.",
+    ),
+    region: Optional[str] = context_option("aws_region", None, "--region", required=True),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+) -> None:
+    """Verify and presign one exact S3 object for read-only download."""
+
+    from daylily_ec.aws.context import AWSContext
+    from daylily_ec.aws.s3_presign import parse_s3_object_uri, presign_get_object
+
+    try:
+        parse_s3_object_uri(s3_uri)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc), param_hint="--s3-uri") from exc
+
+    try:
+        aws_ctx = AWSContext.build_region(str(region), profile=profile)
+        payload = presign_get_object(
+            s3_client=aws_ctx.client("s3"),
+            s3_uri=s3_uri,
+            expires_in_seconds=expires_in_seconds,
+        )
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc), param_hint="--expires-in-seconds") from exc
+    except Exception:  # noqa: BLE001
+        _exit_versioned_contract_error(
+            schema_version="dyec.aws_s3_presign.v1",
+            error_code="s3_presign_failed",
+            message="The exact S3 object could not be verified and presigned.",
+        )
+
+    _emit_payload(
+        payload,
+        (
+            f"Presigned GET URL for {payload['s3_uri']}\n"
+            f"Expires at: {payload['expires_at']}\n"
+            f"{payload['url']}"
+        ),
+    )
+
+
 def delete(
     cluster_name: Optional[str] = typer.Option(
         None,
@@ -12216,6 +12268,18 @@ def register(registry, cli_spec) -> None:
                 "set-limit",
                 aws_budget_set_limit,
                 required_policy(supports_json=True, mutates_state=True),
+            ),
+        ],
+    )
+    register_group_commands(
+        registry,
+        "aws/s3",
+        "Read-only S3 object sharing helpers.",
+        [
+            (
+                "presign",
+                aws_s3_presign,
+                required_policy(supports_json=True),
             ),
         ],
     )

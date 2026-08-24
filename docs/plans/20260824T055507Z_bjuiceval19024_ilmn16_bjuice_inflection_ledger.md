@@ -128,10 +128,11 @@ Planned export destination:
 | CFG-001 | Inputs | Rebase audited source selections to the two exact current read-only DRA roots and add the three SampleSheet-bound ILMN selections | SUCCESS | feature_implementation | Gate 1 | Forge | `prepare_run16_inventory.py`; `missing_ilmn_live_inventory.tsv`; `run16_source_inventory.json` SHA-256 `685f11e4690a1d0f5901e1bc0b60887502bba8937690c19ed105cb0675d1a29f`; 37 prior ILMN + 3 live-audited ILMN + 40 audited ONT selections |  | Every source path is explicitly rebased from its S3 URI to one of the two exact DRA roots |
 | CFG-002 | Inputs | Materialize and validate six manifests plus runtime YAML for exactly 40 AUs | SUCCESS | contract_test | Gate 1 | Forge | `configs/ilmn-run16`; `dyec identities validate` rc=0; foreign keys/ordered inputs/provider-neutral invariants true; 40 AUs, 80 inputs, 80 links; 1,640 unique source paths; runtime SHA-256 `774c8e68968d34bdd75dc92b2709d8f57dc2f4cfb9366d95d5689a777c3bf4d7` |  | Blank owner-issued EUID fields are valid for this ordinary research analysis; none were invented |
 | DRY-001 | Workflow | Render catalog provenance and launch exact `-j 444 -p -T 1 -k -n` dry controller | SUCCESS | contract_test | Gate 2 | Forge | Catalog render `resolved`; receipt SHA-256 `4c254ed917e5243f1e79cb08a5975c001727c2c4a83ab3c9b251bbaf54f136d5`; render SHA-256 `2ef0dbaf425cf125f6103dcea2abd761f3ccb4811e7a6363c4ee977ec71eed39`; DayOA `16.0.6` at commit `063504036cac9cc9cc10d88453b5f0d437b6a0dc`; session `bjuiceval19024-ilmn16-bjuice-ifx-20260824t055507z-dry`; attempt `7828a132-9445-487b-9a2c-6790cb1877d0`; controller/day-run/Snakemake exit codes `0/0/0`; `submitted_count=0`; `finished_count=0`; status reconfirmed 2026-08-24T06:16Z |  | Attributable dry-run success with zero submitted work; exact effective command is frozen below |
-| LIVE-001 | Workflow | Same-root live continuation differing only by removal of `-n`, terminal attributable `rc=0` | IN_PROGRESS | feature_implementation | Gate 3 | Forge | Same analysis ID/root, DayOA commit, manifests, runtime config, and command frozen; live session `bjuiceval19024-ilmn16-bjuice-ifx-20260824t055507z-live`; launch pending |  |  |
+| LIVE-001 | Workflow | Same-root live continuation differing only by removal of `-n`, terminal attributable `rc=0` | IN_PROGRESS | feature_implementation | Gate 3 | Forge | Same analysis ID/root, DayOA commit, manifests, runtime config, and command frozen; live session `bjuiceval19024-ilmn16-bjuice-ifx-20260824t055507z-live`; attempt `be8f37a6-58e4-45ef-a3ca-d0d782a46a7b`; controller attributed and running; exact effective command recorded below; environment construction in progress at 2026-08-24T06:39Z; zero submitted Slurm jobs so far |  |  |
 | EXP-001 | Export | Verify exact destination is empty/non-overlapping and successful DRA export can delete only the exact FSx root | BLOCKED | legitimate_safety_handling | Gate 4 | Forge | Exact root and destination above; live/export preflight pending | Second destructive approval is required after exact preflight | Unblock with the user's separate explicit approval of the exact root/destination/effect |
-| URL-001 | Delivery | Create 604800-second presigned URL to the exported MultiQC report | OPEN | feature_implementation | Gate 5 | Forge | Pending exact exported object |  |  |
-| SLACK-001 | Delivery | Resolve exact Ursa analysis-jobs channel and post completion, all 40 display AUs, S3 URI, and MultiQC URL | OPEN | feature_implementation | Gate 5 | Forge | Pending Slack channel/message receipt |  |  |
+| CLI-001 | Delivery dependency | Add, validate, and release a public DYEC exact-object presign contract rather than bypassing DYEC with raw AWS CLI/SDK calls | IN_PROGRESS | feature_implementation | Gate 5 | Forge | `dyec aws s3 presign`; exact-object `HeadObject`; read-only GET; maximum `604800` seconds; release candidate `19.0.25` preserves the `19.0.24` catalog snapshot; focused validation `52 passed`; broader inherited set `300 passed, 15 failed` only in untouched pre-existing resource/pricing/headnode/benchmark/docs-version paths; commit/tag/push pending | Public DYEC `19.0.24` had no presign command | Complete the numeric `19.0.25` release before generating the delivery URL |
+| URL-001 | Delivery | Create 604800-second presigned URL to the exported MultiQC report | IN_PROGRESS | feature_implementation | Gate 5 | Forge | Public release candidate implemented and tested; pending exact exported MultiQC object and released CLI |  |  |
+| SLACK-001 | Delivery | Resolve exact Ursa analysis-jobs channel and post completion, all 40 display AUs, S3 URI, and MultiQC URL | OPEN | feature_implementation | Gate 5 | Forge | LSMC workspace `T08TXCVESPL`; unique public channel `#ursa-analysis-jobs`, ID `C0BRHJ9520G`, not archived; completion message pending |  |  |
 | ACCEPT | Final | All rows terminal and requested objective complete | OPEN | contract_test | Gate 5 | Forge | Pending |  |  |
 
 ## Dry-run acceptance evidence
@@ -157,6 +158,19 @@ Planned export destination:
   ```
 - Live continuation invariant: the effective command above is reused in the
   same capsule with only the final `-n` removed.
+
+## Live continuation evidence
+
+- Session: `bjuiceval19024-ilmn16-bjuice-ifx-20260824t055507z-live`
+- Analysis attempt: `be8f37a6-58e4-45ef-a3ca-d0d782a46a7b`
+- DayOA checkout: tag `16.0.6`, commit
+  `063504036cac9cc9cc10d88453b5f0d437b6a0dc`
+- Export trigger: `none`
+- Effective live command:
+
+  ```text
+  PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/dyec_runtime_config.yaml --config genome_build=hg38 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}' 'sv_callers=[]' 'htd_callers=["smn12"]' ont_fastq_hour_window_mode=per_analysis_unit hiomr2_inflection_package_mode=analytical seqone_delivery_batch_id=bjuiceval19024-ilmn16-bjuice-ifx-20260824t055507z -j 444 -T 1 -p -k --produce-analysis-artifact-manifest true --produce-rulegraph true --produce-filegraph false --produce-dag false --rerun-triggers mtime
+  ```
 
 ## Final report
 

@@ -6,9 +6,6 @@ from pathlib import Path
 
 import yaml
 
-from daylily_ec.repositories import CURRENT_DYEC_BUILD
-
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SOURCE_CATALOG = REPO_ROOT / "config/daylily_pipeline_command_catalog.yaml"
 PACKAGED_CATALOG = (
@@ -42,7 +39,6 @@ def _retargeted(snapshot: dict) -> dict:
 
 
 def test_19_0_24_uniformly_pins_dayoa_16_0_6() -> None:
-    assert CURRENT_DYEC_BUILD == DYEC_RELEASE
     assert SOURCE_CATALOG.read_bytes() == PACKAGED_CATALOG.read_bytes()
 
     raw = _catalog()

@@ -76,6 +76,7 @@ EXPECTED_COMMANDS = {
     ("pricing", "snapshot"),
     ("pricing", "spot-logs"),
     ("aws", "budget", "set-limit"),
+    ("aws", "s3", "presign"),
     ("aws", "capacity-snapshot"),
     ("aws", "validate", "permissions"),
     ("aws", "validate", "quotas"),
@@ -501,6 +502,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     pricing_snapshot_cmd = registry.get_command(("pricing", "snapshot"))
     pricing_spot_logs_cmd = registry.get_command(("pricing", "spot-logs"))
     aws_budget_set_limit_cmd = registry.get_command(("aws", "budget", "set-limit"))
+    aws_s3_presign_cmd = registry.get_command(("aws", "s3", "presign"))
     aws_validate_permissions_cmd = registry.get_command(("aws", "validate", "permissions"))
     aws_validate_quotas_cmd = registry.get_command(("aws", "validate", "quotas"))
     aws_validate_all_cmd = registry.get_command(("aws", "validate", "all"))
@@ -541,6 +543,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
 
     assert export_cmd is not None
     assert export_cmd.policy.mutates_state is True
+
+    assert aws_s3_presign_cmd is not None
+    assert aws_s3_presign_cmd.policy.supports_json is True
+    assert aws_s3_presign_cmd.policy.mutates_state is False
+    assert aws_s3_presign_cmd.policy.long_running is False
 
     assert exports_inspect_cmd is not None
     assert exports_inspect_cmd.policy.supports_json is True
@@ -1131,6 +1138,69 @@ def test_capacity_snapshot_provider_failure_is_bounded(monkeypatch) -> None:
     }
     assert "credential" not in result.stdout
     assert "credential" not in result.stderr
+
+
+def test_aws_s3_presign_command_emits_verified_object_contract(monkeypatch) -> None:
+    import daylily_ec.aws.context as context_module
+    import daylily_ec.aws.s3_presign as presign_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    fake_client = object()
+    fake_context = SimpleNamespace(client=lambda service: fake_client)
+
+    def fake_build_region(region: str, profile=None):
+        calls["context"] = (region, profile)
+        return fake_context
+
+    def fake_presign_get_object(**kwargs):
+        calls["presign"] = kwargs
+        return {
+            "schema_version": "dyec.aws_s3_presign.v1",
+            "ok": True,
+            "operation": "presign_get_object",
+            "s3_uri": "s3://bucket/reports/final.html",
+            "bucket": "bucket",
+            "key": "reports/final.html",
+            "expires_in_seconds": 604800,
+            "generated_at": "2026-08-24T06:00:00Z",
+            "expires_at": "2026-08-31T06:00:00Z",
+            "object": {"content_length": 1234},
+            "url": "https://signed.example/report",
+        }
+
+    monkeypatch.setattr(context_module.AWSContext, "build_region", fake_build_region)
+    monkeypatch.setattr(presign_module, "presign_get_object", fake_presign_get_object)
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "aws",
+            "s3",
+            "presign",
+            "--profile",
+            "lsmc",
+            "--region",
+            "us-west-2",
+            "--s3-uri",
+            "s3://bucket/reports/final.html",
+            "--expires-in-seconds",
+            "604800",
+        ],
+    )
+
+    assert result.exit_code == 0, result.stdout
+    payload = json.loads(result.stdout)
+    assert payload["schema_version"] == "dyec.aws_s3_presign.v1"
+    assert payload["expires_in_seconds"] == 604800
+    assert payload["url"] == "https://signed.example/report"
+    assert calls["context"] == ("us-west-2", "lsmc")
+    assert calls["presign"] == {
+        "s3_client": fake_client,
+        "s3_uri": "s3://bucket/reports/final.html",
+        "expires_in_seconds": 604800,
+    }
 
 
 def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:

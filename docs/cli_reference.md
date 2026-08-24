@@ -1374,6 +1374,21 @@ Verify `fsx_export.yaml` reports `status=success`, `phase=complete`,
 expected S3 outputs. FSx data is preserved by default. Cleanup is a separate,
 destructive operation and is not part of the catalog export recipe.
 
+Create a read-only download URL for one verified exported object:
+
+```bash
+dyec --json aws s3 presign \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --s3-uri "s3://<results-bucket>/<exact-object-key>" \
+  --expires-in-seconds 604800
+```
+
+`dyec aws s3 presign` verifies the exact object with `HeadObject`, rejects S3
+bucket and prefix URIs, and caps SigV4 URL lifetime at seven days. Its URL is an
+ephemeral credential; consume it from command output rather than saving it in a
+checked-in receipt.
+
 ## Runtime-cache export
 
 Save every complete real Conda environment and newly fetched real container

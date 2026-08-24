@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import io
+from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from daylily_ec.aws.s3 import (
     BUCKET_NAME_FILTER,
@@ -23,8 +26,12 @@ from daylily_ec.aws.s3 import (
     verify_reference_bundle,
     verify_s3_roles,
 )
+from daylily_ec.aws.s3_presign import (
+    MAX_PRESIGN_EXPIRATION_SECONDS,
+    parse_s3_object_uri,
+    presign_get_object,
+)
 from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -131,6 +138,76 @@ def _role_values() -> dict[str, str]:
         ROLE_STAGING: "s3://lsmc-ssf-sequencing-data/staged_external_data/",
         ROLE_EXPORT_DESTINATION: "s3://lsmc-ssf-sequencing-data/derived/",
     }
+
+
+class TestS3ObjectPresign:
+    def test_parse_requires_one_exact_object(self):
+        assert parse_s3_object_uri("s3://bucket/reports/final.html") == (
+            "bucket",
+            "reports/final.html",
+            "s3://bucket/reports/final.html",
+        )
+
+        for invalid in (
+            "",
+            "https://bucket/reports/final.html",
+            "s3://bucket/",
+            "s3://bucket/reports/",
+            "s3://bucket/reports/final.html?versionId=one",
+            "s3://bucket/reports/final.html#fragment",
+        ):
+            with pytest.raises(ValueError):
+                parse_s3_object_uri(invalid)
+
+    def test_presign_verifies_object_and_caps_lifetime(self):
+        client = MagicMock()
+        client.head_object.return_value = {
+            "ContentLength": 1234,
+            "ContentType": "text/html",
+            "ETag": '"abc"',
+            "LastModified": datetime(2026, 8, 24, 5, 0, tzinfo=timezone.utc),
+        }
+        client.generate_presigned_url.return_value = "https://signed.example/report"
+
+        payload = presign_get_object(
+            s3_client=client,
+            s3_uri="s3://bucket/reports/final.html",
+            expires_in_seconds=MAX_PRESIGN_EXPIRATION_SECONDS,
+            generated_at=datetime(2026, 8, 24, 6, 0, tzinfo=timezone.utc),
+        )
+
+        client.head_object.assert_called_once_with(
+            Bucket="bucket",
+            Key="reports/final.html",
+        )
+        client.generate_presigned_url.assert_called_once_with(
+            "get_object",
+            Params={"Bucket": "bucket", "Key": "reports/final.html"},
+            ExpiresIn=604800,
+            HttpMethod="GET",
+        )
+        assert payload["schema_version"] == "dyec.aws_s3_presign.v1"
+        assert payload["expires_at"] == "2026-08-31T06:00:00Z"
+        assert payload["object"]["content_length"] == 1234
+        assert payload["url"] == "https://signed.example/report"
+
+    @pytest.mark.parametrize("expires_in_seconds", [0, 604801])
+    def test_presign_rejects_out_of_range_lifetime(self, expires_in_seconds):
+        with pytest.raises(ValueError):
+            presign_get_object(
+                s3_client=MagicMock(),
+                s3_uri="s3://bucket/reports/final.html",
+                expires_in_seconds=expires_in_seconds,
+            )
+
+    @pytest.mark.parametrize("expires_in_seconds", [True, 1.5])
+    def test_presign_rejects_non_integer_lifetime(self, expires_in_seconds):
+        with pytest.raises(TypeError):
+            presign_get_object(
+                s3_client=MagicMock(),
+                s3_uri="s3://bucket/reports/final.html",
+                expires_in_seconds=expires_in_seconds,
+            )
 
 
 # ---------------------------------------------------------------------------

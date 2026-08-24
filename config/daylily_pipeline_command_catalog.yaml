@@ -276463,7 +276463,7 @@ dyec_builds:
         repository: daylily-omics-analysis
     aliases: {}
 
-  19.0.24:
+  19.0.24: &dyec_19_0_24
     repository: daylily-omics-analysis
     dayoa_git_tags:
     - 16.0.6
@@ -278994,3 +278994,4 @@ dyec_builds:
           notes: "Fresh dry-only catalog candidate proof: controller/day-run/Snakemake rc=0, submitted jobs=0, and exactly one threaded pre_prep_ultima_cram command used seed 33.75; canonicalize_pangenome_ug_input_cram consumed the prepared CRAM and sentieon_pangenome_ug consumed the canonicalized CRAM. The executing local version was 18.0.59.dev1+g20325e840.d20260819 with reviewed dirty catalog content subsequently frozen in candidate commit 8fd55dbd31bbf161869e014e3b7743d20154a02d; dayec_commit records that executable base honestly. Live status remains not_run; no read-count, performance, export, or live-workflow claim is made."
         repository: daylily-omics-analysis
     aliases: {}
+  19.0.25: *dyec_19_0_24

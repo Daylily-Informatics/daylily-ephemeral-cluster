@@ -23,6 +23,7 @@ DYEC is neither an identity service nor a replacement for DayOA.
 | Run a reviewed non-catalog workflow | `dyec workflow launch` | Supply the exact DayOA tag, input contract, and `--dy-command`; do not improvise defaults. |
 | Monitor one analysis | `dyec workflow status`, `dyec workflow logs`, `dyec analysis status full` | Queue emptiness is not workflow success. |
 | Export completed results | `dyec analysis visit --mode export`, then `dyec export` | Export is a separate no-delete DRA action after a successful controller. |
+| Share one exported S3 object | `dyec aws s3 presign` | The object must already exist; the read-only URL lifetime is explicitly bounded to seven days. |
 | Work interactively in DayOA | `dyec headnode connect`, then named `tmux` + `dy-r` | Never use raw `snakemake` or a noninteractive headnode command to run a controller. |
 
 ## 1. Start locally and identify the exact release
@@ -338,6 +339,20 @@ clone-status-v2 verification.
 
 Deletion, DRA detachment that deletes data, and cleanup are separate destructive
 actions; they need their own explicit approval.
+
+Presign one exact exported object only after the export receipt and object path
+have been verified:
+
+```bash
+dyec --json aws s3 presign \
+  --profile "$AWS_PROFILE" --region "$REGION" \
+  --s3-uri "s3://<results-bucket>/<exact-object-key>" \
+  --expires-in-seconds 604800
+```
+
+The command performs `HeadObject` first, rejects bucket/prefix URIs, and emits
+the exact object metadata, issue/expiration timestamps, and read-only GET URL.
+Treat the URL as an ephemeral credential and do not persist it in a ledger.
 
 ## 9. Common stop conditions
 
