@@ -1340,6 +1340,13 @@ The rendered DayOA target is `produce_inflection_delivery_set`. Review the dry-r
 Export one exact analysis root:
 
 ```bash
+dyec --json exports preflight \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER" \
+  --source-path "$ANALYSIS_ROOT" \
+  --destination-s3-uri "$DESTINATION_S3_URI"
+
 dyec analysis visit \
   --analysis-root "$ANALYSIS_ROOT" \
   --mode export \
@@ -1355,6 +1362,11 @@ dyec export \
   --wait \
   --timeout-seconds 5400
 ```
+
+The read-only preflight resolves the exact FSx file system, verifies that it is
+DRA-compatible, rejects active file-system-path or S3-prefix overlap, and
+requires the destination prefix to be empty. It emits
+`dyec.exports.preflight.v1` and performs no mutation.
 
 The command catalog exposes this contract in the `result_export` object from
 `dyec catalog list`, `dyec catalog show`, and `dyec catalog render`. After the

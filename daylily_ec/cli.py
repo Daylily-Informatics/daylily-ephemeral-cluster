@@ -3512,6 +3512,44 @@ def exports_inspect(
         _exit_headnode_error(exc)
 
 
+def exports_preflight(
+    cluster_name: Optional[str] = typer.Option(None, "--cluster-name", "--cluster"),
+    fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
+    source_path: str = typer.Option(..., "--source-path"),
+    destination_s3_uri: str = typer.Option(..., "--destination-s3-uri"),
+    destination_analysis_id: Optional[str] = typer.Option(
+        None,
+        "--destination-analysis-id",
+    ),
+    region: Optional[str] = context_option("aws_region", None, "--region", required=True),
+    profile: Optional[str] = typer.Option(None, "--profile"),
+) -> None:
+    """Read-only validate an empty, non-overlapping export destination."""
+
+    from daylily_ec.workflow.export_data import preflight_export
+
+    try:
+        payload = preflight_export(
+            cluster_name=cluster_name,
+            fsx_file_system_id=fsx_file_system_id,
+            source_path=source_path,
+            destination_s3_uri=destination_s3_uri,
+            destination_analysis_id=destination_analysis_id,
+            region=str(region),
+            profile=profile,
+        )
+        _emit_export_payload(
+            payload,
+            text=(
+                f"Export preflight passed: {payload['headnode_path']}\n"
+                f"S3 destination is empty: {payload['destination_s3_uri']}\n"
+                "No overlapping DRA found; no mutation attempted"
+            ),
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
 def exports_attach(
     cluster_name: Optional[str] = typer.Option(None, "--cluster-name", "--cluster"),
     fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
@@ -12618,6 +12656,11 @@ def register(registry, cli_spec) -> None:
         "exports",
         "Explicit FSx output DRA export helpers.",
         [
+            (
+                "preflight",
+                exports_preflight,
+                required_policy(supports_json=True),
+            ),
             (
                 "inspect",
                 exports_inspect,

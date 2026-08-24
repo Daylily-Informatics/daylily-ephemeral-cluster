@@ -17,10 +17,11 @@ from daylily_ec.workflow.export_data import (
     analysis_dir_from_source_path,
     analysis_headnode_path,
     attach_export_dra,
-    clone_status_evidence_s3_uri,
     cleanup_exported_analysis,
+    clone_status_evidence_s3_uri,
     inspect_completed_export,
     normalize_export_source_path,
+    preflight_export,
     resolve_launch_export_destination_s3_uri,
     run_export_task,
     run_export_workflow,
@@ -374,6 +375,42 @@ def test_export_rejects_overlapping_s3_repository_path() -> None:
                 "cluster-a/cache-export-a/"
             ),
         )
+
+
+def test_export_preflight_is_read_only_and_exact() -> None:
+    fsx = FakeFsxClient()
+    s3 = EmptyS3Client()
+    payload = preflight_export(
+        cluster_name="cluster-a",
+        fsx_file_system_id="fs-123",
+        source_path="/fsx/analysis_results/cluster-a/run-a",
+        destination_s3_uri="s3://bucket/derived/cluster-a/run-a/",
+        region="us-west-2",
+        profile="lsmc",
+        fsx_client=fsx,
+        s3_client=s3,
+    )
+
+    assert payload == {
+        "schema_version": "dyec.exports.preflight.v1",
+        "ok": True,
+        "operation": "preflight",
+        "read_only": True,
+        "mutation_attempted": False,
+        "cluster_name": "cluster-a",
+        "region": "us-west-2",
+        "fsx_file_system_id": "fs-123",
+        "source_path": "/analysis_results/cluster-a/run-a/",
+        "headnode_path": "/fsx/analysis_results/cluster-a/run-a/",
+        "destination_s3_uri": "s3://bucket/derived/cluster-a/run-a/",
+        "destination_analysis_id": None,
+        "destination_empty": True,
+        "overlapping_dra": False,
+        "fsx_dra_compatible": True,
+    }
+    assert fsx.created_association is None
+    assert fsx.created_task is None
+    assert fsx.deleted_association is None
 
 
 def test_run_export_task_uses_exact_analysis_path() -> None:
@@ -925,6 +962,60 @@ def test_exports_inspect_emits_current_read_only_receipt(monkeypatch) -> None:
     payload = yaml.safe_load(result.stdout)
     assert payload["schema_version"] == "dyec.exports.inspect.v1"
     assert payload["read_only"] is True
+    assert observed["fsx_file_system_id"] == "fs-123"
+
+
+def test_exports_preflight_emits_read_only_receipt(monkeypatch) -> None:
+    from daylily_ec.cli import app
+
+    observed: dict[str, object] = {}
+
+    def fake_preflight(**kwargs):
+        observed.update(kwargs)
+        return {
+            "schema_version": "dyec.exports.preflight.v1",
+            "ok": True,
+            "operation": "preflight",
+            "read_only": True,
+            "mutation_attempted": False,
+            "headnode_path": "/fsx/analysis_results/cluster-a/run-a/",
+            "destination_s3_uri": "s3://bucket/derived/cluster-a/run-a/",
+            "destination_empty": True,
+            "overlapping_dra": False,
+        }
+
+    monkeypatch.setenv("CONDA_PREFIX", "/tmp/dayec")
+    monkeypatch.setenv("CONDA_DEFAULT_ENV", "DAY-EC")
+    monkeypatch.setattr(
+        "daylily_ec.workflow.export_data.preflight_export",
+        fake_preflight,
+    )
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "exports",
+            "preflight",
+            "--cluster",
+            "cluster-a",
+            "--fsx-file-system-id",
+            "fs-123",
+            "--source-path",
+            "/fsx/analysis_results/cluster-a/run-a",
+            "--destination-s3-uri",
+            "s3://bucket/derived/cluster-a/run-a/",
+            "--region",
+            "us-west-2",
+            "--profile",
+            "lsmc",
+        ],
+    )
+
+    assert result.exit_code == 0, result.stdout + result.stderr
+    payload = yaml.safe_load(result.stdout)
+    assert payload["schema_version"] == "dyec.exports.preflight.v1"
+    assert payload["read_only"] is True
+    assert payload["mutation_attempted"] is False
     assert observed["fsx_file_system_id"] == "fs-123"
 
 

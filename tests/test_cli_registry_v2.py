@@ -49,6 +49,7 @@ EXPECTED_COMMANDS = {
     ("cluster", "tags"),
     ("export",),
     ("exports", "inspect"),
+    ("exports", "preflight"),
     ("exports", "attach"),
     ("exports", "run"),
     ("exports", "transfer"),
@@ -406,6 +407,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     delete_cmd = registry.get_command(("delete",))
     export_cmd = registry.get_command(("export",))
     exports_inspect_cmd = registry.get_command(("exports", "inspect"))
+    exports_preflight_cmd = registry.get_command(("exports", "preflight"))
     exports_attach_cmd = registry.get_command(("exports", "attach"))
     exports_run_cmd = registry.get_command(("exports", "run"))
     exports_transfer_cmd = registry.get_command(("exports", "transfer"))
@@ -553,6 +555,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert exports_inspect_cmd.policy.supports_json is True
     assert exports_inspect_cmd.policy.mutates_state is False
     assert exports_inspect_cmd.policy.long_running is False
+
+    assert exports_preflight_cmd is not None
+    assert exports_preflight_cmd.policy.supports_json is True
+    assert exports_preflight_cmd.policy.mutates_state is False
+    assert exports_preflight_cmd.policy.long_running is False
 
     for exports_cmd in (
         exports_attach_cmd,

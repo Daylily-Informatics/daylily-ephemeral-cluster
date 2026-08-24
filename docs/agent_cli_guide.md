@@ -318,6 +318,11 @@ fail-closed empty-prefix preflight.
 ```bash
 export DESTINATION_S3_URI="s3://<results-bucket>/<prefix>/$EXECUTING_ENTITY/$ANALYSIS_ID/"
 
+dyec --json exports preflight \
+  --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
+  --source-path "$ANALYSIS_ROOT" \
+  --destination-s3-uri "$DESTINATION_S3_URI"
+
 dyec analysis visit \
   --analysis-root "$ANALYSIS_ROOT" \
   --mode export \
@@ -330,6 +335,11 @@ dyec export \
   --output-dir "./export-receipts/$ANALYSIS_ID" \
   --wait --timeout-seconds 5400
 ```
+
+`dyec exports preflight` is read-only. It verifies the FSx identity and DRA
+compatibility, the exact source/destination suffix contract, destination
+emptiness, and absence of any active DRA overlap without creating an
+association or task. Run it before seeking approval for a destructive export.
 
 Record the `fsx_export.yaml` path, export task ID, destination, effective
 controller command, and manifest/config hashes. Accept the export only when

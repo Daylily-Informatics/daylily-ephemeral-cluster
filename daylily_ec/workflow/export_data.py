@@ -18,9 +18,13 @@ from botocore.exceptions import BotoCoreError, ClientError
 from daylily_ec import ui
 from daylily_ec.analysis_identity import validate_analysis_segment
 from daylily_ec.execution_status import (
-    ExecutionStatusError,
     STATUS_FILENAME as EXECUTION_STATUS_FILENAME,
+)
+from daylily_ec.execution_status import (
     STATUS_SCHEMA_VERSION as EXECUTION_STATUS_SCHEMA_VERSION,
+)
+from daylily_ec.execution_status import (
+    ExecutionStatusError,
     validate_execution_status,
 )
 from daylily_ec.run_mounts import (
@@ -962,6 +966,70 @@ def validate_no_overlapping_export_dra(
                 "destination_s3_uri overlaps existing FSx data repository association "
                 f"{association_id} at {existing_repository}."
             )
+
+
+def preflight_export(
+    *,
+    cluster_name: Optional[str],
+    fsx_file_system_id: Optional[str],
+    source_path: str,
+    destination_s3_uri: str,
+    region: str,
+    profile: Optional[str],
+    destination_analysis_id: Optional[str] = None,
+    fsx_client: Optional[Any] = None,
+    s3_client: Optional[Any] = None,
+) -> Dict[str, Any]:
+    """Read-only validate one exact fresh FSx-to-S3 export mapping."""
+
+    session = None
+    if fsx_client is None or s3_client is None:
+        session = _create_session(region, profile)
+    fsx = fsx_client or session.client("fsx")
+    s3 = s3_client or session.client("s3")
+    resolved_fsx_id = resolve_export_fsx_id(
+        fsx,
+        cluster_name=cluster_name,
+        fsx_file_system_id=fsx_file_system_id,
+    )
+    validate_dra_compatible_file_system(describe_fsx_file_system(fsx, resolved_fsx_id))
+    normalized_source = normalize_export_source_path(source_path)
+    destination = validate_export_destination_s3_uri(
+        destination_s3_uri,
+        source_path=normalized_source,
+        cluster_name=cluster_name,
+        destination_analysis_id=destination_analysis_id,
+    )
+    validate_no_overlapping_export_dra(
+        fsx,
+        fsx_file_system_id=resolved_fsx_id,
+        source_path=normalized_source,
+        destination_s3_uri=destination,
+    )
+    destination = validate_s3_destination_prefix_empty(
+        s3,
+        destination,
+        source_path=normalized_source,
+        cluster_name=cluster_name,
+        destination_analysis_id=destination_analysis_id,
+    )
+    return {
+        "schema_version": "dyec.exports.preflight.v1",
+        "ok": True,
+        "operation": "preflight",
+        "read_only": True,
+        "mutation_attempted": False,
+        "cluster_name": cluster_name,
+        "region": region,
+        "fsx_file_system_id": resolved_fsx_id,
+        "source_path": normalized_source,
+        "headnode_path": analysis_headnode_path(normalized_source),
+        "destination_s3_uri": destination,
+        "destination_analysis_id": destination_analysis_id,
+        "destination_empty": True,
+        "overlapping_dra": False,
+        "fsx_dra_compatible": True,
+    }
 
 
 def attach_export_dra(
