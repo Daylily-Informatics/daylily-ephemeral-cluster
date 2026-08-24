@@ -9661,6 +9661,7 @@ def _collect_workflow_observability(
     before_lines: int = 40,
     after_lines: int = 80,
     max_matches: int = 1,
+    rule_name: Optional[str] = None,
 ) -> dict[str, Any]:
     """Collect invocation-attributed controller, log, progress, and Slurm evidence."""
 
@@ -9669,6 +9670,7 @@ def _collect_workflow_observability(
     from daylily_ec.workflow_observability import (
         build_remote_probe_command,
         normalize_repo_path,
+        normalize_rule_name,
         normalize_snakemake_log,
     )
 
@@ -9754,6 +9756,14 @@ def _collect_workflow_observability(
                 str(max_matches),
             ]
         )
+    if rule_name is not None:
+        if tail_lines is not None or match_text is not None:
+            raise CommandError("--rule cannot be combined with log tailing or matching.")
+        try:
+            resolved_rule_name = normalize_rule_name(rule_name)
+        except RuntimeError as exc:
+            raise CommandError(str(exc)) from exc
+        probe_arguments.extend(["--rule", resolved_rule_name])
     result = run_shell(
         target.instance_id,
         resolved_region,
@@ -10144,6 +10154,11 @@ def workflow_status(
             "0 preserves immediate failure for a missing receipt."
         ),
     ),
+    rule: Optional[str] = typer.Option(
+        None,
+        "--rule",
+        help="Summarize exact submitted, finished, and active jobs/AUs for one rule.",
+    ),
 ) -> None:
     """Report exact controller, Snakemake, progress, Slurm, and terminal state."""
 
@@ -10164,6 +10179,7 @@ def workflow_status(
                 controller_pid=controller_pid,
                 snakemake_log=snakemake_log,
                 remote_user=remote_user,
+                rule_name=rule,
             )
             break
         except SsmCommandFailedError as exc:

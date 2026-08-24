@@ -4986,6 +4986,65 @@ def test_workflow_status_collects_exact_observability_via_ssm(monkeypatch) -> No
     assert json.loads(result_alias.stdout)["session_name"] == "sess-1"
 
 
+def test_workflow_status_forwards_one_exact_rule_selector(monkeypatch) -> None:
+    import daylily_ec.aws.ssm as ssm_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    _patch_headnode_selection(monkeypatch)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_headnode_instance_id",
+        lambda _cluster, _region, *, profile=None: HeadNodeTarget(
+            "cluster-a", "us-west-2", "i-abc123"
+        ),
+    )
+    monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_remote_user",
+        lambda _instance_id, _region, *, profile=None, as_user="auto": "ubuntu",
+    )
+
+    def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
+        calls["script"] = script
+        return SsmCommandResult(
+            "cmd-rule",
+            instance_id,
+            "Success",
+            0,
+            '{"state":"RUNNING","rule_status":{"rule":"sentdhiomr2_hybrid_cli172i_core"}}\n',
+            "",
+        )
+
+    monkeypatch.setattr(ssm_module, "run_shell", fake_run_shell)
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "workflow",
+            "status",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--session",
+            "sess-1",
+            "--rule",
+            "sentdhiomr2_hybrid_cli172i_core",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert json.loads(result.stdout)["rule_status"]["rule"] == (
+        "sentdhiomr2_hybrid_cli172i_core"
+    )
+    remote_argv = shlex.split(str(calls["script"]))
+    assert remote_argv[-2:] == ["--rule", "sentdhiomr2_hybrid_cli172i_core"]
+
+
 def test_workflow_status_manual_mode_requires_explicit_repo_and_controller_pid(
     monkeypatch,
 ) -> None:
@@ -5101,6 +5160,7 @@ def test_workflow_status_and_logs_help_document_manual_and_snakemake_options(
     assert "--repo-path" in status_help.output
     assert "--controller-pid" in status_help.output
     assert "--snakemake-log" in status_help.output
+    assert "--rule" in status_help.output
     assert logs_help.exit_code == 0
     assert "snakemake" in logs_help.output
 

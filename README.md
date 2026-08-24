@@ -397,6 +397,10 @@ dyec --json workflow status \
   --cluster "$CLUSTER" \
   --session "$ANALYSIS_ID"
 
+dyec --json workflow status \
+  --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
+  --session "$ANALYSIS_ID" --rule sentdhiomr2_hybrid_cli172i_core
+
 dyec workflow logs \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
@@ -422,6 +426,9 @@ printed shell bodies.
 Growing submitted, finished, and active Slurm record collections are capped in
 the SSM transport. Their authoritative totals and state counts remain complete,
 and the JSON includes returned-count and explicit truncation fields.
+An exact `--rule` selector adds compact job and unique-AU counts for that rule,
+including finished work and each current Slurm state; returned AU names are
+bounded separately from their complete counts.
 
 The Snakemake stream attributes and reads the log in one remote probe. Its
 requested tail is compressed, integrity-checked, and decoded locally, avoiding

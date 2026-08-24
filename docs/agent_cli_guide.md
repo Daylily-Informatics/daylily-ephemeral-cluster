@@ -290,6 +290,10 @@ dyec --json workflow status \
   --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
   --session <session-name>
 
+dyec --json workflow status \
+  --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
+  --session <session-name> --rule sentdhiomr2_hybrid_cli172i_core
+
 dyec workflow logs \
   --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
   --session <session-name> --stream snakemake --lines 200
@@ -308,6 +312,9 @@ dyec analysis status full \
 For large workflows, `workflow status` preserves complete job totals and Slurm
 state counts while returning at most 20 recent records per growing collection;
 inspect the explicit returned-count and truncation fields.
+An exact `--rule` selector additionally reports authoritative job counts and
+unique AU counts for that rule, including finished jobs and current Slurm
+states. Returned AU names are bounded to 50 with explicit truncation metadata.
 
 For a manual/recovery controller, provide the explicit `--repo-path` and
 `--controller-pid`; do not use newest-log or newest-repository discovery.

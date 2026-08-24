@@ -38,12 +38,17 @@ MAX_TRANSPORT_COLLECTION_RECORDS = 20
 MAX_SNAKEMAKE_MATCH_TEXT_BYTES = 512
 MAX_SNAKEMAKE_MATCH_CONTEXT_LINES = 200
 MAX_SNAKEMAKE_MATCHES = 10
+MAX_RULE_STATUS_ANALYSIS_UNIT_NAMES = 50
 
 SUBMITTED_RE = re.compile(
     r"^Submitted job (?P<job_id>\d+) with external jobid ['\"](?P<external_id>[^'\"]+)['\"]\.\s*$"
 )
 FINISHED_RE = re.compile(r"^Finished job (?P<job_id>\d+)\.\s*$")
 PROGRESS_RE = re.compile(r"^\d+ of \d+ steps \(\d+%\) done\s*$")
+RULE_DECLARATION_RE = re.compile(r"^rule (?P<rule>[A-Za-z0-9_.-]+):\s*$")
+RULE_JOB_ID_RE = re.compile(r"^\s+jobid:\s*(?P<job_id>\d+)\s*$")
+RULE_WILDCARDS_RE = re.compile(r"^\s+wildcards:\s*(?P<wildcards>.+?)\s*$")
+SAMPLE_WILDCARD_RE = re.compile(r"(?:^|,\s*)sample=(?P<sample>[^,]+)")
 FAILURE_PATTERNS = (
     ("job_execution_failed", re.compile(r"^Exiting because a job execution failed\.")),
     ("workflow_error", re.compile(r"^WorkflowError:\s*(?:$|\S)")),
@@ -151,9 +156,29 @@ def parse_snakemake_lines(lines: Iterable[str]) -> dict[str, Any]:
     submitted: list[dict[str, Any]] = []
     finished_ids: list[int] = []
     failure_markers: list[dict[str, str]] = []
+    job_metadata: dict[int, dict[str, str]] = {}
     last_progress_line: Optional[str] = None
+    current_rule: Optional[str] = None
+    current_job_id: Optional[int] = None
     for raw_line in lines:
         line = raw_line.rstrip("\r\n")
+        rule_match = RULE_DECLARATION_RE.match(line)
+        if rule_match:
+            current_rule = rule_match.group("rule")
+            current_job_id = None
+        elif current_rule is not None:
+            rule_job_match = RULE_JOB_ID_RE.match(line)
+            if rule_job_match:
+                current_job_id = int(rule_job_match.group("job_id"))
+            wildcard_match = RULE_WILDCARDS_RE.match(line)
+            if wildcard_match and current_job_id is not None:
+                sample_match = SAMPLE_WILDCARD_RE.search(
+                    wildcard_match.group("wildcards")
+                )
+                metadata = {"rule": current_rule}
+                if sample_match:
+                    metadata["analysis_unit"] = sample_match.group("sample").strip()
+                job_metadata[current_job_id] = metadata
         submitted_match = SUBMITTED_RE.match(line)
         if submitted_match:
             submitted.append(
@@ -184,6 +209,124 @@ def parse_snakemake_lines(lines: Iterable[str]) -> dict[str, Any]:
         "finished_job_ids": finished_ids,
         "last_progress_line": last_progress_line,
         "failure_markers": failure_markers[-10:],
+        "job_metadata": job_metadata,
+    }
+
+
+def normalize_rule_name(value: str) -> str:
+    """Validate one exact Snakemake rule selector."""
+
+    resolved = str(value or "").strip()
+    if re.fullmatch(r"[A-Za-z0-9_.-]{1,128}", resolved) is None:
+        raise WorkflowObservabilityError(
+            "--rule must be one exact Snakemake rule name of at most 128 characters"
+        )
+    return resolved
+
+
+def _bounded_analysis_unit_names(values: Iterable[str]) -> dict[str, Any]:
+    names = sorted(set(values))
+    returned = names[:MAX_RULE_STATUS_ANALYSIS_UNIT_NAMES]
+    return {
+        "count": len(names),
+        "analysis_units": returned,
+        "returned_count": len(returned),
+        "truncated": len(names) > len(returned),
+    }
+
+
+def _rule_status(
+    *,
+    rule_name: str,
+    log: dict[str, Any],
+    slurm: dict[str, Any],
+) -> dict[str, Any]:
+    """Summarize one exact rule by job and unique analysis unit."""
+
+    metadata = log.get("job_metadata")
+    if not isinstance(metadata, dict):
+        metadata = {}
+    rule_jobs = {
+        int(job_id): record
+        for job_id, record in metadata.items()
+        if isinstance(job_id, int)
+        and isinstance(record, dict)
+        and record.get("rule") == rule_name
+    }
+    submitted = [
+        record
+        for record in log.get("submitted", [])
+        if isinstance(record, dict) and record.get("job_id") in rule_jobs
+    ]
+    submitted_job_ids = {
+        int(record["job_id"])
+        for record in submitted
+        if isinstance(record.get("job_id"), int)
+    }
+    finished_job_ids = {
+        int(job_id)
+        for job_id in log.get("finished_job_ids", [])
+        if isinstance(job_id, int) and job_id in rule_jobs
+    }
+    external_to_internal = {
+        str(record["external_job_id"]): int(record["job_id"])
+        for record in submitted
+        if isinstance(record.get("job_id"), int)
+        and isinstance(record.get("external_job_id"), str)
+    }
+    active_job_ids_by_state: dict[str, set[int]] = {}
+    active_units_by_state: dict[str, set[str]] = {}
+    for state_record in slurm.get("states", []):
+        if not isinstance(state_record, dict):
+            continue
+        internal_job_id = external_to_internal.get(str(state_record.get("job_id", "")))
+        state = state_record.get("state")
+        if internal_job_id is None or not isinstance(state, str) or not state:
+            continue
+        active_job_ids_by_state.setdefault(state, set()).add(internal_job_id)
+        analysis_unit = rule_jobs[internal_job_id].get("analysis_unit")
+        if isinstance(analysis_unit, str) and analysis_unit:
+            active_units_by_state.setdefault(state, set()).add(analysis_unit)
+
+    def analysis_units(job_ids: Iterable[int]) -> set[str]:
+        return {
+            str(rule_jobs[job_id]["analysis_unit"])
+            for job_id in job_ids
+            if isinstance(rule_jobs[job_id].get("analysis_unit"), str)
+            and rule_jobs[job_id]["analysis_unit"]
+        }
+
+    active_job_ids = (
+        set().union(*active_job_ids_by_state.values())
+        if active_job_ids_by_state
+        else set()
+    )
+    return {
+        "rule": rule_name,
+        "job_counts": {
+            "observed": len(rule_jobs),
+            "submitted": len(submitted_job_ids),
+            "finished": len(finished_job_ids),
+            "active": len(active_job_ids),
+            "by_active_state": {
+                state: len(job_ids)
+                for state, job_ids in sorted(active_job_ids_by_state.items())
+            },
+        },
+        "analysis_units": {
+            "observed": _bounded_analysis_unit_names(analysis_units(rule_jobs)),
+            "submitted": _bounded_analysis_unit_names(analysis_units(submitted_job_ids)),
+            "finished": _bounded_analysis_unit_names(analysis_units(finished_job_ids)),
+            "by_active_state": {
+                state: _bounded_analysis_unit_names(units)
+                for state, units in sorted(active_units_by_state.items())
+            },
+        },
+        "semantics": {
+            "finished": "Snakemake emitted Finished job for this exact rule job ID",
+            "active": "current Slurm state for this exact rule submission",
+            "analysis_unit_counting": "unique sample wildcard values",
+        },
     }
 
 
@@ -616,6 +759,7 @@ def collect_workflow_observability(
     before_lines: int = 40,
     after_lines: int = 80,
     max_matches: int = 1,
+    rule_name: Optional[str] = None,
 ) -> dict[str, Any]:
     """Collect exact local headnode evidence for one controller invocation."""
 
@@ -623,6 +767,11 @@ def collect_workflow_observability(
         raise WorkflowObservabilityError("mode must be launched or manual")
     if tail_lines is not None and match_text is not None:
         raise WorkflowObservabilityError("--tail-lines and --match are mutually exclusive")
+    if rule_name is not None and (tail_lines is not None or match_text is not None):
+        raise WorkflowObservabilityError(
+            "--rule cannot be combined with --tail-lines or --match"
+        )
+    resolved_rule_name = normalize_rule_name(rule_name) if rule_name is not None else None
     status_payload: Optional[dict[str, Any]] = None
     status_attempt: Optional[dict[str, Any]] = None
     status_path: Optional[Path] = None
@@ -744,8 +893,14 @@ def collect_workflow_observability(
             "last_progress_line": None,
             "last_progress_at": None,
             "failure_markers": [],
+            "job_metadata": {},
         }
     slurm = _slurm_states([item["external_job_id"] for item in log["submitted"]])
+    selected_rule_status = (
+        _rule_status(rule_name=resolved_rule_name, log=log, slurm=slurm)
+        if resolved_rule_name is not None
+        else None
+    )
 
     terminal_codes = {
         "controller_exit_code": None,
@@ -789,7 +944,7 @@ def collect_workflow_observability(
             after_lines=after_lines,
             max_matches=max_matches,
         )
-    return {
+    payload = {
         "schema_version": WORKFLOW_OBSERVABILITY_SCHEMA,
         "state": state,
         "mode": mode,
@@ -840,6 +995,9 @@ def collect_workflow_observability(
             "generic_error_text_is_terminal_failure": False,
         },
     }
+    if selected_rule_status is not None:
+        payload["rule_status"] = selected_rule_status
+    return payload
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -855,6 +1013,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--before-lines", type=int, default=40)
     parser.add_argument("--after-lines", type=int, default=80)
     parser.add_argument("--max-matches", type=int, default=1)
+    parser.add_argument("--rule")
     return parser
 
 
@@ -873,6 +1032,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             before_lines=args.before_lines,
             after_lines=args.after_lines,
             max_matches=args.max_matches,
+            rule_name=args.rule,
         )
     except WorkflowObservabilityError as exc:
         print(f"DYEC workflow observability error: {exc}", file=sys.stderr)

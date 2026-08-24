@@ -1114,6 +1114,10 @@ dyec --json workflow status \
   --cluster "$CLUSTER" \
   --session "$ANALYSIS_ID"
 
+dyec --json workflow status \
+  --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
+  --session "$ANALYSIS_ID" --rule sentdhiomr2_hybrid_cli172i_core
+
 dyec workflow logs \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
@@ -1150,6 +1154,12 @@ The submitted, finished, and current Slurm record lists are transport-bounded
 to 20 recent records. Authoritative `submitted_count`, `finished_count`,
 `state_counts`, and `states_count` remain complete; `*_returned_count` and
 `*_truncated` fields make any list truncation explicit.
+
+`workflow status --rule <exact-rule>` parses the complete attributed Snakemake
+log and correlates its internal job IDs with current Slurm submissions. The
+`rule_status` object reports exact job counts and unique analysis-unit counts
+for observed, submitted, finished, and current per-state work. AU name lists
+are bounded to 50 while their counts remain complete and truncation is explicit.
 
 The status command never treats its own RC, tmux existence, queue emptiness,
 generic `ERROR` text, a printed shell body, or a stale pane RC marker as the

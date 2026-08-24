@@ -9,6 +9,7 @@ import pytest
 
 from daylily_ec import workflow_observability
 from daylily_ec.workflow_observability import (
+    MAX_RULE_STATUS_ANALYSIS_UNIT_NAMES,
     MAX_TRANSPORT_COLLECTION_RECORDS,
     WorkflowObservabilityError,
     bounded_transport_payload,
@@ -18,6 +19,7 @@ from daylily_ec.workflow_observability import (
     decode_snakemake_tail,
     derive_state,
     normalize_snakemake_log,
+    normalize_rule_name,
     parse_snakemake_lines,
 )
 
@@ -140,6 +142,69 @@ def test_literal_match_rejects_multiline_or_unbounded_requests(tmp_path: Path) -
             after_lines=1,
             max_matches=1,
         )
+
+
+def test_exact_rule_status_counts_unique_finished_and_active_analysis_units() -> None:
+    lines = [
+        "rule sentdhiomr2_hybrid_cli172i_core:",
+        "    jobid: 21",
+        "    wildcards: sample=CASE1-P-unit-a",
+        "Submitted job 21 with external jobid '82'.",
+        "Finished job 21.",
+        "rule sentdhiomr2_hybrid_cli172i_core:",
+        "    jobid: 22",
+        "    wildcards: sample=CASE2-P-unit-b",
+        "Submitted job 22 with external jobid '83'.",
+        "rule unrelated_rule:",
+        "    jobid: 23",
+        "    wildcards: sample=CASE3-P-unit-c",
+        "Submitted job 23 with external jobid '84'.",
+    ]
+    log = parse_snakemake_lines(lines)
+    slurm = {
+        "available": True,
+        "states": [
+            {"job_id": "83", "state": "RUNNING", "name": "core", "reason": "node-a"},
+            {"job_id": "84", "state": "RUNNING", "name": "other", "reason": "node-b"},
+        ],
+        "state_counts": {"RUNNING": 2},
+    }
+
+    status = workflow_observability._rule_status(
+        rule_name="sentdhiomr2_hybrid_cli172i_core",
+        log=log,
+        slurm=slurm,
+    )
+
+    assert status["job_counts"] == {
+        "observed": 2,
+        "submitted": 2,
+        "finished": 1,
+        "active": 1,
+        "by_active_state": {"RUNNING": 1},
+    }
+    assert status["analysis_units"]["finished"]["count"] == 1
+    assert status["analysis_units"]["finished"]["analysis_units"] == [
+        "CASE1-P-unit-a"
+    ]
+    assert status["analysis_units"]["by_active_state"]["RUNNING"]["count"] == 1
+    assert status["analysis_units"]["by_active_state"]["RUNNING"][
+        "analysis_units"
+    ] == ["CASE2-P-unit-b"]
+
+
+def test_rule_name_and_returned_analysis_unit_names_are_bounded() -> None:
+    assert normalize_rule_name("sentdhiomr2_hybrid_cli172i_core") == (
+        "sentdhiomr2_hybrid_cli172i_core"
+    )
+    with pytest.raises(WorkflowObservabilityError, match="exact Snakemake rule"):
+        normalize_rule_name("bad rule; rm")
+    bounded = workflow_observability._bounded_analysis_unit_names(
+        f"AU-{index:03d}" for index in range(MAX_RULE_STATUS_ANALYSIS_UNIT_NAMES + 2)
+    )
+    assert bounded["count"] == MAX_RULE_STATUS_ANALYSIS_UNIT_NAMES + 2
+    assert bounded["returned_count"] == MAX_RULE_STATUS_ANALYSIS_UNIT_NAMES
+    assert bounded["truncated"] is True
 
 
 def _launched_receipts(
