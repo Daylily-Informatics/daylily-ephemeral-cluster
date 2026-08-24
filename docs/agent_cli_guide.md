@@ -16,6 +16,7 @@ DYEC is neither an identity service nor a replacement for DayOA.
 | Identify the installed CLI and catalog pin | `dyec --json version`, `dyec --json catalog list` | A release tag is not a DayOA tag; inspect the rendered catalog row. |
 | Inspect cluster, headnode, controllers, or queue | `dyec cluster describe`, `dyec headnode dayoa-controllers`, `dyec headnode jobs` | Inspection does not authorize Slurm or node intervention. |
 | Create a cluster | `dyec preflight`, then `dyec create` | The normal create entrypoint resolves the shipped config and needs only profile, region/AZ, and cluster type. |
+| Change every compute-resource maximum | `dyec cluster max-count` | Pin the exact source-config SHA and resource count; omit `--apply` for the mandatory provider dry run. Live apply requires an idle controller/Slurm proof and verifies every resulting `MaxCount`. |
 | Stop/start a compute fleet | `dyec cluster compute-fleet` | Exact state pairs only; every stop proves controllers/jobs idle, and `--drain` only waits naturally. |
 | Inspect accounting topology | `dyec slurm-accounting inspect` | Read-only exact provider/bridge evidence; it never creates, reconciles, or selects a bridge. |
 | Make an S3 run directory available on FSx | `dyec mounts create`, then `dyec mounts verify` | Run mounts are read-only by default. Wait generously for DRA availability. |
@@ -110,7 +111,7 @@ wants to supply explicit triplet values. It is optional; root create does not
 require a `create-request` receipt, an output directory, or a separate recovery
 workflow.
 
-The newer `create-request`, `cluster compute-fleet`, `slurm-accounting inspect`,
+The newer `create-request`, `cluster max-count`, `cluster compute-fleet`, `slurm-accounting inspect`,
 and `slurm-accounting recover` commands remain separately registered tools.
 They are not prerequisites for, phases of, or commands invoked by root
 `dyec create`; their standalone option contracts remain in
@@ -127,6 +128,27 @@ Leave `--remote-user` at `auto` unless the platform is known and an override is
 needed. DYEC resolves Ubuntu/Intel DayOA headnodes to `ubuntu` and
 DRAGEN/RHEL-style headnodes to `ec2-user`; unknown platform identity fails
 instead of guessing.
+
+For an approved all-resource capacity change, first capture the exact source
+configuration SHA-256 from `dyec --json cluster inspect`, then omit `--apply`
+to validate the complete provider update without submitting it:
+
+```bash
+dyec --json cluster max-count \
+  --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
+  --max-count <approved-per-resource-count> \
+  --expected-resource-count <exact-live-resource-count> \
+  --expected-source-sha256 <exact-live-configuration-sha256> \
+  --expected-cluster-status UPDATE_COMPLETE \
+  --output-dir <new-empty-receipt-directory>
+```
+
+Only after the exact live-work and approval gates are satisfied, repeat the
+same frozen inputs in a different empty output directory with `--apply`. DYEC
+repeats the provider dry run, requires zero controllers and zero Slurm jobs,
+submits one update, waits for `UPDATE_COMPLETE`, and verifies the entire
+configuration plus every requested `MaxCount`. Any topology, hash, state, or
+post-update drift fails closed.
 
 ## 4. Inputs: validate rather than discover
 

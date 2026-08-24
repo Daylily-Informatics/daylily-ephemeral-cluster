@@ -44,6 +44,7 @@ EXPECTED_COMMANDS = {
     ("cluster", "jobs"),
     ("cluster", "describe"),
     ("cluster", "inspect"),
+    ("cluster", "max-count"),
     ("cluster", "wait"),
     ("cluster", "compute-fleet"),
     ("cluster", "tags"),

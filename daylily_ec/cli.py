@@ -3054,6 +3054,118 @@ def cluster_wait(
         time.sleep(max(poll_interval, 1))
 
 
+def cluster_max_count(
+    cluster: str = typer.Option(..., "--cluster", help="Exact ParallelCluster name."),
+    region: Optional[str] = context_option(
+        "aws_region",
+        None,
+        "--region",
+        help="Exact AWS region containing the cluster.",
+        required=True,
+    ),
+    profile: str = typer.Option(..., "--profile", help="Exact AWS CLI profile."),
+    max_count: int = typer.Option(
+        ...,
+        "--max-count",
+        min=1,
+        help="MaxCount to set on every compute resource.",
+    ),
+    expected_resource_count: int = typer.Option(
+        ...,
+        "--expected-resource-count",
+        min=1,
+        help="Fail unless the live cluster has exactly this many compute resources.",
+    ),
+    expected_source_sha256: str = typer.Option(
+        ...,
+        "--expected-source-sha256",
+        help="Approved SHA-256 of the exact live source configuration.",
+    ),
+    expected_cluster_status: str = typer.Option(
+        ...,
+        "--expected-cluster-status",
+        click_type=click.Choice(["CREATE_COMPLETE", "UPDATE_COMPLETE"], case_sensitive=True),
+        help="Exact stable source state expected before the update.",
+    ),
+    output_dir: Path = typer.Option(
+        ...,
+        "--output-dir",
+        help="Explicit absent or empty directory for the update config and receipt.",
+    ),
+    apply: bool = typer.Option(
+        False,
+        "--apply",
+        help=(
+            "Submit only after the mandatory provider dry run and an authoritative "
+            "zero-controller, zero-Slurm-job proof."
+        ),
+    ),
+    timeout_seconds: int = typer.Option(
+        5400,
+        "--timeout-seconds",
+        min=1,
+        help="Maximum seconds to wait for exact post-update verification.",
+    ),
+    poll_interval_seconds: int = typer.Option(
+        30,
+        "--poll-interval-seconds",
+        min=1,
+        help="Seconds between bounded update verification polls.",
+    ),
+) -> None:
+    """Set every compute-resource MaxCount through one guarded cluster update."""
+
+    from daylily_ec.workflow.cluster_max_count import (
+        CLUSTER_MAX_COUNT_SCHEMA,
+        ClusterMaxCountError,
+        run_cluster_max_count_update,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        result = run_cluster_max_count_update(
+            cluster_name=cluster,
+            region=str(region),
+            profile=profile,
+            max_count=max_count,
+            expected_resource_count=expected_resource_count,
+            expected_source_sha256=expected_source_sha256,
+            expected_cluster_status=expected_cluster_status,
+            output_dir=output_dir,
+            apply=apply,
+            timeout_seconds=timeout_seconds,
+            poll_interval_seconds=poll_interval_seconds,
+        )
+    except ClusterMaxCountError as exc:
+        _exit_versioned_contract_error(
+            schema_version=CLUSTER_MAX_COUNT_SCHEMA,
+            error_code="cluster_max_count_failed",
+            message=str(exc),
+        )
+    except Exception:  # noqa: BLE001 - never expose raw provider errors
+        _exit_versioned_contract_error(
+            schema_version=CLUSTER_MAX_COUNT_SCHEMA,
+            error_code="internal_error",
+            message="Unexpected DYEC cluster MaxCount update failure.",
+        )
+
+    payload = result.to_payload()
+    if _json_mode():
+        output.emit_json(payload)
+        return
+    output.heading("Cluster compute-resource MaxCount")
+    output.print_text(f"Cluster:   {payload['cluster']}")
+    output.print_text(f"Resources: {payload['expected_resource_count']}")
+    output.print_text(f"MaxCount:  {payload['max_count']}")
+    output.print_text(f"Dry run:   {str(payload['provider_dry_run_validated']).lower()}")
+    output.print_text(f"Submitted: {str(payload['update_submitted']).lower()}")
+    output.print_text(f"Status:    {payload['final_cluster_status']}")
+    if payload["dry_run_only"]:
+        output.success("Exact MaxCount update dry run validated; no cluster update was submitted.")
+    else:
+        output.success("All compute-resource MaxCount values were updated and verified.")
+
+
 def cluster_compute_fleet(
     cluster: str = typer.Option(
         ...,
@@ -12557,6 +12669,11 @@ def register(registry, cli_spec) -> None:
             ("jobs", cluster_jobs, REQUIRED_JSON),
             ("describe", cluster_describe, REQUIRED_JSON),
             ("inspect", cluster_inspect, REQUIRED_JSON),
+            (
+                "max-count",
+                cluster_max_count,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
             ("wait", cluster_wait, REQUIRED_LONG_RUNNING),
             (
                 "compute-fleet",

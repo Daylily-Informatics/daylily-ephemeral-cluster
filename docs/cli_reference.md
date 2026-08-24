@@ -224,6 +224,46 @@ dyec cluster wait \
   --cluster "$CLUSTER"
 ```
 
+### Guarded all-resource MaxCount update
+
+`cluster max-count` sets `MaxCount` on every compute resource in one exact
+ParallelCluster configuration. `MaxCount` is per compute resource, not per
+Slurm partition; a partition containing three resources at `20` can therefore
+scale to 60 aggregate instances.
+
+The caller must freeze the exact source configuration SHA-256, current stable
+cluster status, and total compute-resource count. Omitting `--apply` downloads
+that exact configuration, changes only the enumerated `MaxCount` fields,
+writes the candidate YAML to a new empty output directory, and requires the
+provider dry run to succeed. It never submits the update:
+
+```bash
+dyec --json cluster max-count \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER" \
+  --max-count 20 \
+  --expected-resource-count 23 \
+  --expected-source-sha256 <64-lowercase-hex-source-sha256> \
+  --expected-cluster-status UPDATE_COMPLETE \
+  --output-dir ./max-count-dry-receipt
+```
+
+For an approved live change, repeat the frozen arguments with a different new
+empty directory and `--apply`. DYEC repeats the provider dry run, proves there
+are zero DayOA controllers and zero Slurm jobs, rechecks the source SHA and
+state after that proof, submits exactly one update, waits for
+`UPDATE_COMPLETE`, and requires the complete provider configuration to equal
+the candidate with every compute-resource `MaxCount` at the requested value.
+It does not stop the compute fleet or administer Slurm.
+
+The JSON schema is `dyec.cluster_max_count.v1`. Its bounded receipt records the
+source, candidate, and final configuration hashes; all queue/resource
+before/after values; provider dry-run result; idle proof; submission flag; and
+terminal cluster state. An already-targeted resource, a changed source hash,
+wrong resource count, active work, provider rollback, or partial post-update
+configuration is an error rather than a no-op or inferred fallback.
+
 ### Guarded compute-fleet lifecycle
 
 `cluster compute-fleet` is the public automation boundary for stopping or

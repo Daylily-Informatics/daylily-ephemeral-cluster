@@ -89,7 +89,7 @@ Run `dyec --help` for the live list. Current major groups are:
 | `agent` | Compact operational guidance for an automated or human operator. |
 | `preflight`, `create`, `drift`, `delete` | Cluster lifecycle; root create retains the original profile/region-AZ/cluster-type entrypoint and automatic resolution. |
 | `create-request` | Standalone protected request and admission tooling; it is not required or invoked by root create. |
-| `cluster`, `cluster-info` | ParallelCluster inspection, guarded compute-fleet lifecycle, and tag helpers. |
+| `cluster`, `cluster-info` | ParallelCluster inspection, guarded all-resource MaxCount updates, compute-fleet lifecycle, and tag helpers. |
 | `headnode` | SSM-backed headnode connection, command execution, file transfer, and observability. |
 | `mounts`, `mount` | FSx run-directory Data Repository Associations. |
 | `workflow`, `repositories`, `catalog` | Standard workflow clone/launch/status helpers plus repository and command-catalog discovery, exact rendering, and launch. |

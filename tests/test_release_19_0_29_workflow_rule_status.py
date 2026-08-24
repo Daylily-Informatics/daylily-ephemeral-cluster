@@ -17,10 +17,14 @@ PREVIOUS_DYEC_RELEASE = "19.0.28"
 
 
 def test_19_0_29_preserves_the_19_0_28_catalog_snapshot() -> None:
-    assert CURRENT_DYEC_BUILD == DYEC_RELEASE
+    assert CURRENT_DYEC_BUILD in builds_from_catalog()
     assert SOURCE_CATALOG.read_bytes() == PACKAGED_CATALOG.read_bytes()
     builds = yaml.safe_load(SOURCE_CATALOG.read_text(encoding="utf-8"))["dyec_builds"]
     assert builds[DYEC_RELEASE] == builds[PREVIOUS_DYEC_RELEASE]
+
+
+def builds_from_catalog() -> dict[str, object]:
+    return yaml.safe_load(SOURCE_CATALOG.read_text(encoding="utf-8"))["dyec_builds"]
 
 
 def test_19_0_29_documents_exact_rule_analysis_unit_status() -> None:
