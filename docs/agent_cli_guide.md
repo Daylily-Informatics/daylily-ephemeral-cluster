@@ -300,6 +300,10 @@ dyec analysis status full \
   --tail-lines 1000
 ```
 
+For large workflows, `workflow status` preserves complete job totals and Slurm
+state counts while returning at most 20 recent records per growing collection;
+inspect the explicit returned-count and truncation fields.
+
 For a manual/recovery controller, provide the explicit `--repo-path` and
 `--controller-pid`; do not use newest-log or newest-repository discovery.
 

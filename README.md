@@ -414,6 +414,10 @@ work, and an empty queue is never success. Failure detection uses anchored
 Snakemake terminal markers and deliberately ignores generic `ERROR` text and
 printed shell bodies.
 
+Growing submitted, finished, and active Slurm record collections are capped in
+the SSM transport. Their authoritative totals and state counts remain complete,
+and the JSON includes returned-count and explicit truncation fields.
+
 The Snakemake stream attributes and reads the log in one remote probe. Its
 requested tail is compressed, integrity-checked, and decoded locally, avoiding
 a second SSM round trip. If a requested tail cannot fit the bounded SSM

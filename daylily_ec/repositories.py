@@ -17,7 +17,7 @@ from daylily_ec.workflow.dyr_preflight import normalize_dyr_preflight_options
 
 CATALOG_VERSION = 6
 SUPPORTED_CATALOG_VERSIONS = {1, 2, 3, 4, 5, CATALOG_VERSION}
-CURRENT_DYEC_BUILD = "19.0.26"
+CURRENT_DYEC_BUILD = "19.0.27"
 DYEC_BUILD_VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+(?:\.\d+)?$")
 CROSS_BUILD_ALIAS_PATTERN = re.compile(r"^\d+\.\d+\.\d+(?:\.\d+)?(?:[/:@])")
 ALIAS_CONFIG_KEY_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_.-]*$")

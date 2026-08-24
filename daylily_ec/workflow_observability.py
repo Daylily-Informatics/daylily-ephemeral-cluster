@@ -34,6 +34,7 @@ SNAKEMAKE_LOG_SUFFIX = ".snakemake.log"
 SNAKEMAKE_TAIL_ENCODING = "zlib+base64"
 MAX_SNAKEMAKE_TAIL_BYTES = 8 * 1024 * 1024
 MAX_ENCODED_SNAKEMAKE_TAIL_BYTES = 12 * 1024
+MAX_TRANSPORT_COLLECTION_RECORDS = 20
 
 SUBMITTED_RE = re.compile(
     r"^Submitted job (?P<job_id>\d+) with external jobid ['\"](?P<external_id>[^'\"]+)['\"]\.\s*$"
@@ -180,6 +181,37 @@ def parse_snakemake_lines(lines: Iterable[str]) -> dict[str, Any]:
         "finished_job_ids": finished_ids,
         "last_progress_line": last_progress_line,
         "failure_markers": failure_markers[-10:],
+    }
+
+
+def bounded_transport_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    """Bound growing record collections while preserving authoritative totals."""
+
+    jobs = dict(payload["jobs"])
+    submitted = list(jobs["submitted"])
+    finished_job_ids = list(jobs["finished_job_ids"])
+    jobs["submitted"] = submitted[-MAX_TRANSPORT_COLLECTION_RECORDS:]
+    jobs["submitted_returned_count"] = len(jobs["submitted"])
+    jobs["submitted_truncated"] = len(submitted) > len(jobs["submitted"])
+    jobs["finished_job_ids"] = finished_job_ids[-MAX_TRANSPORT_COLLECTION_RECORDS:]
+    jobs["finished_job_ids_returned_count"] = len(jobs["finished_job_ids"])
+    jobs["finished_job_ids_truncated"] = len(finished_job_ids) > len(jobs["finished_job_ids"])
+
+    slurm = dict(payload["slurm"])
+    states = list(slurm["states"])
+    slurm["states"] = states[-MAX_TRANSPORT_COLLECTION_RECORDS:]
+    slurm["states_count"] = len(states)
+    slurm["states_returned_count"] = len(slurm["states"])
+    slurm["states_truncated"] = len(states) > len(slurm["states"])
+
+    return {
+        **payload,
+        "jobs": jobs,
+        "slurm": slurm,
+        "transport": {
+            "bounded": True,
+            "max_collection_records": MAX_TRANSPORT_COLLECTION_RECORDS,
+        },
     }
 
 
@@ -725,6 +757,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             },
             "snakemake_log": payload["snakemake_log"],
         }
+    else:
+        payload = bounded_transport_payload(payload)
     print(json.dumps(payload, sort_keys=True))
     return 0
 

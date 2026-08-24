@@ -1139,7 +1139,12 @@ states. Its top-level `state` is one of `RUNNING`, `SUCCEEDED`, `FAILED`, or
 - `slurm.available`, current job records, and `state_counts`, including
   `CONFIGURING` and `RUNNING`;
 - `terminal.exit_code`, `exit_code_attributed`, `exit_code_source`, and
-  high-signal failure markers.
+high-signal failure markers.
+
+The submitted, finished, and current Slurm record lists are transport-bounded
+to 20 recent records. Authoritative `submitted_count`, `finished_count`,
+`state_counts`, and `states_count` remain complete; `*_returned_count` and
+`*_truncated` fields make any list truncation explicit.
 
 The status command never treats its own RC, tmux existence, queue emptiness,
 generic `ERROR` text, a printed shell body, or a stale pane RC marker as the

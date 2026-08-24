@@ -9,7 +9,9 @@ import pytest
 
 from daylily_ec import workflow_observability
 from daylily_ec.workflow_observability import (
+    MAX_TRANSPORT_COLLECTION_RECORDS,
     WorkflowObservabilityError,
+    bounded_transport_payload,
     build_remote_probe_command,
     collect_workflow_observability,
     decode_snakemake_tail,
@@ -284,6 +286,57 @@ def test_launched_running_reports_exact_log_progress_jobs_and_slurm(
     assert payload["terminal"]["day_run_exit_code"] is None
     assert payload["terminal"]["snakemake_exit_code"] is None
     assert payload["terminal"]["controller_exit_code_attributed"] is False
+
+
+def test_transport_payload_bounds_growing_job_collections_without_losing_totals() -> None:
+    record_count = 500
+    payload = {
+        "schema_version": "dyec.workflow_observability.v1",
+        "jobs": {
+            "submitted_count": record_count,
+            "finished_count": record_count - 1,
+            "submitted": [
+                {
+                    "job_id": job_id,
+                    "external_job_id": str(job_id + 1000),
+                    "finished": job_id < record_count,
+                }
+                for job_id in range(1, record_count + 1)
+            ],
+            "finished_job_ids": list(range(1, record_count)),
+        },
+        "slurm": {
+            "available": True,
+            "states": [
+                {
+                    "job_id": str(job_id + 1000),
+                    "state": "CONFIGURING",
+                    "name": f"rule-{job_id}",
+                    "reason": "Resources",
+                }
+                for job_id in range(1, record_count + 1)
+            ],
+            "state_counts": {"CONFIGURING": record_count},
+        },
+    }
+
+    bounded = bounded_transport_payload(payload)
+
+    assert bounded["jobs"]["submitted_count"] == record_count
+    assert bounded["jobs"]["finished_count"] == record_count - 1
+    assert len(bounded["jobs"]["submitted"]) == MAX_TRANSPORT_COLLECTION_RECORDS
+    assert len(bounded["jobs"]["finished_job_ids"]) == MAX_TRANSPORT_COLLECTION_RECORDS
+    assert bounded["jobs"]["submitted_truncated"] is True
+    assert bounded["jobs"]["finished_job_ids_truncated"] is True
+    assert bounded["slurm"]["state_counts"] == {"CONFIGURING": record_count}
+    assert bounded["slurm"]["states_count"] == record_count
+    assert len(bounded["slurm"]["states"]) == MAX_TRANSPORT_COLLECTION_RECORDS
+    assert bounded["slurm"]["states_truncated"] is True
+    assert bounded["transport"] == {
+        "bounded": True,
+        "max_collection_records": MAX_TRANSPORT_COLLECTION_RECORDS,
+    }
+    assert len(json.dumps(bounded).encode("utf-8")) < 20_000
 
 
 @pytest.mark.parametrize(

@@ -17,9 +17,9 @@ PREVIOUS_DYEC_RELEASE = "19.0.25"
 
 
 def test_19_0_26_preserves_the_19_0_25_catalog_snapshot() -> None:
-    assert CURRENT_DYEC_BUILD == DYEC_RELEASE
     assert SOURCE_CATALOG.read_bytes() == PACKAGED_CATALOG.read_bytes()
     builds = yaml.safe_load(SOURCE_CATALOG.read_text(encoding="utf-8"))["dyec_builds"]
+    assert CURRENT_DYEC_BUILD in builds
     assert builds[DYEC_RELEASE] == builds[PREVIOUS_DYEC_RELEASE]
 
 
