@@ -658,7 +658,13 @@ def write_remote_text(
     as_user: str = DEFAULT_REMOTE_USER,
     require_startup_success: bool = True,
 ) -> SsmCommandResult:
-    """Write small text content to *remote_path* via SSM Run Command."""
+    """Write text content to *remote_path* via bounded SSM transport.
+
+    The encoded content is supplied to a small Python writer on standard input.
+    Large scripts are therefore handled by :func:`run_shell`'s existing
+    chunked, SHA-verified staging path without placing one oversized value in
+    the environment passed to ``execve``.
+    """
     resolved_user = resolve_remote_user(
         instance_id,
         region,
@@ -667,18 +673,20 @@ def write_remote_text(
     )
     target_path = _normalize_remote_path(remote_path, user=resolved_user)
     encoded = base64.b64encode(content.encode("utf-8")).decode("ascii")
+    heredoc_marker = f"__DAYLILY_REMOTE_TEXT_{uuid.uuid4().hex}__"
     script = "\n".join(
         [
             "set -euo pipefail",
-            f"export DAYLILY_REMOTE_B64={shlex.quote(encoded)}",
-            f"export DAYLILY_REMOTE_PATH={shlex.quote(target_path)}",
             "python3 -c "
             + shlex.quote(
-                "import base64, os, pathlib; "
-                "path = pathlib.Path(os.environ['DAYLILY_REMOTE_PATH']); "
+                "import base64, pathlib, sys; "
+                "path = pathlib.Path(sys.argv[1]); "
                 "path.parent.mkdir(parents=True, exist_ok=True); "
-                "path.write_text(base64.b64decode(os.environ['DAYLILY_REMOTE_B64']).decode('utf-8'), encoding='utf-8')"
-            ),
+                "path.write_bytes(base64.b64decode(sys.stdin.buffer.read()))"
+            )
+            + f" {shlex.quote(target_path)} <<'{heredoc_marker}'",
+            encoded,
+            heredoc_marker,
         ]
     )
     return run_shell(

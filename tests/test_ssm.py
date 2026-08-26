@@ -488,6 +488,31 @@ class TestWriteRemoteText:
         assert "/home/ec2-user/.config/daylily/test.yaml" in script
         assert mock_run_shell.call_args.kwargs["as_user"] == "ec2-user"
 
+    @patch("daylily_ec.aws.ssm.run_shell")
+    def test_large_content_uses_chunkable_script_instead_of_one_environment_value(
+        self, mock_run_shell, monkeypatch
+    ):
+        mock_run_shell.return_value = MagicMock()
+        monkeypatch.setattr(ssm_module.uuid, "uuid4", lambda: SimpleNamespace(hex="fixed"))
+        content = "large remote text\n" * 12_000
+
+        write_remote_text(
+            "i-abc123",
+            "us-west-2",
+            "~/large.txt",
+            content,
+            profile="dev",
+        )
+
+        script = mock_run_shell.call_args.args[2]
+        encoded = base64.b64encode(content.encode("utf-8")).decode("ascii")
+        assert len(script.encode("utf-8")) > ssm_module.MAX_RUN_COMMAND_PAYLOAD_BYTES
+        assert "DAYLILY_REMOTE_B64" not in script
+        assert "export " not in script
+        assert "<<'__DAYLILY_REMOTE_TEXT_fixed__'" in script
+        assert encoded in script
+        assert mock_run_shell.call_args.kwargs["as_user"] == "ubuntu"
+
 
 class TestResolveRemoteUser:
     @pytest.mark.parametrize(

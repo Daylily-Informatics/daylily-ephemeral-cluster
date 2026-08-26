@@ -10,7 +10,7 @@ from typer.testing import CliRunner
 import daylily_ec.cli as cli_module
 from daylily_ec.analysis_recovery import RECOVERY_SOURCE_SCHEMA, RECOVERY_SPEC_SCHEMA
 from daylily_ec.cli import app
-from daylily_ec.repositories import CURRENT_DYEC_BUILD, load_repository_catalog
+from daylily_ec.repositories import load_repository_catalog
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_CATALOG = ROOT / "config/daylily_pipeline_command_catalog.yaml"
@@ -90,7 +90,6 @@ def _write_local_snapshot_fixture(tmp_path: Path) -> tuple[Path, Path]:
 
 
 def test_release_snapshot_is_exact_and_recovery_command_is_strict() -> None:
-    assert CURRENT_DYEC_BUILD == "19.0.31"
     assert SOURCE_CATALOG.read_bytes() == PACKAGED_CATALOG.read_bytes()
     raw = yaml.safe_load(SOURCE_CATALOG.read_text(encoding="utf-8"))
     assert raw["repositories"]["daylily-omics-analysis"]["default_ref"] == "16.0.7"

@@ -279000,7 +279000,7 @@ dyec_builds:
   19.0.28: *dyec_19_0_24
   19.0.29: *dyec_19_0_24
   19.0.30: *dyec_19_0_24
-  19.0.31:
+  19.0.31: &dyec_19_0_31
     repository: daylily-omics-analysis
     dayoa_git_tags: [16.0.6, 16.0.7]
     commands: *dyec_19_0_24_commands
@@ -279023,3 +279023,4 @@ dyec_builds:
           - produce_sentdhiomr2_inflection_analytical_package
           dy_command: "PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/dyec_runtime_config.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'ont_fastq_hour_window_mode=per_analysis_unit' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 444 -T 1 -p -k --rerun-triggers mtime"
           dryrun_dy_command: "PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/dyec_runtime_config.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'ont_fastq_hour_window_mode=per_analysis_unit' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 444 -T 1 -p -k --rerun-triggers mtime -n"
+  19.0.32: *dyec_19_0_31
