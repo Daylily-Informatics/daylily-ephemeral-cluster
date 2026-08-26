@@ -29,7 +29,7 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "16.0.6"
+DAYOA_BLESSED_TAG = "16.0.7"
 
 EXPECTED_COMMANDS = {
     ("version",),
@@ -152,6 +152,7 @@ EXPECTED_COMMANDS = {
     ("state", "show"),
     ("analysis", "visit"),
     ("analysis", "status"),
+    ("analysis", "snapshot-artifacts"),
     ("analysis", "snapshot-manifests"),
     ("analysis", "guard"),
     ("command", "sample-stats"),
@@ -494,6 +495,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     state_show_cmd = registry.get_command(("state", "show"))
     analysis_visit_cmd = registry.get_command(("analysis", "visit"))
     analysis_status_cmd = registry.get_command(("analysis", "status"))
+    analysis_snapshot_artifacts_cmd = registry.get_command(("analysis", "snapshot-artifacts"))
     analysis_snapshot_manifests_cmd = registry.get_command(("analysis", "snapshot-manifests"))
     analysis_guard_cmd = registry.get_command(("analysis", "guard"))
     command_sample_stats_cmd = registry.get_command(("command", "sample-stats"))
@@ -818,6 +820,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert analysis_status_cmd.policy.supports_json is True
     assert analysis_status_cmd.policy.mutates_state is True
     assert analysis_status_cmd.policy.long_running is True
+
+    assert analysis_snapshot_artifacts_cmd is not None
+    assert analysis_snapshot_artifacts_cmd.policy.supports_json is True
+    assert analysis_snapshot_artifacts_cmd.policy.mutates_state is True
+    assert analysis_snapshot_artifacts_cmd.policy.long_running is True
 
     assert analysis_snapshot_manifests_cmd is not None
     assert analysis_snapshot_manifests_cmd.policy.supports_json is True

@@ -95,6 +95,7 @@ def _assert_immutable_pinned_dayoa_controller(script: str) -> None:
         "config/analysis_unit_inputs.tsv",
         "config/dyec_manifest_stage_receipt.json",
         "config/dyec_runtime_config.yaml",
+        "config/dyec_analysis_recovery_source.json",
         "config/day_profiles/slurm/.template-source.sha256",
     ):
         assert allowed_path in script
@@ -727,6 +728,10 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'dayec_conda_profile="$HOME/miniconda3/etc/profile.d/conda.sh"' in script
         assert "conda activate DAY-EC" in script
         assert "python3 -c 'import yaml'" in script
+        assert "ARTIFACT_RECOVERY_SHA256=" in script
+        assert "config/dyec_analysis_recovery_source.json" in script
+        assert "materialize_recovery_source" in script
+        assert "Materialized exact recovery artifacts" in script
         assert script.index("conda activate DAY-EC") < script.index("day-clone")
         assert "day-clone" in script
         assert '--destination "$ANALYSIS_ID"' in script

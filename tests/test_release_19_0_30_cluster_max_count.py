@@ -5,7 +5,6 @@ from pathlib import Path
 import yaml
 
 from daylily_ec.cli import app
-from daylily_ec.repositories import CURRENT_DYEC_BUILD
 from daylily_ec.workflow.cluster_max_count import CLUSTER_MAX_COUNT_SCHEMA
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -18,9 +17,9 @@ PREVIOUS_DYEC_RELEASE = "19.0.29"
 
 
 def test_19_0_30_preserves_the_19_0_29_catalog_snapshot() -> None:
-    assert CURRENT_DYEC_BUILD == DYEC_RELEASE
     assert SOURCE_CATALOG.read_bytes() == PACKAGED_CATALOG.read_bytes()
     builds = yaml.safe_load(SOURCE_CATALOG.read_text(encoding="utf-8"))["dyec_builds"]
+    assert DYEC_RELEASE in builds
     assert builds[DYEC_RELEASE] == builds[PREVIOUS_DYEC_RELEASE]
 
 

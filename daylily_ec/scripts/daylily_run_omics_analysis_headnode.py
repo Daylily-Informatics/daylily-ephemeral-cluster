@@ -661,6 +661,8 @@ def stage_workflow_launch_payload(
     six_manifest_receipt: Optional[Mapping[str, object]],
     runtime_config_content: Optional[str],
     runtime_config_sha256: Optional[str],
+    artifact_recovery_content: Optional[str],
+    artifact_recovery_sha256: Optional[str],
 ) -> str:
     """Upload a workflow launch payload tarball and return its S3 URI."""
 
@@ -691,6 +693,11 @@ def stage_workflow_launch_payload(
             _write_text_payload(
                 payload_root / "inputs" / "dyec_runtime_config.yaml", runtime_config_content
             )
+        if artifact_recovery_content is not None:
+            _write_text_payload(
+                payload_root / "inputs" / "dyec_analysis_recovery_source.json",
+                artifact_recovery_content,
+            )
         if six_manifest_receipt is not None:
             _write_text_payload(
                 payload_root / "inputs" / "dyec_manifest_stage_receipt.json",
@@ -710,6 +717,14 @@ def stage_workflow_launch_payload(
                     "sha256": runtime_config_sha256,
                 }
                 if runtime_config_content is not None
+                else None
+            ),
+            "artifact_recovery": (
+                {
+                    "target": "config/dyec_analysis_recovery_source.json",
+                    "sha256": artifact_recovery_sha256,
+                }
+                if artifact_recovery_content is not None
                 else None
             ),
             "files": sorted(
@@ -753,6 +768,14 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "Explicit YAML staged only as config/dyec_runtime_config.yaml beside a "
             "six-manifest contract; its SHA-256 is verified in the clone."
+        ),
+    )
+    parser.add_argument(
+        "--artifact-recovery-manifest",
+        help=(
+            "Explicit dyec.analysis_recovery_source/1.0 manifest, accepted only for "
+            "a fresh staged six-manifest capsule; all selected bytes are reverified "
+            "and copied before the controller starts."
         ),
     )
     parser.add_argument(
@@ -1019,6 +1042,8 @@ def main(argv: Optional[List[str]] = None) -> int:
             (
                 args.stage_dir,
                 args.manifest_dir,
+                args.runtime_config_file,
+                args.artifact_recovery_manifest,
                 args.run_context_file,
                 args.specimens_file,
                 args.samples_file,
@@ -1141,6 +1166,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     six_manifest_receipt: dict[str, object] | None = None
     runtime_config_content: str | None = None
     runtime_config_sha256: str | None = None
+    artifact_recovery_content: str | None = None
+    artifact_recovery_sha256: str | None = None
     if args.runtime_config_file:
         if args.input_contract != "six_manifest" or not args.input_staging:
             raise CommandError(
@@ -1155,6 +1182,44 @@ def main(argv: Optional[List[str]] = None) -> int:
         except UnicodeDecodeError as exc:
             raise CommandError("--runtime-config-file must be UTF-8 YAML text") from exc
         runtime_config_sha256 = hashlib.sha256(runtime_config_bytes).hexdigest()
+    if args.artifact_recovery_manifest:
+        if args.reuse_existing_analysis_dir or args.replace_existing_analysis_dir:
+            raise CommandError(
+                "--artifact-recovery-manifest requires a fresh, absent analysis capsule."
+            )
+        if args.input_contract != "six_manifest" or not args.input_staging:
+            raise CommandError(
+                "--artifact-recovery-manifest requires staged --input-contract six_manifest."
+            )
+        from daylily_ec.analysis_recovery import (
+            AnalysisRecoveryError,
+            load_recovery_source,
+        )
+
+        artifact_recovery_path = Path(args.artifact_recovery_manifest).expanduser()
+        try:
+            recovery_source = load_recovery_source(
+                artifact_recovery_path,
+                verify_source=False,
+            )
+        except (AnalysisRecoveryError, OSError) as exc:
+            raise CommandError(str(exc)) from exc
+        source_analysis_root = str(recovery_source["source_analysis_root"])
+        if re.fullmatch(
+            r"/fsx/analysis_results/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+",
+            source_analysis_root,
+        ) is None:
+            raise CommandError(
+                "artifact recovery source must be one exact /fsx/analysis_results/<owner>/<analysis> root"
+            )
+        artifact_recovery_bytes = artifact_recovery_path.read_bytes()
+        try:
+            artifact_recovery_content = artifact_recovery_bytes.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise CommandError(
+                "--artifact-recovery-manifest must be UTF-8 JSON text"
+            ) from exc
+        artifact_recovery_sha256 = hashlib.sha256(artifact_recovery_bytes).hexdigest()
     if args.run_context_file:
         if not args.input_staging:
             raise CommandError("--run-context-file cannot be used with --no-input-staging.")
@@ -1348,6 +1413,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     )
     runtime_config_payload = shlex.quote(runtime_config_content or "")
     runtime_config_sha256_literal = shlex.quote(runtime_config_sha256 or "")
+    artifact_recovery_payload = shlex.quote(artifact_recovery_content or "")
+    artifact_recovery_sha256_literal = shlex.quote(artifact_recovery_sha256 or "")
     export_destination_literal = shlex.quote(args.export_destination_s3_uri or "")
     delete_on_export_success = "true" if args.delete_on_export_success else "false"
     replace_existing_analysis_dir = "true" if args.replace_existing_analysis_dir else "false"
@@ -1426,6 +1493,8 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
 	SIX_MANIFEST_RECEIPT_PAYLOAD={six_manifest_receipt_payload}
 	RUNTIME_CONFIG_PAYLOAD={runtime_config_payload}
 	RUNTIME_CONFIG_SHA256={runtime_config_sha256_literal}
+	ARTIFACT_RECOVERY_PAYLOAD={artifact_recovery_payload}
+	ARTIFACT_RECOVERY_SHA256={artifact_recovery_sha256_literal}
 	STAGE_SPECIMENS={shlex.quote(stage_specimens_path)}
 	STAGE_SAMPLES={shlex.quote(stage_samples_path)}
 	STAGE_LIBRARIES={shlex.quote(stage_libraries_path)}
@@ -1701,6 +1770,15 @@ if [[ -n "$RUNTIME_CONFIG_SHA256" ]]; then
   fi
   echo "[INFO] Verified runtime config SHA-256: $observed_runtime_config_sha256"
 fi
+if [[ -n "$ARTIFACT_RECOVERY_SHA256" ]]; then
+  printf '%s' "$ARTIFACT_RECOVERY_PAYLOAD" > config/dyec_analysis_recovery_source.json
+  observed_artifact_recovery_sha256="$(sha256sum config/dyec_analysis_recovery_source.json | awk '{{print $1}}')"
+  if [[ "$observed_artifact_recovery_sha256" != "$ARTIFACT_RECOVERY_SHA256" ]]; then
+    echo "[ERROR] staged artifact recovery manifest SHA-256 mismatch"
+    exit 12
+  fi
+  echo "[INFO] Verified artifact recovery manifest SHA-256: $observed_artifact_recovery_sha256"
+fi
 
 extract_runtime_config_path() {{
   local key="$1"
@@ -1949,9 +2027,27 @@ PYSIXMANIFEST
 	  fi
 	elif [[ "$BOOTSTRAP_TEST_CONFIG" == "true" ]]; then
 	  bootstrap_test_config
-	else
-	  echo "[INFO] Input staging skipped for this catalog command."
-	fi
+		else
+		  echo "[INFO] Input staging skipped for this catalog command."
+		fi
+
+if [[ -n "$ARTIFACT_RECOVERY_SHA256" ]]; then
+  python3 - "$clone_root" <<'PYARTIFACTRECOVERY'
+import json
+import sys
+from pathlib import Path
+
+from daylily_ec.analysis_recovery import materialize_recovery_source
+
+destination = Path(sys.argv[1])
+manifest = destination / "daylily-omics-analysis" / "config" / "dyec_analysis_recovery_source.json"
+receipt = materialize_recovery_source(
+    manifest,
+    destination_analysis_root=destination,
+)
+print("[INFO] Materialized exact recovery artifacts: " + json.dumps(receipt, sort_keys=True))
+PYARTIFACTRECOVERY
+fi
 
 if [[ ! -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]]; then
   echo "[ERROR] Missing conda profile script at $HOME/miniconda3/etc/profile.d/conda.sh"
@@ -1976,7 +2072,7 @@ verify_pinned_dayoa_checkout() {{
   # a source-mutation bypass.
   is_allowed_catalog_runtime_path() {{
     case "$1" in
-      .dyec/controller.log|.dyec/status.json.lock|.dyec/status.json.tmp-*|status.json|analysis_artifacts.tsv|artifact_lineage.tsv|pipeline_details.md|pipeline_workflow_planned.mmd|pipeline_workflow_planned.pdf|pipeline_workflow_checkpoint_*.mmd|pipeline_workflow_checkpoint_*.pdf|pipeline_workflow_final_success.mmd|pipeline_workflow_final_success.pdf|pipeline_workflow_final_failed.mmd|pipeline_workflow_final_failed.pdf|config/specimens.tsv|config/samples.tsv|config/libraries.tsv|config/sequencing_inputs.tsv|config/analysis_units.tsv|config/analysis_unit_inputs.tsv|config/dyec_manifest_stage_receipt.json|config/dyec_runtime_config.yaml|config/day_profiles/slurm/.template-source.sha256)
+      .dyec/controller.log|.dyec/status.json.lock|.dyec/status.json.tmp-*|status.json|analysis_artifacts.tsv|artifact_lineage.tsv|pipeline_details.md|pipeline_workflow_planned.mmd|pipeline_workflow_planned.pdf|pipeline_workflow_checkpoint_*.mmd|pipeline_workflow_checkpoint_*.pdf|pipeline_workflow_final_success.mmd|pipeline_workflow_final_success.pdf|pipeline_workflow_final_failed.mmd|pipeline_workflow_final_failed.pdf|config/specimens.tsv|config/samples.tsv|config/libraries.tsv|config/sequencing_inputs.tsv|config/analysis_units.tsv|config/analysis_unit_inputs.tsv|config/dyec_manifest_stage_receipt.json|config/dyec_runtime_config.yaml|config/dyec_analysis_recovery_source.json|config/day_profiles/slurm/.template-source.sha256)
         return 0
         ;;
       *)
@@ -2287,6 +2383,8 @@ exec bash -il
             six_manifest_receipt=six_manifest_receipt,
             runtime_config_content=runtime_config_content,
             runtime_config_sha256=runtime_config_sha256,
+            artifact_recovery_content=artifact_recovery_content,
+            artifact_recovery_sha256=artifact_recovery_sha256,
         )
 
     if payload_s3_uri:

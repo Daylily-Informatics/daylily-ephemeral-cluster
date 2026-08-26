@@ -7628,6 +7628,14 @@ def workflow_launch(
             "a six-manifest launch."
         ),
     ),
+    artifact_recovery_manifest: Optional[Path] = typer.Option(
+        None,
+        "--artifact-recovery-manifest",
+        help=(
+            "Explicit dyec.analysis_recovery_source/1.0 manifest to verify and "
+            "materialize in one fresh analysis capsule."
+        ),
+    ),
     payload_staging_s3_uri: Optional[str] = typer.Option(
         None,
         "--payload-staging-s3-uri",
@@ -7910,6 +7918,7 @@ def workflow_launch(
                 stage_dir,
                 manifest_dir,
                 runtime_config_file,
+                artifact_recovery_manifest,
                 run_context_file,
                 specimens_file,
                 samples_file,
@@ -8022,6 +8031,31 @@ def workflow_launch(
                 f"Runtime config file not found: {runtime_config_file.expanduser()}",
                 param_hint="--runtime-config-file",
             )
+    if artifact_recovery_manifest is not None:
+        if reuse_existing_analysis_dir or replace_existing_analysis_dir:
+            raise typer.BadParameter(
+                "--artifact-recovery-manifest requires a fresh, absent analysis capsule",
+                param_hint="--artifact-recovery-manifest",
+            )
+        if input_contract != "six_manifest" or not input_staging:
+            raise typer.BadParameter(
+                "--artifact-recovery-manifest requires staged --input-contract six_manifest",
+                param_hint="--artifact-recovery-manifest",
+            )
+        from daylily_ec.analysis_recovery import (
+            AnalysisRecoveryError,
+            load_recovery_source,
+        )
+
+        try:
+            load_recovery_source(
+                artifact_recovery_manifest.expanduser().resolve(),
+                verify_source=False,
+            )
+        except (AnalysisRecoveryError, OSError) as exc:
+            raise typer.BadParameter(
+                str(exc), param_hint="--artifact-recovery-manifest"
+            ) from exc
     producer_option_values: dict[str, str] = {}
     for flag, value in (
         ("--produce-analysis-artifact-manifest", produce_analysis_artifact_manifest),
@@ -8060,6 +8094,12 @@ def workflow_launch(
         (
             "--runtime-config-file",
             str(runtime_config_file.expanduser()) if runtime_config_file else None,
+        ),
+        (
+            "--artifact-recovery-manifest",
+            str(artifact_recovery_manifest.expanduser())
+            if artifact_recovery_manifest
+            else None,
         ),
         ("--payload-staging-s3-uri", payload_staging_s3_uri),
         ("--remote-user", remote_user),
@@ -8273,6 +8313,8 @@ def _catalog_command_summary(command: Any) -> dict[str, Any]:
         "input_contract": command.input_contract,
         "requires_staging": command.requires_staging,
         "requires_run_mount": command.requires_run_mount,
+        "runtime_config_target": command.runtime_config_target,
+        "artifact_recovery_required": command.artifact_recovery_required,
         "test_data_profile": command.test_data_profile,
         "compatible_platforms": list(command.compatible_platforms),
         "compatible_cluster_types": list(command.compatible_cluster_types),
@@ -8427,6 +8469,7 @@ def _catalog_render_payload(
     stage_dir: Optional[str],
     manifest_dir: Optional[Path],
     runtime_config_file: Optional[Path],
+    artifact_recovery_manifest: Optional[Path],
     payload_staging_s3_uri: Optional[str],
     remote_user: str,
     run_context_file: Optional[Path],
@@ -8472,6 +8515,11 @@ def _catalog_render_payload(
     runtime_config_file_text = (
         str(runtime_config_file.expanduser()) if runtime_config_file else None
     )
+    artifact_recovery_manifest_text = (
+        str(artifact_recovery_manifest.expanduser())
+        if artifact_recovery_manifest
+        else None
+    )
     run_context_file_text = str(run_context_file.expanduser()) if run_context_file else None
     specimens_file_text = str(specimens_file.expanduser()) if specimens_file else None
     samples_file_text = str(samples_file.expanduser()) if samples_file else None
@@ -8498,6 +8546,14 @@ def _catalog_render_payload(
         raise ValueError(
             f"{command.command_id} does not declare a runtime config staging target"
         )
+    if command.artifact_recovery_required and not artifact_recovery_manifest_text:
+        raise ValueError(
+            f"{command.command_id} requires --artifact-recovery-manifest"
+        )
+    if artifact_recovery_manifest_text and not command.artifact_recovery_required:
+        raise ValueError(
+            f"{command.command_id} does not declare artifact recovery"
+        )
     resolved_git_tag = git_tag or command.git_tag
     workflow_argv = command.launch_argv(
         analysis_id=analysis_id,
@@ -8509,6 +8565,7 @@ def _catalog_render_payload(
         stage_dir=stage_dir,
         manifest_dir=manifest_dir_text,
         runtime_config_file=runtime_config_file_text,
+        artifact_recovery_manifest=artifact_recovery_manifest_text,
         run_context_file=run_context_file_text,
         specimens_file=specimens_file_text,
         samples_file=samples_file_text,
@@ -8955,6 +9012,11 @@ def catalog_render(
         "--runtime-config-file",
         help="Explicit YAML staged to the catalog command's declared in-clone runtime path.",
     ),
+    artifact_recovery_manifest: Optional[Path] = typer.Option(
+        None,
+        "--artifact-recovery-manifest",
+        help="Explicit versioned recovery-source manifest required by recovery commands.",
+    ),
     payload_staging_s3_uri: Optional[str] = typer.Option(
         None,
         "--payload-staging-s3-uri",
@@ -9022,6 +9084,7 @@ def catalog_render(
             stage_dir=stage_dir,
             manifest_dir=manifest_dir,
             runtime_config_file=runtime_config_file,
+            artifact_recovery_manifest=artifact_recovery_manifest,
             payload_staging_s3_uri=payload_staging_s3_uri,
             remote_user=remote_user,
             run_context_file=run_context_file,
@@ -9091,6 +9154,10 @@ def catalog_launch(
     stage_dir: Optional[str] = typer.Option(None, "--stage-dir"),
     manifest_dir: Optional[Path] = typer.Option(None, "--manifest-dir"),
     runtime_config_file: Optional[Path] = typer.Option(None, "--runtime-config-file"),
+    artifact_recovery_manifest: Optional[Path] = typer.Option(
+        None,
+        "--artifact-recovery-manifest",
+    ),
     payload_staging_s3_uri: Optional[str] = typer.Option(
         None,
         "--payload-staging-s3-uri",
@@ -9155,6 +9222,7 @@ def catalog_launch(
             stage_dir=stage_dir,
             manifest_dir=manifest_dir,
             runtime_config_file=runtime_config_file,
+            artifact_recovery_manifest=artifact_recovery_manifest,
             payload_staging_s3_uri=payload_staging_s3_uri,
             remote_user=remote_user,
             run_context_file=run_context_file,
@@ -11729,6 +11797,172 @@ def analysis_snapshot_manifests(
         _exit_headnode_error(exc)
 
 
+def analysis_snapshot_artifacts(
+    analysis_root: str = typer.Option(..., "--analysis-root", help="Exact source analysis root."),
+    spec_file: Path = typer.Option(
+        ...,
+        "--spec-file",
+        help="Explicit recovery spec; DYEC never discovers reusable artifacts.",
+    ),
+    output_file: Optional[Path] = typer.Option(
+        None,
+        "--output-file",
+        help="New local path for the strict recovery-source manifest.",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS profile for a remote source analysis root.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region for a remote source analysis root.",
+    ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="Cluster whose headnode contains the source analysis root.",
+    ),
+    remote_user: str = typer.Option(
+        "auto",
+        "--remote-user",
+        help="Remote SSM login user; recovery snapshots must resolve to ubuntu.",
+    ),
+) -> None:
+    """Hash an explicit complete artifact set into a versioned recovery source."""
+
+    from daylily_ec.analysis_recovery import (
+        AnalysisRecoveryError,
+        load_recovery_spec,
+        snapshot_artifacts,
+    )
+    from daylily_ec.scripts.common import CommandError
+
+    remote_spec_path: str | None = None
+    try:
+        source_spec = spec_file.expanduser().resolve()
+        if source_spec.is_symlink() or not source_spec.is_file():
+            raise CommandError(f"recovery spec must be a regular file: {source_spec}")
+        # Validate all non-byte topology and ownership fields before any remote work.
+        load_recovery_spec(source_spec, analysis_root=Path(analysis_root))
+        if cluster is None:
+            if profile is not None or region is not None or remote_user != "auto":
+                raise CommandError(
+                    "--profile, --region, and --remote-user require --cluster"
+                )
+            from daylily_ec.analysis_lock import normalize_analysis_root, write_visit
+
+            source_root = normalize_analysis_root(analysis_root)
+            write_visit(
+                source_root,
+                mode="read",
+                intent="snapshot explicit complete artifacts for a fresh recovery capsule",
+            )
+            payload = snapshot_artifacts(
+                analysis_root=source_root,
+                spec_path=source_spec,
+            )
+        else:
+            from daylily_ec.aws.ssm import (
+                resolve_remote_user,
+                run_shell,
+                wait_for_ssm_online,
+                write_remote_text,
+            )
+
+            _warn_if_dayec_env_inactive()
+            resolved_profile, resolved_region, _resolved_cluster, target = (
+                _resolve_headnode_cli_target(
+                    profile=profile,
+                    region=region,
+                    cluster=cluster,
+                )
+            )
+            wait_for_ssm_online(
+                target.instance_id,
+                resolved_region,
+                profile=resolved_profile,
+                timeout=120,
+            )
+            resolved_user = resolve_remote_user(
+                target.instance_id,
+                resolved_region,
+                profile=resolved_profile,
+                as_user=remote_user,
+            )
+            if resolved_user != "ubuntu":
+                raise CommandError("artifact recovery snapshots must run as ubuntu")
+            remote_spec_path = f"/tmp/dyec-analysis-recovery-spec-{uuid.uuid4().hex}.json"
+            write_remote_text(
+                target.instance_id,
+                resolved_region,
+                remote_spec_path,
+                source_spec.read_text(encoding="utf-8"),
+                profile=resolved_profile,
+                as_user=resolved_user,
+            )
+            try:
+                payload = _collect_remote_json_payload(
+                    instance_id=target.instance_id,
+                    region=resolved_region,
+                    profile=resolved_profile,
+                    remote_user=resolved_user,
+                    remote_argv=[
+                        "dyec",
+                        "--json",
+                        "analysis",
+                        "snapshot-artifacts",
+                        "--analysis-root",
+                        analysis_root,
+                        "--spec-file",
+                        remote_spec_path,
+                    ],
+                    operation="analysis_artifact_snapshot",
+                    timeout=5400,
+                )
+            finally:
+                with contextlib.suppress(Exception):
+                    run_shell(
+                        target.instance_id,
+                        resolved_region,
+                        f"rm -f -- {shlex.quote(remote_spec_path)}",
+                        profile=resolved_profile,
+                        as_user=resolved_user,
+                        timeout=60,
+                        comment="Clean artifact recovery spec",
+                    )
+        if output_file is not None:
+            destination = output_file.expanduser().resolve()
+            if destination.exists():
+                raise CommandError(
+                    f"refusing to overwrite recovery-source manifest: {destination}"
+                )
+            if not destination.parent.is_dir():
+                raise CommandError(
+                    f"recovery-source parent does not exist: {destination.parent}"
+                )
+            temporary = destination.with_name(f".{destination.name}.partial-{uuid.uuid4().hex}")
+            try:
+                temporary.write_text(
+                    json.dumps(payload, indent=2, sort_keys=True) + "\n",
+                    encoding="utf-8",
+                )
+                os.replace(temporary, destination)
+            finally:
+                temporary.unlink(missing_ok=True)
+        _emit_analysis_payload(
+            payload,
+            text=(
+                f"snapshotted {payload['artifact_count']} exact artifacts"
+                + (f" at {output_file.expanduser().resolve()}" if output_file else "")
+            ),
+        )
+    except (AnalysisRecoveryError, CommandError, OSError, ValueError) as exc:
+        _exit_headnode_error(exc)
+
+
 def _download_sample_stats_dag(
     *,
     instance_id: str,
@@ -12953,6 +13187,11 @@ def register(registry, cli_spec) -> None:
             (
                 "status",
                 analysis_status,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+            (
+                "snapshot-artifacts",
+                analysis_snapshot_artifacts,
                 required_policy(supports_json=True, mutates_state=True, long_running=True),
             ),
             (

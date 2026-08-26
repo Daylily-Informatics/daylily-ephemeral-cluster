@@ -17,7 +17,7 @@ from daylily_ec.workflow.dyr_preflight import normalize_dyr_preflight_options
 
 CATALOG_VERSION = 6
 SUPPORTED_CATALOG_VERSIONS = {1, 2, 3, 4, 5, CATALOG_VERSION}
-CURRENT_DYEC_BUILD = "19.0.30"
+CURRENT_DYEC_BUILD = "19.0.31"
 DYEC_BUILD_VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+(?:\.\d+)?$")
 CROSS_BUILD_ALIAS_PATTERN = re.compile(r"^\d+\.\d+\.\d+(?:\.\d+)?(?:[/:@])")
 ALIAS_CONFIG_KEY_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_.-]*$")
@@ -574,6 +574,7 @@ class AnalysisCommand(BaseModel):
     staging_receipt_required: bool = False
     cost_center_required: bool = False
     runtime_config_target: str = ""
+    artifact_recovery_required: bool = False
     runtime_parameters: Dict[str, Any] = Field(default_factory=dict)
     input_requirements: CommandInputRequirements = Field(default_factory=CommandInputRequirements)
     targets: List[str]
@@ -721,6 +722,15 @@ class AnalysisCommand(BaseModel):
                 raise ValueError(
                     "runtime_config_target must be the exact --configfile path in both commands"
                 )
+        if self.artifact_recovery_required:
+            if self.input_contract != "six_manifest" or not self.requires_staging:
+                raise ValueError(
+                    "artifact_recovery_required requires a staged six_manifest command"
+                )
+            if not self.runtime_config_target:
+                raise ValueError(
+                    "artifact_recovery_required requires an explicit in-clone runtime config"
+                )
         if self.sample_manifest_template and self.input_contract == "six_manifest":
             raise ValueError(
                 "six_manifest commands must use manifest_dir_template, not sample_manifest_template"
@@ -824,6 +834,7 @@ class AnalysisCommand(BaseModel):
         libraries_file: Optional[str] = None,
         units_file: Optional[str] = None,
         runtime_config_file: Optional[str] = None,
+        artifact_recovery_manifest: Optional[str] = None,
         dry_run: bool = False,
         skip_project_check: bool = True,
         export_destination_s3_uri: Optional[str] = None,
@@ -885,10 +896,22 @@ class AnalysisCommand(BaseModel):
                     f"{self.command_id} requires runtime_config_file for "
                     f"{self.runtime_config_target}"
                 )
+            if self.artifact_recovery_required and not artifact_recovery_manifest:
+                raise ValueError(
+                    f"{self.command_id} requires artifact_recovery_manifest"
+                )
+            if artifact_recovery_manifest and not self.artifact_recovery_required:
+                raise ValueError(
+                    f"{self.command_id} does not declare artifact recovery"
+                )
         elif manifest_dir:
             raise ValueError("manifest_dir requires the six_manifest input contract")
         elif runtime_config_file:
             raise ValueError("runtime_config_file requires the six_manifest input contract")
+        elif artifact_recovery_manifest:
+            raise ValueError(
+                "artifact_recovery_manifest requires the six_manifest input contract"
+            )
         elif self.input_contract == "sample_manifest_v12":
             if units_file:
                 raise ValueError(
@@ -953,6 +976,12 @@ class AnalysisCommand(BaseModel):
             argv.append("--no-containerized")
         if runtime_config_file:
             argv.extend(["--runtime-config-file", runtime_config_file])
+        if artifact_recovery_manifest:
+            if replace_existing_analysis_dir:
+                raise ValueError(
+                    "artifact recovery requires a fresh, absent analysis capsule"
+                )
+            argv.extend(["--artifact-recovery-manifest", artifact_recovery_manifest])
         if not self.default_activation:
             argv.append("--no-default-activation")
         if self.input_contract == "none":
@@ -1005,6 +1034,8 @@ class AnalysisCommandAliasMetadata(BaseModel):
     requires_run_mount: Optional[bool] = None
     staging_receipt_required: Optional[bool] = None
     cost_center_required: Optional[bool] = None
+    runtime_config_target: Optional[str] = None
+    artifact_recovery_required: Optional[bool] = None
     runtime_parameters: Optional[Dict[str, Any]] = None
     input_requirements: Optional[CommandInputRequirements] = None
     genome: Optional[str] = None
