@@ -23,6 +23,10 @@ Ledger path:
   mutation, result cleanup, FSx deletion, or cluster teardown is authorized.
 - Existing dirty user checkouts are evidence sources only. Releases use clean
   isolated worktrees and must not absorb unrelated user files.
+- This is a fresh-forward release. Completed analyses are not recalled or
+  restarted, and no previous-result reuse contract or alternate recall target
+  will be added. The validation capsule runs the complete ordinary production
+  Bjuice plus Inflection DAG.
 
 ## Gate 0 inventory
 
@@ -35,19 +39,28 @@ Ledger path:
   complete `origin/main` prerequisite line, and then apply `13259de0`.
 - DayOA candidate worktree:
   `/Users/jmajor/projects/lsmc/.codex-worktrees/hiomr2-16-0-12-integration/daylily-omics-analysis`;
-  branch `codex/hiomr2-16-0-12-integration`; head `896fe88f`; maximum numeric
+  branch `codex/hiomr2-16-0-12-integration`; head `2ad084d3`; maximum numeric
   tag `16.0.11`; candidate release `16.0.12`.
-- Sentieon CLI review head is `4218c04`; tag `1.7.3i` does not exist. Upstream
-  issue #35 remains open without a vendor response. The candidate deliberately
-  rejects Hybrid small-variant/gVCF execution when `--haploid_bed` is present.
+- Sentieon CLI PR #4 merged at
+  `50aeace1466682e8941ad24127256bbba36151b9`; annotated tag `1.7.3i` is
+  published and verified. Upstream issue #35 remains open without a vendor
+  response. It is retained as future clarification, not a release blocker:
+  Hybrid small variants keep the existing `-b` scope contract, while
+  `--haploid_bed` is restricted to isolated CNV/SV.
 - DYEC candidate worktree:
   `/Users/jmajor/projects/lsmc/.codex-worktrees/dyec-19-0-33-dayoa-16-0-12`;
-  branch `codex/dyec-19-0-33-dayoa-16-0-12`; head `efc03fb0`; maximum numeric
+  branch `codex/dyec-19-0-33-dayoa-16-0-12`; head `18fc9903`; maximum numeric
   tag `19.0.32`; candidate release `19.0.33`.
 - The requested operator checkout
   `/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster` contains user-owned
   modified and untracked evidence. It must not be reset, cleaned, or switched
   destructively.
+- The applicable Ganon2 broad blood/oral change from operator branch
+  `codex/ganon2-broad-blood-oral-dyec` is already represented in the isolated
+  candidate by commit `ebf11678`. Its stable patch ID
+  `88367c27968db6ac31c1688f44569b7df9b024f7` exactly matches operator commit
+  `6e10f4f3`; it must not be cherry-picked a second time. Unrelated
+  BloodBridge/campaign commits from the operator branch are out of scope.
 - The active catalog fixture is the explicit
   `hg002_bjuice_verified_5x5x_fastq` six-manifest profile. The exact Bjuice plus
   Inflection command, cluster, state file, profile, cost center, and analysis
@@ -59,12 +72,13 @@ Ledger path:
 |---|---|---|---|---|---|---|---|
 | DH-001 | Dayhoff | Integrate the complete `main` sweeper prerequisite line and supplied handoff into a clean branch from the actual default `jemdev10`. | SUCCESS | feature_implementation | Gate 1 | Clean branch advanced `ee0cef67` through `3fbf3a9e` and applied handoff as `b15444f`. | Full prerequisite line and supplied receipt are present without touching the dirty ordinary checkout. |
 | DH-002 | Dayhoff | Run focused and broad attributable tests, merge through a green PR without admin override, and push annotated tag `9.0.30`. | SUCCESS | contract_test | Gate 2 | PR [#197](https://github.com/lsmc-bio/dayhoff/pull/197) merged normally as `78436daa555fc13aed52439e7968470c7bff0bb2` after exact-head `3c09e88` passed 332 focused tests, Ruff, diff checks, JavaScript/Python/aggregate CodeQL, CodeRabbit approval, and Codex review. Review hardening added deployment-scoped paths, strict S3 bucket/prefix contracts, credential-free sidecar config, exact least-authority binds, dedicated writable SQLite directories, retired-key cleanup, fail-closed placement config validation, and the Ursa `11.0.50` pin. Evidence PR [#198](https://github.com/lsmc-bio/dayhoff/pull/198) merged as `b254238ff8a9831f6e21dec7bccd017125b565e2`. Annotated tag object `44eb58ccc897fa3c666d33ab4d9c1aaff0cd9d9c` was pushed as `9.0.30`, peels to that exact commit, and `git cat-file -t 9.0.30` returned `tag`. Post-release receipt PR [#199](https://github.com/lsmc-bio/dayhoff/pull/199) merged as `8fb385640e7755995ebac86b5a219ffc803d2baa`, terminalizing the Dayhoff-local ledger without moving the release tag. | Dayhoff release and durable receipt are complete without admin override. |
-| CLI-001 | Sentieon CLI | Resolve supported Hybrid haploid small-variant/gVCF behavior, validate fork `1.7.3i`, and publish its annotated tag. | BLOCKED | active_product_contract | Gate 3 | A fresh post-Dayhoff-release check on `2026-08-27` found Sentieon issue #35 still open with no vendor response; its only comment is the candidate-fork evidence posted by this project. Official `main`/`dev` inspection found haploid BED processing only in `dnascope-longread`, which requires `haploid_model` and `haploid_hp_model`; official Hybrid has no such path and the installed Hybrid bundle lacks those members. The current fork therefore rejects haploid Hybrid core. Remote tags `1.7.3i`, DayOA `16.0.12`, and DYEC `19.0.33` remain absent. | Vendor answer or executable/model proof is required; parser-only enablement is prohibited. |
-| DAY-001 | DayOA | Finish the scientifically supported XY core contract, exact candidate tests, and publish annotated tag `16.0.12`. | BLOCKED | active_product_contract | Gate 3 | DayOA ledger HYB-002/ENV-001/VAL-005/REL-DAY remain blocked on CLI-001. | Do not tag a release that cannot run the requested male HG002 fixture. |
-| DYEC-001 | DYEC | Set global and command-catalog DayOA pins exactly to released `16.0.12`, render/test the Ganon and HIOMR2 rows, and publish annotated tag `19.0.33`. | BLOCKED | config_or_startup_contract | Gate 4 | Source candidate and baseline comparison are complete; `16.0.12` does not yet exist. | Depends on DAY-001. |
+| AMD-FRESH-001 | Scope | Run fresh from these releases forward; leave completed analyses untouched and add no recall/reuse DAG. | SUCCESS | plan_amendment | Gate 0 | Explicit user decision and amended DayOA ledger; the ordinary production targets remain the validation boundary. | Vendor issue #35 and completed-analysis recall are no longer release gates. |
+| CLI-001 | Sentieon CLI | Restrict `--haploid_bed` to `--only_cnv`/`--only_svs`, validate fork `1.7.3i`, and publish its annotated tag. | SUCCESS | active_product_contract | Gate 3 | PR #4 merged normally; `173 passed, 1 skipped`; annotated tag object `690848bd` peels to `50aeace1`. | Issue #35 remains tracked but is nonblocking because core does not use `--haploid_bed`. |
+| DAY-001 | DayOA | Restore supported generic-scope core argv, prove isolated routed CNV/SV behavior, obtain exact dry `rc=0`, and publish annotated tag `16.0.12`. | IN_PROGRESS | active_product_contract | Gate 3 | Candidate `2ad084d3` is pushed and draft PR #128 is open; focused `659 passed, 1 skipped`; full suite adds no failure beyond the accepted 34-test baseline. Three fresh zero-submission dry capsules terminally exposed and corrected Ganon lane/RSR-QC gaps, then reached the absent immutable Ganon2 database boundary. | Wait for the exact `ganon2_blood_oral_ref_20260827_v1` asset build/install, then create a new fresh exact-candidate capsule. Full fresh male HG002 operation remains the release proof. |
+| DYEC-001 | DYEC | Set global and command-catalog DayOA pins exactly to released `16.0.12`, render/test the Ganon and HIOMR2 rows, and publish annotated tag `19.0.33`. | IN_PROGRESS | config_or_startup_contract | Gate 4 | The isolated candidate now sets `CURRENT_DYEC_BUILD=19.0.33`, retargets all 33 active/global commands and the immutable 19.0.33 snapshot to DayOA `16.0.12`, preserves the exact ordinary `inflection-bjuice-product-v0.9` target/argv shape, and leaves the campaign-specific BloodBridge recovery alias historical. Source and packaged catalog hashes match; four focused release tests pass; public `catalog show` resolves the exact normal targets and `artifact_recovery_required=false`. | Commit/push may proceed, but final validation, merge, and tag remain gated on released DayOA `16.0.12` and DAY-001. |
 | LOCAL-001 | Operator checkout | Update the DYEC used from `/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster` to released `19.0.33` without losing or absorbing user-owned dirty files. | BLOCKED | config_or_startup_contract | Gate 5 | Exact release is unavailable; ordinary checkout is dirty and divergent. | Use a non-destructive reviewed update after DYEC-001. |
-| CLUSTER-001 | Deployment | Resolve the exact active cluster or clusters and state files, prove expected identities, then run `dyec headnode configure --force` from released `19.0.33`. | IN_PROGRESS | active_product_contract | Gate 5 | Public `cluster-info` found `bjuiceval-19024` and service-owned `ursa-m-rgx-k53f`. The Bjuice cluster has exact state file `/Users/jmajor/.config/daylily/state_bjuiceval-19024_20260824000053.json`, zero active DayOA controllers, and one unrelated 192-core Ganon build (`16370`) still running. The Ursa cluster is idle but has no exact local create-state file and will not be configured from guessed credentials. | Wait for the Bjuice job to finish naturally and for released `19.0.33`; do not disrupt the job or infer Ursa deployment identity. |
-| RUN-001 | Inputs/catalog | Validate the exact 5x ILMN plus 5x ONT six-manifest fixture and render the complete Bjuice plus Inflection packaging command with DYEC `19.0.33` and DayOA `16.0.12`. | BLOCKED | contract_test | Gate 6 | Exact releases and cluster identity are pending. | No alternate fixture or reduced target substitution. |
+| CLUSTER-001 | Deployment | Resolve the exact active cluster or clusters and state files, prove expected identities, then run `dyec headnode configure --force` from released `19.0.33`. | IN_PROGRESS | active_product_contract | Gate 5 | Public `cluster-info` found `bjuiceval-19024` and service-owned `ursa-m-rgx-k53f`. The Bjuice cluster has exact state file `/Users/jmajor/.config/daylily/state_bjuiceval-19024_20260824000053.json`, zero active DayOA controllers, and one unrelated 192-core Ganon build (`16371`) still running. The Ursa cluster is idle but has no exact local create-state file and will not be configured from guessed credentials. | Wait for the Bjuice job to finish naturally and for released `19.0.33`; do not disrupt the job or infer Ursa deployment identity. |
+| RUN-001 | Inputs/catalog | Validate the exact 5x ILMN plus 5x ONT six-manifest fixture and render the complete ordinary Bjuice plus Inflection packaging command with DYEC `19.0.33` and DayOA `16.0.12`. | IN_PROGRESS | contract_test | Gate 6 | The packaged `hg002_bjuice_verified_5x5x_fastq` six-manifest fixture and Bjuice identity are resolved. Candidate `catalog show` for build `19.0.33` resolves DayOA `16.0.12`, `artifact_recovery_required=false`, and exactly the two ordinary kitchensink/Inflection targets. Exact release identities and final launch render remain pending. | No recall target, alternate fixture, previous-artifact inputs, or reduced target substitution. |
 | RUN-002 | Dry proof | Launch one fresh exact-candidate dry controller and obtain attributable `rc=0` with zero submitted workflow jobs. | BLOCKED | contract_test | Gate 6 | Depends on RUN-001. | The resulting analysis ID/root/checkout/config becomes the live capsule. |
 | RUN-003 | Live proof | Continue the same capsule with only `-n` removed and run the complete requested workflow to attributable `rc=0`. | BLOCKED | active_product_contract | Gate 6 | Depends on RUN-002. | Failures are diagnosed in scope; no Slurm intervention or unapproved fallback. |
 
@@ -84,10 +98,12 @@ Ledger path:
   --region us-west-2` returned exactly `bjuiceval-19024` and
   `ursa-m-rgx-k53f`, both `UPDATE_COMPLETE`.
 - `bjuiceval-19024` headnode is `i-0ff7f501b24c95530`; controller inventory
-  was authoritative with zero active controllers, but Slurm job `16370`
-  (`ganon2_blood_oral_ref_20260827_v1`) remained `RUNNING` on 192 CPUs at
-  elapsed `4:41:06`. Force
-  reconfiguration is held until that independent job terminates naturally.
+  was authoritative with zero active controllers. At `2026-08-27T16:28Z`,
+  Slurm job `16371` (`ganon2_blood_oral_ref_20260827_v1`) remained `RUNNING`
+  on 192 CPUs at elapsed `31:19`. The third DayOA dry capsule proved that its
+  not-yet-installed output is the exact remaining DAG input blocker. Force
+  reconfiguration and the next dry capsule are held until that independent job
+  terminates naturally and the immutable asset validates.
 - `ursa-m-rgx-k53f` headnode is `i-05f4399b13850c049`; it had zero controllers
   and zero Slurm jobs, but it is tagged `cluster-use=ursa`, was created by the
   service identity, and has no exact local state file. It is outside the
