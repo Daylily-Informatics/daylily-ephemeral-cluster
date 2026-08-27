@@ -9376,7 +9376,10 @@ def mounts_create(
     purpose: str = typer.Option(
         "run",
         "--purpose",
-        help="Mount purpose: run, reference, control-data, staging, or custom.",
+        help=(
+            "Mount purpose: run, reference, runtime-asset, control-data, "
+            "staging, or custom."
+        ),
     ),
     cluster: Optional[str] = typer.Option(
         None,

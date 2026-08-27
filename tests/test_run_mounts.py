@@ -135,6 +135,14 @@ def test_mount_id_s3_and_path_normalization() -> None:
         run_mounts.headnode_path_from_file_system_path("/run_dir_mounts/RUN123/")
         == "/fsx/run_dir_mounts/RUN123/"
     )
+    assert run_mounts.normalize_file_system_path(
+        None,
+        mount_id="sentieon-genomics-202503.04",
+        purpose=run_mounts.MOUNT_PURPOSE_RUNTIME_ASSET,
+    ) == "/reference_asset_mounts/sentieon-genomics-202503.04/"
+    assert run_mounts.headnode_path_from_file_system_path(
+        "/reference_asset_mounts/sentieon-genomics-202503.04/"
+    ) == "/fsx/reference_asset_mounts/sentieon-genomics-202503.04/"
     assert run_mounts.headnode_path_from_file_system_path("/data/") == "/fsx/data/"
     with pytest.raises(run_mounts.RunMountError, match="/fsx headnode prefix"):
         run_mounts.normalize_file_system_path("/fsx/run_dir_mounts/RUN123/", mount_id="RUN123")
@@ -283,6 +291,7 @@ def test_import_mount_purposes_are_always_readonly() -> None:
     for purpose in (
         run_mounts.MOUNT_PURPOSE_RUN,
         run_mounts.MOUNT_PURPOSE_REFERENCE,
+        run_mounts.MOUNT_PURPOSE_RUNTIME_ASSET,
         run_mounts.MOUNT_PURPOSE_CONTROL_DATA,
         run_mounts.MOUNT_PURPOSE_STAGING,
     ):

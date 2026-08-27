@@ -603,6 +603,15 @@ def test_run_mount_source_id_purpose_and_path_contracts() -> None:
         mounts.normalize_file_system_path(None, mount_id="RUN", purpose="custom")
     with pytest.raises(mounts.RunMountError, match="must be under"):
         mounts.normalize_file_system_path("/other/RUN/", mount_id="RUN", purpose="reference")
+    with pytest.raises(mounts.RunMountError, match="must be under"):
+        mounts.normalize_file_system_path(
+            "/other/runtime/", mount_id="runtime", purpose="runtime-asset"
+        )
+    assert mounts.normalize_file_system_path(
+        None,
+        mount_id="sentieon-genomics-202503.04",
+        purpose="runtime-asset",
+    ) == "/reference_asset_mounts/sentieon-genomics-202503.04/"
     with pytest.raises(mounts.RunMountError, match="concrete --purpose"):
         mounts.normalize_file_system_path("/references/RUN/", mount_id="RUN", purpose="custom")
 

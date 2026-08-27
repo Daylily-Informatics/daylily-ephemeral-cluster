@@ -24,12 +24,14 @@ FSX_RUN_MOUNT_ROOT = "/run_dir_mounts/"
 HEADNODE_RUN_MOUNT_ROOT = "/fsx/run_dir_mounts/"
 MOUNT_PURPOSE_RUN = "run"
 MOUNT_PURPOSE_REFERENCE = "reference"
+MOUNT_PURPOSE_RUNTIME_ASSET = "runtime-asset"
 MOUNT_PURPOSE_CONTROL_DATA = "control-data"
 MOUNT_PURPOSE_STAGING = "staging"
 MOUNT_PURPOSE_CUSTOM = "custom"
 MOUNT_PURPOSES = (
     MOUNT_PURPOSE_RUN,
     MOUNT_PURPOSE_REFERENCE,
+    MOUNT_PURPOSE_RUNTIME_ASSET,
     MOUNT_PURPOSE_CONTROL_DATA,
     MOUNT_PURPOSE_STAGING,
     MOUNT_PURPOSE_CUSTOM,
@@ -38,6 +40,7 @@ IMPORT_ONLY_MOUNT_PURPOSES = frozenset(
     (
         MOUNT_PURPOSE_RUN,
         MOUNT_PURPOSE_REFERENCE,
+        MOUNT_PURPOSE_RUNTIME_ASSET,
         MOUNT_PURPOSE_CONTROL_DATA,
         MOUNT_PURPOSE_STAGING,
     )
@@ -45,11 +48,13 @@ IMPORT_ONLY_MOUNT_PURPOSES = frozenset(
 PURPOSE_FSX_ROOTS = {
     MOUNT_PURPOSE_RUN: "/run_dir_mounts/",
     MOUNT_PURPOSE_REFERENCE: "/references/",
+    MOUNT_PURPOSE_RUNTIME_ASSET: "/reference_asset_mounts/",
     MOUNT_PURPOSE_CONTROL_DATA: "/control_data/",
     MOUNT_PURPOSE_STAGING: "/staging/",
 }
 STATIC_ROLE_ROOTS = (
     "/references/",
+    "/reference_asset_mounts/",
     "/control_data/",
     "/staging/",
 )
@@ -296,8 +301,8 @@ def normalize_file_system_path(
         for role_root in STATIC_ROLE_ROOTS + (FSX_RUN_MOUNT_ROOT,)
     ):
         raise RunMountError(
-            "Use a concrete --purpose for /references, /control_data, "
-            "/staging, or /run_dir_mounts paths."
+            "Use a concrete --purpose for /references, /reference_asset_mounts, "
+            "/control_data, /staging, or /run_dir_mounts paths."
         )
     return normalized
 
