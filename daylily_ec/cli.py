@@ -7796,11 +7796,6 @@ def workflow_launch(
         "--snakemake-extra",
         help="Additional arguments appended to dy-r.",
     ),
-    produce_analysis_artifact_manifest: Optional[str] = typer.Option(
-        None,
-        "--produce-analysis-artifact-manifest",
-        help="Override the DYEC default passed to dy-r; value must be true or false.",
-    ),
     produce_rulegraph: Optional[str] = typer.Option(
         None,
         "--produce-rulegraph",
@@ -8078,7 +8073,6 @@ def workflow_launch(
             ) from exc
     producer_option_values: dict[str, str] = {}
     for flag, value in (
-        ("--produce-analysis-artifact-manifest", produce_analysis_artifact_manifest),
         ("--produce-rulegraph", produce_rulegraph),
         ("--produce-filegraph", produce_filegraph),
         ("--produce-dag", produce_dag),

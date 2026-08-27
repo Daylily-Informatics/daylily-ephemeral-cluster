@@ -374,10 +374,10 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "-j 8" in command
         assert "-n" in command
         assert "--rerun-incomplete" in command
-        assert "--produce-analysis-artifact-manifest true" in command
-        assert "--produce-rulegraph true" in command
+        assert "--produce-analysis-artifact-manifest" not in command
+        assert "--produce-rulegraph false" in command
         assert "--produce-filegraph false" in command
-        assert "--produce-dag false" in command
+        assert "--produce-dag true" in command
 
         overridden = run_omics_module.build_default_command(
             target="help",
@@ -391,13 +391,12 @@ class TestRunOmicsAnalysisHeadnodeScript:
             dry_run=True,
             extra=None,
             producer_overrides={
-                "--produce-analysis-artifact-manifest": "false",
                 "--produce-rulegraph": "false",
                 "--produce-filegraph": "true",
                 "--produce-dag": "true",
             },
         )
-        assert "--produce-analysis-artifact-manifest false" in overridden
+        assert "--produce-analysis-artifact-manifest" not in overridden
         assert "--produce-rulegraph false" in overridden
         assert "--produce-filegraph true" in overridden
         assert "--produce-dag true" in overridden

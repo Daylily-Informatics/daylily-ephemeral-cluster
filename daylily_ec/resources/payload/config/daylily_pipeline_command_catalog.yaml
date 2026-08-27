@@ -648,6 +648,7 @@ repositories:
       - produce_multiqc_all
       - results/day/hg38/reports/DAY_final_multiqc.html
       - results/day/hg38/reports/dayoa_evidence_manifest.json
+      - ilmn_solo_kitchensink_manifest
       genome: hg38
       jobs: 333
       aligners:
@@ -658,9 +659,9 @@ repositories:
       - sentd
       sv_callers: []
       dy_command: >-
-        dy-r produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=["sent"]' 'dedupers=["dmd"]' 'snv_callers=["sentd"]' 'htd_callers=["cyrius"]' 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' 'sentD={"hg38_sentD_chrms":"1-25"}' -j 333 -p -T 0 --rerun-triggers mtime
+        dy-r produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json ilmn_solo_kitchensink_manifest --config 'aligners=["sent"]' 'dedupers=["dmd"]' 'snv_callers=["sentd"]' 'htd_callers=["cyrius"]' 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' 'sentD={"hg38_sentD_chrms":"1-25"}' -j 333 -p -T 0 --rerun-triggers mtime
       dryrun_dy_command: >-
-        dy-r produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=["sent"]' 'dedupers=["dmd"]' 'snv_callers=["sentd"]' 'htd_callers=["cyrius"]' 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' 'sentD={"hg38_sentD_chrms":"1-25"}' -j 333 -p -T 0 --rerun-triggers mtime -n
+        dy-r produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json ilmn_solo_kitchensink_manifest --config 'aligners=["sent"]' 'dedupers=["dmd"]' 'snv_callers=["sentd"]' 'htd_callers=["cyrius"]' 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' 'sentD={"hg38_sentD_chrms":"1-25"}' -j 333 -p -T 0 --rerun-triggers mtime -n
       compatible_platforms:
       - ILMN
       compatible_cluster_types:
@@ -875,6 +876,7 @@ repositories:
       - produce_vep
       - produce_metagenomics
       - produce_multiqc_all
+      - ultima_solo_kitchensink_manifest
       genome: hg38
       jobs: 333
       aligners:
@@ -884,8 +886,8 @@ repositories:
       snv_callers:
       - sentdug
       sv_callers: []
-      dy_command: "dy-r produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all --config 'aligners=[\"ug\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\"]}' 'sentdug={\"hg38_sentdug_chrms\":\"1-25\"}' -p -j 333 -T 0 --rerun-triggers mtime"
-      dryrun_dy_command: "dy-r produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all --config 'aligners=[\"ug\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\"]}' 'sentdug={\"hg38_sentdug_chrms\":\"1-25\"}' -p -j 333 -T 0 --rerun-triggers mtime -n"
+      dy_command: "dy-r produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all ultima_solo_kitchensink_manifest --config 'aligners=[\"ug\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\"]}' 'sentdug={\"hg38_sentdug_chrms\":\"1-25\"}' -p -j 333 -T 0 --rerun-triggers mtime"
+      dryrun_dy_command: "dy-r produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all ultima_solo_kitchensink_manifest --config 'aligners=[\"ug\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\"]}' 'sentdug={\"hg38_sentdug_chrms\":\"1-25\"}' -p -j 333 -T 0 --rerun-triggers mtime -n"
       compatible_platforms:
       - ULTIMA
       compatible_cluster_types:
@@ -1045,6 +1047,7 @@ repositories:
       - produce_multiqc_all
       - results/day/hg38/reports/DAY_final_multiqc.html
       - results/day/hg38/reports/dayoa_evidence_manifest.json
+      - ont_solo_kitchensink_manifest
       genome: hg38
       jobs: 333
       aligners:
@@ -1054,8 +1057,8 @@ repositories:
       snv_callers:
       - sentdont
       sv_callers: []
-      dy_command: "dy-r produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=[\"ont\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\"]}' 'sentdont={\"hg38_sentdont_chrms\":\"1-25\"}' -p -j 333 -T 0 --rerun-triggers mtime"
-      dryrun_dy_command: "dy-r produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=[\"ont\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\"]}' 'sentdont={\"hg38_sentdont_chrms\":\"1-25\"}' -p -j 333 -T 0 --rerun-triggers mtime -n"
+      dy_command: "dy-r produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json ont_solo_kitchensink_manifest --config 'aligners=[\"ont\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\"]}' 'sentdont={\"hg38_sentdont_chrms\":\"1-25\"}' -p -j 333 -T 0 --rerun-triggers mtime"
+      dryrun_dy_command: "dy-r produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json ont_solo_kitchensink_manifest --config 'aligners=[\"ont\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\"]}' 'sentdont={\"hg38_sentdont_chrms\":\"1-25\"}' -p -j 333 -T 0 --rerun-triggers mtime -n"
       compatible_platforms:
       - ONT
       compatible_cluster_types:
@@ -1300,8 +1303,8 @@ repositories:
       - sentdhiomr
       sv_callers:
       - tiddit
-      dy_command: "dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --produce-analysis-artifact-manifest true --produce-filegraph true --produce-rulegraph true --produce-dag true --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete"
-      dryrun_dy_command: "dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --produce-analysis-artifact-manifest true --produce-filegraph true --produce-rulegraph true --produce-dag true --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete -n"
+      dy_command: "dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete"
+      dryrun_dy_command: "dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete -n"
       compatible_platforms:
       - ILMN
       - ONT
@@ -1360,8 +1363,8 @@ repositories:
       - sentdhiomr2
       sv_callers:
       - tiddit
-      dy_command: "dy-r produce_sentdhiomr2_gvcf produce_sentdhiomr2_longreadsv produce_sentdhiomr2_cnv produce_sentdhiomr2_mito produce_sentdhiomr2_segdup produce_snv_concordances produce_sentdhiomr2_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --produce-analysis-artifact-manifest true --produce-filegraph true --produce-rulegraph true --produce-dag true --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"],\"library_summary\":{\"primary_alignments\":{\"sr\":{\"aligner\":\"sentdhiomr2_sr\",\"deduper\":\"smd\"},\"ont\":{\"aligner\":\"sentdhiomr2_lr\",\"deduper\":\"na\"}},\"contamination_method\":\"site_mix\"}}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete"
-      dryrun_dy_command: "dy-r produce_sentdhiomr2_gvcf produce_sentdhiomr2_longreadsv produce_sentdhiomr2_cnv produce_sentdhiomr2_mito produce_sentdhiomr2_segdup produce_snv_concordances produce_sentdhiomr2_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --produce-analysis-artifact-manifest true --produce-filegraph true --produce-rulegraph true --produce-dag true --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"],\"library_summary\":{\"primary_alignments\":{\"sr\":{\"aligner\":\"sentdhiomr2_sr\",\"deduper\":\"smd\"},\"ont\":{\"aligner\":\"sentdhiomr2_lr\",\"deduper\":\"na\"}},\"contamination_method\":\"site_mix\"}}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete -n"
+      dy_command: "dy-r produce_sentdhiomr2_gvcf produce_sentdhiomr2_longreadsv produce_sentdhiomr2_cnv produce_sentdhiomr2_mito produce_sentdhiomr2_segdup produce_snv_concordances produce_sentdhiomr2_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"],\"library_summary\":{\"primary_alignments\":{\"sr\":{\"aligner\":\"sentdhiomr2_sr\",\"deduper\":\"smd\"},\"ont\":{\"aligner\":\"sentdhiomr2_lr\",\"deduper\":\"na\"}},\"contamination_method\":\"site_mix\"}}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete"
+      dryrun_dy_command: "dy-r produce_sentdhiomr2_gvcf produce_sentdhiomr2_longreadsv produce_sentdhiomr2_cnv produce_sentdhiomr2_mito produce_sentdhiomr2_segdup produce_snv_concordances produce_sentdhiomr2_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"],\"library_summary\":{\"primary_alignments\":{\"sr\":{\"aligner\":\"sentdhiomr2_sr\",\"deduper\":\"smd\"},\"ont\":{\"aligner\":\"sentdhiomr2_lr\",\"deduper\":\"na\"}},\"contamination_method\":\"site_mix\"}}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete -n"
       compatible_platforms:
       - ILMN
       - ONT
@@ -1464,8 +1467,8 @@ repositories:
       - sentdhiomr
       sv_callers:
       - tiddit
-      dy_command: "dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --produce-analysis-artifact-manifest true --produce-filegraph true --produce-rulegraph true --produce-dag true --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete"
-      dryrun_dy_command: "dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --produce-analysis-artifact-manifest true --produce-filegraph true --produce-rulegraph true --produce-dag true --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete -n"
+      dy_command: "dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete"
+      dryrun_dy_command: "dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"tiddit\"]' 'htd_callers=[\"smn12\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"unmapped_metagenomics_ganon2\",\"gatk_contam\",\"site_mix\",\"peddy\"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete -n"
       compatible_platforms:
       - ILMN
       - ONT
@@ -1542,6 +1545,7 @@ repositories:
           - ONT_R1_FQ
       targets:
       - produce_sentdhiomr2_slim_kitchensink_mega
+      - bjuice_manifest
       genome: hg38
       jobs: 333
       keep_going: true
@@ -1553,8 +1557,8 @@ repositories:
       snv_callers:
       - sentdhiomr2
       sv_callers: []
-      dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}' 'sv_callers=[]' 'htd_callers=["smn12"]' -j 333 -T 0 -p --rerun-triggers mtime
-      dryrun_dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}' 'sv_callers=[]' 'htd_callers=["smn12"]' -j 333 -T 0 -p --rerun-triggers mtime -n
+      dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega bjuice_manifest --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}' 'sv_callers=[]' 'htd_callers=["smn12"]' -j 333 -T 0 -p --rerun-triggers mtime
+      dryrun_dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega bjuice_manifest --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}' 'sv_callers=[]' 'htd_callers=["smn12"]' -j 333 -T 0 -p --rerun-triggers mtime -n
       compatible_platforms:
       - ILMN
       - ONT
@@ -1608,6 +1612,7 @@ repositories:
       targets:
       - produce_sentdhiomr2_slim_kitchensink_mega
       - produce_sentdhiomr2_inflection_analytical_package
+      - bjuice_manifest
       genome: hg38
       jobs: 333
       keep_going: true
@@ -1616,8 +1621,8 @@ repositories:
       dedupers: [na]
       snv_callers: [sentdhiomr2]
       sv_callers: []
-      dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 333 -T 0 -p --rerun-triggers mtime"
-      dryrun_dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 333 -T 0 -p --rerun-triggers mtime -n"
+      dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package bjuice_manifest --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 333 -T 0 -p --rerun-triggers mtime"
+      dryrun_dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package bjuice_manifest --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 333 -T 0 -p --rerun-triggers mtime -n"
       compatible_platforms: [ILMN, ONT]
       compatible_cluster_types: [sentieon-single]
       compatible_data_modes: [hybrid_ilmn_ont]
@@ -1648,6 +1653,7 @@ repositories:
       targets:
       - produce_sentdhiomr2_slim_kitchensink_mega
       - produce_sentdhiomr2_inflection_analytical_package
+      - bjuice_manifest
       genome: hg38
       jobs: 333
       keep_going: true
@@ -1656,8 +1662,8 @@ repositories:
       dedupers: [na]
       snv_callers: [sentdhiomr2]
       sv_callers: []
-      dy_command: "PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 333 -T 0 -p --rerun-triggers mtime"
-      dryrun_dy_command: "PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 333 -T 0 -p --rerun-triggers mtime -n"
+      dy_command: "PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package bjuice_manifest --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 333 -T 0 -p --rerun-triggers mtime"
+      dryrun_dy_command: "PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package bjuice_manifest --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 333 -T 0 -p --rerun-triggers mtime -n"
       compatible_platforms: [ILMN, ONT]
       compatible_cluster_types: [sentieon-single]
       compatible_data_modes: [hybrid_ilmn_ont]
@@ -1733,8 +1739,8 @@ repositories:
       dedupers: [na]
       snv_callers: [sentdhiomr2]
       sv_callers: []
-      dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_nicu_fastq_recoverability --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"19-20\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' -j 333 -T 0 -p --rerun-triggers mtime --produce-analysis-artifact-manifest true --produce-rulegraph true"
-      dryrun_dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_nicu_fastq_recoverability --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"19-20\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' -j 333 -T 0 -p --rerun-triggers mtime --produce-analysis-artifact-manifest true --produce-rulegraph true -n"
+      dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_nicu_fastq_recoverability --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"19-20\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' -j 333 -T 0 -p --rerun-triggers mtime"
+      dryrun_dy_command: "DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_nicu_fastq_recoverability --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"19-20\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' -j 333 -T 0 -p --rerun-triggers mtime -n"
       compatible_platforms: [ILMN, ONT]
       compatible_cluster_types: [sentieon-single]
       compatible_data_modes: [hybrid_ilmn_ont]
@@ -1767,6 +1773,7 @@ repositories:
       - produce_alignstats
       - produce_snv_concordances
       - produce_multiqc_all
+      - cg_solo_kitchensink_manifest
       genome: hg38
       jobs: 333
       aligners:
@@ -1776,8 +1783,8 @@ repositories:
       snv_callers:
       - cgt7p
       sv_callers: []
-      dy_command: "dy-r produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances produce_multiqc_all --config 'cgt7p={\"hg38_cgt7p_chrms\":\"1-25\"}' -p -j 333 -T 0 --rerun-triggers mtime"
-      dryrun_dy_command: "dy-r produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances produce_multiqc_all --config 'cgt7p={\"hg38_cgt7p_chrms\":\"1-25\"}' -p -j 333 -T 0 --rerun-triggers mtime -n"
+      dy_command: "dy-r produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances produce_multiqc_all cg_solo_kitchensink_manifest --config 'cgt7p={\"hg38_cgt7p_chrms\":\"1-25\"}' -p -j 333 -T 0 --rerun-triggers mtime"
+      dryrun_dy_command: "dy-r produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances produce_multiqc_all cg_solo_kitchensink_manifest --config 'cgt7p={\"hg38_cgt7p_chrms\":\"1-25\"}' -p -j 333 -T 0 --rerun-triggers mtime -n"
       compatible_platforms:
       - CG
       compatible_cluster_types:
@@ -1844,14 +1851,15 @@ repositories:
           PLATFORM: ILMN
       targets:
       - produce_illumina_run_qc
+      - ilmn_seqqc_manifest
       genome: hg38
       jobs: 20
       aligners: []
       dedupers: []
       snv_callers: []
       sv_callers: []
-      dy_command: "dy-r produce_illumina_run_qc -p -j 20 -k"
-      dryrun_dy_command: "dy-r produce_illumina_run_qc -p -j 20 -k -n"
+      dy_command: "dy-r produce_illumina_run_qc ilmn_seqqc_manifest -p -j 20 -k"
+      dryrun_dy_command: "dy-r produce_illumina_run_qc ilmn_seqqc_manifest -p -j 20 -k -n"
       compatible_platforms:
       - ILMN
       compatible_cluster_types:
@@ -2095,14 +2103,15 @@ repositories:
           PLATFORM: ONT
       targets:
       - produce_ont_run_qc_and_demux_multiqc
+      - ont_seqqc_manifest
       genome: hg38
       jobs: 6
       aligners: []
       dedupers: []
       snv_callers: []
       sv_callers: []
-      dy_command: "dy-r produce_ont_run_qc_and_demux_multiqc -p -j 6 -k --produce-analysis-artifact-manifest true --produce-rulegraph true --produce-filegraph false --produce-dag false"
-      dryrun_dy_command: "dy-r produce_ont_run_qc_and_demux_multiqc -p -j 6 -k --produce-analysis-artifact-manifest true --produce-rulegraph true --produce-filegraph false --produce-dag false -n"
+      dy_command: "dy-r produce_ont_run_qc_and_demux_multiqc ont_seqqc_manifest -p -j 6 -k"
+      dryrun_dy_command: "dy-r produce_ont_run_qc_and_demux_multiqc ont_seqqc_manifest -p -j 6 -k -n"
       compatible_platforms:
       - ONT
       compatible_cluster_types:
@@ -2208,14 +2217,15 @@ repositories:
           PLATFORM: ULTIMA
       targets:
       - produce_ultima_run_qc
+      - ultima_seqqc_manifest
       genome: hg38
       jobs: 5
       aligners: []
       dedupers: []
       snv_callers: []
       sv_callers: []
-      dy_command: "dy-r produce_ultima_run_qc -p -j 5 -k"
-      dryrun_dy_command: "dy-r produce_ultima_run_qc -p -j 5 -k -n"
+      dy_command: "dy-r produce_ultima_run_qc ultima_seqqc_manifest -p -j 5 -k"
+      dryrun_dy_command: "dy-r produce_ultima_run_qc ultima_seqqc_manifest -p -j 5 -k -n"
       compatible_platforms:
       - ULTIMA
       compatible_cluster_types:
@@ -279320,6 +279330,7 @@ dyec_builds:
         - produce_multiqc_all
         - results/day/hg38/reports/DAY_final_multiqc.html
         - results/day/hg38/reports/dayoa_evidence_manifest.json
+        - ilmn_solo_kitchensink_manifest
         genome: hg38
         jobs: 333
         aligners:
@@ -279329,8 +279340,8 @@ dyec_builds:
         snv_callers:
         - sentd
         sv_callers: []
-        dy_command: dy-r produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=["sent"]' 'dedupers=["dmd"]' 'snv_callers=["sentd"]' 'htd_callers=["cyrius"]' 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' 'sentD={"hg38_sentD_chrms":"1-25"}' -j 333 -T 0 -p --rerun-triggers mtime
-        dryrun_dy_command: dy-r produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=["sent"]' 'dedupers=["dmd"]' 'snv_callers=["sentd"]' 'htd_callers=["cyrius"]' 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' 'sentD={"hg38_sentD_chrms":"1-25"}' -j 333 -T 0 -p --rerun-triggers mtime -n
+        dy_command: dy-r produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json ilmn_solo_kitchensink_manifest --config 'aligners=["sent"]' 'dedupers=["dmd"]' 'snv_callers=["sentd"]' 'htd_callers=["cyrius"]' 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' 'sentD={"hg38_sentD_chrms":"1-25"}' -j 333 -T 0 -p --rerun-triggers mtime
+        dryrun_dy_command: dy-r produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json ilmn_solo_kitchensink_manifest --config 'aligners=["sent"]' 'dedupers=["dmd"]' 'snv_callers=["sentd"]' 'htd_callers=["cyrius"]' 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' 'sentD={"hg38_sentD_chrms":"1-25"}' -j 333 -T 0 -p --rerun-triggers mtime -n
         compatible_platforms:
         - ILMN
         compatible_cluster_types:
@@ -279628,6 +279639,7 @@ dyec_builds:
         - produce_multiqc_all
         - results/day/hg38/reports/DAY_final_multiqc.html
         - results/day/hg38/reports/dayoa_evidence_manifest.json
+        - ultima_solo_kitchensink_manifest
         genome: hg38
         jobs: 333
         aligners:
@@ -279637,8 +279649,8 @@ dyec_builds:
         snv_callers:
         - sentdug
         sv_callers: []
-        dy_command: dy-r produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=["ug"]' 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' 'sentdug={"hg38_sentdug_chrms":"1-25"}' -j 333 -T 0 -p --rerun-triggers mtime
-        dryrun_dy_command: dy-r produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=["ug"]' 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' 'sentdug={"hg38_sentdug_chrms":"1-25"}' -j 333 -T 0 -p --rerun-triggers mtime -n
+        dy_command: dy-r produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json ultima_solo_kitchensink_manifest --config 'aligners=["ug"]' 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' 'sentdug={"hg38_sentdug_chrms":"1-25"}' -j 333 -T 0 -p --rerun-triggers mtime
+        dryrun_dy_command: dy-r produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json ultima_solo_kitchensink_manifest --config 'aligners=["ug"]' 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' 'sentdug={"hg38_sentdug_chrms":"1-25"}' -j 333 -T 0 -p --rerun-triggers mtime -n
         compatible_platforms:
         - ULTIMA
         compatible_cluster_types:
@@ -279904,6 +279916,7 @@ dyec_builds:
         - produce_multiqc_all
         - results/day/hg38/reports/DAY_final_multiqc.html
         - results/day/hg38/reports/dayoa_evidence_manifest.json
+        - ont_solo_kitchensink_manifest
         genome: hg38
         jobs: 333
         aligners:
@@ -279913,8 +279926,8 @@ dyec_builds:
         snv_callers:
         - sentdont
         sv_callers: []
-        dy_command: dy-r produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=["ont"]' 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' 'sentdont={"hg38_sentdont_chrms":"1-25"}' -j 333 -T 0 -p --rerun-triggers mtime
-        dryrun_dy_command: dy-r produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=["ont"]' 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' 'sentdont={"hg38_sentdont_chrms":"1-25"}' -j 333 -T 0 -p --rerun-triggers mtime -n
+        dy_command: dy-r produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json ont_solo_kitchensink_manifest --config 'aligners=["ont"]' 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' 'sentdont={"hg38_sentdont_chrms":"1-25"}' -j 333 -T 0 -p --rerun-triggers mtime
+        dryrun_dy_command: dy-r produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json ont_solo_kitchensink_manifest --config 'aligners=["ont"]' 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' 'sentdont={"hg38_sentdont_chrms":"1-25"}' -j 333 -T 0 -p --rerun-triggers mtime -n
         compatible_platforms:
         - ONT
         compatible_cluster_types:
@@ -280241,8 +280254,8 @@ dyec_builds:
         - sentdhiomr
         sv_callers:
         - tiddit
-        dy_command: dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --produce-analysis-artifact-manifest true --produce-filegraph true --produce-rulegraph true --produce-dag true --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr"]' 'sv_callers=["tiddit"]' 'htd_callers=["smn12"]' 'multiqc_qc={"enable_tools":["vep","unmapped_metagenomics_ganon2","gatk_contam","site_mix","peddy"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete
-        dryrun_dy_command: dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --produce-analysis-artifact-manifest true --produce-filegraph true --produce-rulegraph true --produce-dag true --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr"]' 'sv_callers=["tiddit"]' 'htd_callers=["smn12"]' 'multiqc_qc={"enable_tools":["vep","unmapped_metagenomics_ganon2","gatk_contam","site_mix","peddy"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete -n
+        dy_command: dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr"]' 'sv_callers=["tiddit"]' 'htd_callers=["smn12"]' 'multiqc_qc={"enable_tools":["vep","unmapped_metagenomics_ganon2","gatk_contam","site_mix","peddy"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete
+        dryrun_dy_command: dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr"]' 'sv_callers=["tiddit"]' 'htd_callers=["smn12"]' 'multiqc_qc={"enable_tools":["vep","unmapped_metagenomics_ganon2","gatk_contam","site_mix","peddy"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete -n
         compatible_platforms:
         - ILMN
         - ONT
@@ -280305,8 +280318,8 @@ dyec_builds:
         - sentdhiomr2
         sv_callers:
         - tiddit
-        dy_command: dy-r produce_sentdhiomr2_gvcf produce_sentdhiomr2_longreadsv produce_sentdhiomr2_cnv produce_sentdhiomr2_mito produce_sentdhiomr2_segdup produce_snv_concordances produce_sentdhiomr2_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --produce-analysis-artifact-manifest true --produce-filegraph true --produce-rulegraph true --produce-dag true --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sv_callers=["tiddit"]' 'htd_callers=["smn12"]' 'multiqc_qc={"enable_tools":["vep","unmapped_metagenomics_ganon2","gatk_contam","site_mix","peddy"],"library_summary":{"primary_alignments":{"sr":{"aligner":"sentdhiomr2_sr","deduper":"smd"},"ont":{"aligner":"sentdhiomr2_lr","deduper":"na"}},"contamination_method":"site_mix"}}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete
-        dryrun_dy_command: dy-r produce_sentdhiomr2_gvcf produce_sentdhiomr2_longreadsv produce_sentdhiomr2_cnv produce_sentdhiomr2_mito produce_sentdhiomr2_segdup produce_snv_concordances produce_sentdhiomr2_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --produce-analysis-artifact-manifest true --produce-filegraph true --produce-rulegraph true --produce-dag true --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sv_callers=["tiddit"]' 'htd_callers=["smn12"]' 'multiqc_qc={"enable_tools":["vep","unmapped_metagenomics_ganon2","gatk_contam","site_mix","peddy"],"library_summary":{"primary_alignments":{"sr":{"aligner":"sentdhiomr2_sr","deduper":"smd"},"ont":{"aligner":"sentdhiomr2_lr","deduper":"na"}},"contamination_method":"site_mix"}}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete -n
+        dy_command: dy-r produce_sentdhiomr2_gvcf produce_sentdhiomr2_longreadsv produce_sentdhiomr2_cnv produce_sentdhiomr2_mito produce_sentdhiomr2_segdup produce_snv_concordances produce_sentdhiomr2_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sv_callers=["tiddit"]' 'htd_callers=["smn12"]' 'multiqc_qc={"enable_tools":["vep","unmapped_metagenomics_ganon2","gatk_contam","site_mix","peddy"],"library_summary":{"primary_alignments":{"sr":{"aligner":"sentdhiomr2_sr","deduper":"smd"},"ont":{"aligner":"sentdhiomr2_lr","deduper":"na"}},"contamination_method":"site_mix"}}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete
+        dryrun_dy_command: dy-r produce_sentdhiomr2_gvcf produce_sentdhiomr2_longreadsv produce_sentdhiomr2_cnv produce_sentdhiomr2_mito produce_sentdhiomr2_segdup produce_snv_concordances produce_sentdhiomr2_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sv_callers=["tiddit"]' 'htd_callers=["smn12"]' 'multiqc_qc={"enable_tools":["vep","unmapped_metagenomics_ganon2","gatk_contam","site_mix","peddy"],"library_summary":{"primary_alignments":{"sr":{"aligner":"sentdhiomr2_sr","deduper":"smd"},"ont":{"aligner":"sentdhiomr2_lr","deduper":"na"}},"contamination_method":"site_mix"}}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete -n
         compatible_platforms:
         - ILMN
         - ONT
@@ -280418,8 +280431,8 @@ dyec_builds:
         - sentdhiomr
         sv_callers:
         - tiddit
-        dy_command: dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --produce-analysis-artifact-manifest true --produce-filegraph true --produce-rulegraph true --produce-dag true --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr"]' 'sv_callers=["tiddit"]' 'htd_callers=["smn12"]' 'multiqc_qc={"enable_tools":["vep","unmapped_metagenomics_ganon2","gatk_contam","site_mix","peddy"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete
-        dryrun_dy_command: dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --produce-analysis-artifact-manifest true --produce-filegraph true --produce-rulegraph true --produce-dag true --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr"]' 'sv_callers=["tiddit"]' 'htd_callers=["smn12"]' 'multiqc_qc={"enable_tools":["vep","unmapped_metagenomics_ganon2","gatk_contam","site_mix","peddy"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete -n
+        dy_command: dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr"]' 'sv_callers=["tiddit"]' 'htd_callers=["smn12"]' 'multiqc_qc={"enable_tools":["vep","unmapped_metagenomics_ganon2","gatk_contam","site_mix","peddy"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete
+        dryrun_dy_command: dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr"]' 'sv_callers=["tiddit"]' 'htd_callers=["smn12"]' 'multiqc_qc={"enable_tools":["vep","unmapped_metagenomics_ganon2","gatk_contam","site_mix","peddy"]}' use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime --rerun-incomplete -n
         compatible_platforms:
         - ILMN
         - ONT
@@ -280503,6 +280516,7 @@ dyec_builds:
             - ONT_R1_FQ
         targets:
         - produce_sentdhiomr2_slim_kitchensink_mega
+        - bjuice_manifest
         genome: hg38
         jobs: 333
         keep_going: true
@@ -280514,8 +280528,8 @@ dyec_builds:
         snv_callers:
         - sentdhiomr2
         sv_callers: []
-        dy_command: PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}' 'sv_callers=[]' 'htd_callers=["smn12"]' -j 333 -T 0 -p --rerun-triggers mtime
-        dryrun_dy_command: PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}' 'sv_callers=[]' 'htd_callers=["smn12"]' -j 333 -T 0 -p --rerun-triggers mtime -n
+        dy_command: PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega bjuice_manifest --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}' 'sv_callers=[]' 'htd_callers=["smn12"]' -j 333 -T 0 -p --rerun-triggers mtime
+        dryrun_dy_command: PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega bjuice_manifest --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}' 'sv_callers=[]' 'htd_callers=["smn12"]' -j 333 -T 0 -p --rerun-triggers mtime -n
         compatible_platforms:
         - ILMN
         - ONT
@@ -280581,8 +280595,8 @@ dyec_builds:
         snv_callers:
         - sentdhiomr2
         sv_callers: []
-        dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_nicu_fastq_recoverability --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"19-20"}' 'sv_callers=[]' 'htd_callers=["smn12"]' -j 333 -T 0 -p --rerun-triggers mtime --produce-analysis-artifact-manifest true --produce-rulegraph true
-        dryrun_dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_nicu_fastq_recoverability --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"19-20"}' 'sv_callers=[]' 'htd_callers=["smn12"]' -j 333 -T 0 -p --rerun-triggers mtime --produce-analysis-artifact-manifest true --produce-rulegraph true -n
+        dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_nicu_fastq_recoverability --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"19-20"}' 'sv_callers=[]' 'htd_callers=["smn12"]' -j 333 -T 0 -p --rerun-triggers mtime
+        dryrun_dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_nicu_fastq_recoverability --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"19-20"}' 'sv_callers=[]' 'htd_callers=["smn12"]' -j 333 -T 0 -p --rerun-triggers mtime -n
         compatible_platforms:
         - ILMN
         - ONT
@@ -280624,6 +280638,7 @@ dyec_builds:
         - produce_multiqc_all
         - results/day/hg38/reports/DAY_final_multiqc.html
         - results/day/hg38/reports/dayoa_evidence_manifest.json
+        - cg_solo_kitchensink_manifest
         genome: hg38
         jobs: 333
         aligners:
@@ -280633,8 +280648,8 @@ dyec_builds:
         snv_callers:
         - cgt7p
         sv_callers: []
-        dy_command: dy-r produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'cgt7p={"hg38_cgt7p_chrms":"1-25"}' -j 333 -T 0 -p --rerun-triggers mtime
-        dryrun_dy_command: dy-r produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'cgt7p={"hg38_cgt7p_chrms":"1-25"}' -j 333 -T 0 -p --rerun-triggers mtime -n
+        dy_command: dy-r produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json cg_solo_kitchensink_manifest --config 'cgt7p={"hg38_cgt7p_chrms":"1-25"}' -j 333 -T 0 -p --rerun-triggers mtime
+        dryrun_dy_command: dy-r produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json cg_solo_kitchensink_manifest --config 'cgt7p={"hg38_cgt7p_chrms":"1-25"}' -j 333 -T 0 -p --rerun-triggers mtime -n
         compatible_platforms:
         - CG
         compatible_cluster_types:
@@ -280723,14 +280738,15 @@ dyec_builds:
             PLATFORM: ILMN
         targets:
         - produce_illumina_run_qc
+        - ilmn_seqqc_manifest
         genome: hg38
         jobs: 333
         aligners: []
         dedupers: []
         snv_callers: []
         sv_callers: []
-        dy_command: dy-r produce_illumina_run_qc -k -j 333 -T 0 -p
-        dryrun_dy_command: dy-r produce_illumina_run_qc -k -j 333 -T 0 -p -n
+        dy_command: dy-r produce_illumina_run_qc ilmn_seqqc_manifest -k -j 333 -T 0 -p
+        dryrun_dy_command: dy-r produce_illumina_run_qc ilmn_seqqc_manifest -k -j 333 -T 0 -p -n
         compatible_platforms:
         - ILMN
         compatible_cluster_types:
@@ -281000,14 +281016,15 @@ dyec_builds:
             PLATFORM: ONT
         targets:
         - produce_ont_run_qc_and_demux_multiqc
+        - ont_seqqc_manifest
         genome: hg38
         jobs: 333
         aligners: []
         dedupers: []
         snv_callers: []
         sv_callers: []
-        dy_command: dy-r produce_ont_run_qc_and_demux_multiqc -k -j 333 -T 0 -p --produce-analysis-artifact-manifest true --produce-filegraph false --produce-dag false
-        dryrun_dy_command: dy-r produce_ont_run_qc_and_demux_multiqc -k -j 333 -T 0 -p --produce-analysis-artifact-manifest true --produce-filegraph false --produce-dag false -n
+        dy_command: dy-r produce_ont_run_qc_and_demux_multiqc ont_seqqc_manifest -k -j 333 -T 0 -p
+        dryrun_dy_command: dy-r produce_ont_run_qc_and_demux_multiqc ont_seqqc_manifest -k -j 333 -T 0 -p -n
         compatible_platforms:
         - ONT
         compatible_cluster_types:
@@ -281135,14 +281152,15 @@ dyec_builds:
             PLATFORM: ULTIMA
         targets:
         - produce_ultima_run_qc
+        - ultima_seqqc_manifest
         genome: hg38
         jobs: 333
         aligners: []
         dedupers: []
         snv_callers: []
         sv_callers: []
-        dy_command: dy-r produce_ultima_run_qc -k -j 333 -T 0 -p
-        dryrun_dy_command: dy-r produce_ultima_run_qc -k -j 333 -T 0 -p -n
+        dy_command: dy-r produce_ultima_run_qc ultima_seqqc_manifest -k -j 333 -T 0 -p
+        dryrun_dy_command: dy-r produce_ultima_run_qc ultima_seqqc_manifest -k -j 333 -T 0 -p -n
         compatible_platforms:
         - ULTIMA
         compatible_cluster_types:
@@ -281270,6 +281288,7 @@ dyec_builds:
         targets:
         - produce_sentdhiomr2_slim_kitchensink_mega
         - produce_sentdhiomr2_inflection_analytical_package
+        - bjuice_manifest
         genome: hg38
         jobs: 333
         keep_going: true
@@ -281278,8 +281297,8 @@ dyec_builds:
         dedupers: [na]
         snv_callers: [sentdhiomr2]
         sv_callers: []
-        dy_command: "PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 333 -T 0 -p --rerun-triggers mtime"
-        dryrun_dy_command: "PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 333 -T 0 -p --rerun-triggers mtime -n"
+        dy_command: "PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package bjuice_manifest --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 333 -T 0 -p --rerun-triggers mtime"
+        dryrun_dy_command: "PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package bjuice_manifest --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 333 -T 0 -p --rerun-triggers mtime -n"
         compatible_platforms: [ILMN, ONT]
         compatible_cluster_types: [sentieon-single]
         compatible_data_modes: [hybrid_ilmn_ont]
@@ -281332,6 +281351,7 @@ dyec_builds:
         targets:
         - produce_sentdhiomr2_slim_kitchensink_mega
         - produce_sentdhiomr2_inflection_analytical_package
+        - bjuice_manifest
         genome: hg38
         jobs: 333
         keep_going: true
@@ -281340,8 +281360,8 @@ dyec_builds:
         dedupers: [na]
         snv_callers: [sentdhiomr2]
         sv_callers: []
-        dy_command: "PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 333 -T 0 -p --rerun-triggers mtime"
-        dryrun_dy_command: "PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 333 -T 0 -p --rerun-triggers mtime -n"
+        dy_command: "PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package bjuice_manifest --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 333 -T 0 -p --rerun-triggers mtime"
+        dryrun_dy_command: "PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega produce_sentdhiomr2_inflection_analytical_package bjuice_manifest --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=[\"sentmm2ont\"]' 'dedupers=[\"na\"]' 'snv_callers=[\"sentdhiomr2\"]' 'sentdhiomr2={\"hg38_sentdhiomr2_chrms\":\"1-25\"}' 'sv_callers=[]' 'htd_callers=[\"smn12\"]' 'hiomr2_inflection_package_mode=analytical' \"seqone_delivery_batch_id=$ANALYSIS_ID\" -j 333 -T 0 -p --rerun-triggers mtime -n"
         compatible_platforms: [ILMN, ONT]
         compatible_cluster_types: [sentieon-single]
         compatible_data_modes: [hybrid_ilmn_ont]

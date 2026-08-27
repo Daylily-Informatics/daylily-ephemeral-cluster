@@ -921,9 +921,6 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument("--snakemake-extra", help="Additional arguments appended to dy-r")
-    parser.add_argument(
-        "--produce-analysis-artifact-manifest", help="Pass true or false to dy-r"
-    )
     parser.add_argument("--produce-rulegraph", help="Pass true or false to dy-r")
     parser.add_argument("--produce-filegraph", help="Pass true or false to dy-r")
     parser.add_argument("--produce-dag", help="Pass true or false to dy-r")
@@ -1323,7 +1320,6 @@ def main(argv: Optional[List[str]] = None) -> int:
         stage_config = None
 
     producer_overrides = {
-        "--produce-analysis-artifact-manifest": args.produce_analysis_artifact_manifest,
         "--produce-rulegraph": args.produce_rulegraph,
         "--produce-filegraph": args.produce_filegraph,
         "--produce-dag": args.produce_dag,

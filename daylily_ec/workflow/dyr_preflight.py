@@ -9,10 +9,9 @@ class DyrPreflightOptionsError(ValueError):
 
 
 PRODUCER_OPTION_DEFAULTS: tuple[tuple[str, bool], ...] = (
-    ("--produce-analysis-artifact-manifest", True),
-    ("--produce-rulegraph", True),
+    ("--produce-rulegraph", False),
     ("--produce-filegraph", False),
-    ("--produce-dag", False),
+    ("--produce-dag", True),
 )
 PRODUCER_OPTIONS = frozenset(option for option, _default in PRODUCER_OPTION_DEFAULTS)
 DYR_EXECUTABLES = frozenset({"dy-r", "bin/day_run"})

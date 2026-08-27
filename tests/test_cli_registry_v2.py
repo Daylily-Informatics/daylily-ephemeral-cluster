@@ -3898,10 +3898,10 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     assert "produce_dmd_dedup_cram" in dy_command
     assert "produce_smd_dedup_cram" not in dy_command
     assert " -n " in dy_command
-    assert "--produce-analysis-artifact-manifest true" in dy_command
-    assert "--produce-rulegraph true" in dy_command
+    assert "--produce-analysis-artifact-manifest" not in dy_command
+    assert "--produce-rulegraph false" in dy_command
     assert "--produce-filegraph false" in dy_command
-    assert "--produce-dag false" in dy_command
+    assert "--produce-dag true" in dy_command
     assert "--stage-dir" in launch_argv
     assert (
         "/fsx/staging/staged_external_sequencing_data/remote_stage_20260425T000000Z" in launch_argv
@@ -4548,8 +4548,6 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
             "--replace-existing-analysis-dir",
             "--sv-callers",
             "tiddit",
-            "--produce-analysis-artifact-manifest",
-            "false",
             "--produce-rulegraph",
             "false",
             "--produce-filegraph",
@@ -4593,7 +4591,7 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     assert "tiddit" in argv
     assert "--max-runtime-minutes" in argv
     assert "100" in argv
-    assert argv[argv.index("--produce-analysis-artifact-manifest") + 1] == "false"
+    assert "--produce-analysis-artifact-manifest" not in argv
     assert argv[argv.index("--produce-rulegraph") + 1] == "false"
     assert argv[argv.index("--produce-filegraph") + 1] == "true"
     assert argv[argv.index("--produce-dag") + 1] == "true"

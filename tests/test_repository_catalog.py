@@ -1298,10 +1298,10 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "--dy-command" in simple_launch_argv
     simple_effective = simple_launch_argv[simple_launch_argv.index("--dy-command") + 1]
     assert simple_effective.startswith(simple_test.dy_command)
-    assert "--produce-analysis-artifact-manifest true" in simple_effective
-    assert "--produce-rulegraph true" in simple_effective
+    assert "--produce-analysis-artifact-manifest" not in simple_effective
+    assert "--produce-rulegraph false" in simple_effective
     assert "--produce-filegraph false" in simple_effective
-    assert "--produce-dag false" in simple_effective
+    assert "--produce-dag true" in simple_effective
     assert "--no-input-staging" in simple_launch_argv
     assert "--no-default-activation" in simple_launch_argv
     assert "--bootstrap-test-config" in simple_launch_argv
@@ -1347,7 +1347,7 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
         "run_context_only": "true",
     }
     assert command.input_requirements.required_run_context_values == {"PLATFORM": "ILMN"}
-    assert command.targets == ["produce_illumina_run_qc"]
+    assert command.targets == ["produce_illumina_run_qc", "ilmn_seqqc_manifest"]
     assert command.compatible_platforms == ["ILMN"]
     assert command.compatible_cluster_types == ["daywgs"]
 
@@ -1371,8 +1371,9 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert "samples_table=" not in dy_command
     assert "units_table=" not in dy_command
     assert "--config run_context_file=config/runs.tsv run_context_only=true" in dy_command
-    assert "--produce-analysis-artifact-manifest true" in dy_command
-    assert "--produce-rulegraph true" in dy_command
+    assert "ilmn_seqqc_manifest" in dy_command
+    assert "--produce-analysis-artifact-manifest" not in dy_command
+    assert "--produce-dag true" in dy_command
 
     combined = catalog.get_command("illumina_run_qc_bclconvert")
     assert combined.command_class == "run_analysis"
@@ -1396,7 +1397,7 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     ont = catalog.get_command("ont_run_qc")
     assert ont.validated_version == RUN_QC_VALIDATED_DAYOA_TAG
     assert ont.git_tag == DAYOA_BLESSED_TAG
-    assert ont.targets == ["produce_ont_run_qc_and_demux_multiqc"]
+    assert ont.targets == ["produce_ont_run_qc_and_demux_multiqc", "ont_seqqc_manifest"]
     assert ont.runtime_parameters == {
         "run_context_file": "config/runs.tsv",
         "run_context_only": "true",
@@ -1409,8 +1410,9 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     )
     ont_dy_command = ont_argv[ont_argv.index("--dy-command") + 1]
     assert "produce_ont_run_qc_and_demux_multiqc" in ont_dy_command
-    assert "--produce-analysis-artifact-manifest true" in ont_dy_command
-    assert "--produce-rulegraph true" in ont_dy_command
+    assert "ont_seqqc_manifest" in ont_dy_command
+    assert "--produce-analysis-artifact-manifest" not in ont_dy_command
+    assert "--produce-dag true" in ont_dy_command
     assert ont.genome == "hg38"
     assert ont.jobs == 333
     assert "run_context_file=config/runs.tsv" in ont_dy_command
