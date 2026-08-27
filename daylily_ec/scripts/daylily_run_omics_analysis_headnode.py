@@ -2068,7 +2068,7 @@ verify_pinned_dayoa_checkout() {{
   # a source-mutation bypass.
   is_allowed_catalog_runtime_path() {{
     case "$1" in
-      .dyec/controller.log|.dyec/status.json.lock|.dyec/status.json.tmp-*|status.json|analysis_artifacts.tsv|artifact_lineage.tsv|pipeline_details.md|pipeline_workflow_planned.mmd|pipeline_workflow_planned.pdf|pipeline_workflow_checkpoint_*.mmd|pipeline_workflow_checkpoint_*.pdf|pipeline_workflow_final_success.mmd|pipeline_workflow_final_success.pdf|pipeline_workflow_final_failed.mmd|pipeline_workflow_final_failed.pdf|config/specimens.tsv|config/samples.tsv|config/libraries.tsv|config/sequencing_inputs.tsv|config/analysis_units.tsv|config/analysis_unit_inputs.tsv|config/dyec_manifest_stage_receipt.json|config/dyec_runtime_config.yaml|config/dyec_analysis_recovery_source.json|config/day_profiles/slurm/.template-source.sha256)
+      .dyec/controller.log|.dyec/controller-dag.png|.dyec/status.json.lock|.dyec/status.json.tmp-*|status.json|analysis_artifacts.tsv|artifact_lineage.tsv|pipeline_details.md|pipeline_workflow_planned.mmd|pipeline_workflow_planned.pdf|pipeline_workflow_checkpoint_*.mmd|pipeline_workflow_checkpoint_*.pdf|pipeline_workflow_final_success.mmd|pipeline_workflow_final_success.pdf|pipeline_workflow_final_failed.mmd|pipeline_workflow_final_failed.pdf|config/specimens.tsv|config/samples.tsv|config/libraries.tsv|config/sequencing_inputs.tsv|config/analysis_units.tsv|config/analysis_unit_inputs.tsv|config/dyec_manifest_stage_receipt.json|config/dyec_runtime_config.yaml|config/dyec_analysis_recovery_source.json|config/day_profiles/slurm/.template-source.sha256)
         return 0
         ;;
       *)

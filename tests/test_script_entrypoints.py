@@ -73,6 +73,7 @@ def _assert_immutable_pinned_dayoa_controller(script: str) -> None:
     assert "Explicit pinned-source test override active" in script
     for allowed_path in (
         ".dyec/controller.log",
+        ".dyec/controller-dag.png",
         ".dyec/status.json.lock",
         ".dyec/status.json.tmp-*",
         "status.json",
