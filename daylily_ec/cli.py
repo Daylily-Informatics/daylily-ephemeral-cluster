@@ -9371,7 +9371,7 @@ def mounts_create(
     source_s3_uri: str = typer.Argument(
         ...,
         metavar="S3_URI",
-        help="S3 run-directory URI to mount; the final folder becomes the mount id.",
+        help="S3 prefix to mount; the final folder becomes the mount id.",
     ),
     purpose: str = typer.Option(
         "run",

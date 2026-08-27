@@ -290,14 +290,16 @@ work, but they are not part of the current WGS startup contract:
 
 | Legacy storage location | Status |
 |---|---|
-| `lsmc-dayoa-runtime-assets-usw2` | Obsolete standalone runtime-assets storage. Runtime assets now live under `<reference_s3_uri>/runtime_assets/`. |
+| `lsmc-dayoa-runtime-assets-usw2` | Not part of the static WGS startup contract. It is the backing store for explicitly mounted, immutable vendor runtimes under `cached_envs/<asset>/`; attach one exact version read-only with `dyec mounts create --purpose runtime-asset`, which projects it at `/fsx/reference_asset_mounts/<asset>/`. General startup assets remain under `<reference_s3_uri>/runtime_assets/`. |
 | `lsmc-dayoa-staging-usw2` | Legacy standalone staging storage. New staging should use the raw sequencing storage root prefix `staged_external_data/`. |
 | `lsmc-dayoa-omics-analysis-us-west-2/data/...` | Legacy overloaded storage layout. New DayEC runs should use explicit reference, control-data, raw sequencing, staging, and export roles. |
 | `/fsx/data` | Retired FSx namespace. Active code should fail hard rather than accepting it. |
-| `/fsx/runtime_assets` | Retired standalone runtime-assets namespace. Use `/fsx/references/runtime_assets`. |
+| `/fsx/runtime_assets` | Retired standalone runtime-assets namespace. Use `/fsx/references/runtime_assets` for static startup assets and `/fsx/reference_asset_mounts/<asset>` for an explicitly mounted immutable vendor runtime. |
 
-If any of these appear in a new run report, treat that as a contract violation
-unless the run is explicitly testing legacy migration state.
+If any legacy path above appears in a new run report, treat that as a contract
+violation unless the run is explicitly testing legacy migration state. The
+bounded `cached_envs/<asset>/` use of the runtime-assets bucket described above
+is active and is not a legacy exception.
 
 ## Operator Checklist
 
