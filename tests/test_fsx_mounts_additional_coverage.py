@@ -671,9 +671,17 @@ def test_run_mount_waiters_cover_missing_failure_timeout_and_deleted_fallback(
     monkeypatch.setattr(
         mounts,
         "describe_data_repository_associations",
-        lambda *_args, **_kwargs: [{"Lifecycle": "FAILED"}],
+        lambda *_args, **_kwargs: [
+            {
+                "Lifecycle": "FAILED",
+                "FailureDetails": {"Message": "bucket write denied"},
+            }
+        ],
     )
-    with pytest.raises(mounts.RunMountError, match="entered FAILED"):
+    with pytest.raises(
+        mounts.RunMountError,
+        match="entered FAILED.*Provider failure: bucket write denied",
+    ):
         mounts.wait_for_association(
             object(), "dra", target_lifecycles=["AVAILABLE"], timeout_seconds=1
         )

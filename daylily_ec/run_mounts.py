@@ -1189,8 +1189,14 @@ def wait_for_association(
         if lifecycle in target_set:
             return association
         if lifecycle in TERMINAL_FAILURE_LIFECYCLES:
+            failure_details = association.get("FailureDetails") or {}
+            failure_message = str(failure_details.get("Message") or "").strip()
+            detail_suffix = (
+                f" Provider failure: {failure_message}" if failure_message else ""
+            )
             raise RunMountError(
                 f"FSx data repository association {association_id} entered {lifecycle}."
+                f"{detail_suffix}"
             )
         if time.time() >= deadline:
             raise RunMountError(

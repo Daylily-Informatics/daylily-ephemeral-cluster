@@ -207,6 +207,14 @@ def _allowed_export_destination_suffixes(
     normalized_source = normalize_export_source_path(source_path)
     source_suffix = normalized_source[len(ANALYSIS_EXPORT_ROOT) :]
     source_parts = source_suffix.rstrip("/").split("/")
+    if (
+        len(source_parts) == 3
+        and source_parts[:2] == ["runtime_assets", "cached_envs"]
+    ):
+        # Runtime assets use the established standalone runtime-bucket layout,
+        # not the reference-bucket layout used by their aligned FSx staging
+        # path. Keep this exact so an export cannot drift into a second prefix.
+        return [f"cached_envs/{source_parts[2]}/"]
     analysis_dir = "/".join(source_parts[:2])
     nested_suffix = "/".join(source_parts[2:])
     nested_tail = f"{nested_suffix}/" if nested_suffix else ""
@@ -256,7 +264,18 @@ def validate_export_destination_s3_uri(
         cluster_name=cluster_name,
         destination_analysis_id=destination_analysis_id,
     )
-    if not any(key.endswith(expected_key) for expected_key in expected_keys):
+    normalized_source = normalize_export_source_path(source_path)
+    source_parts = normalized_source[len(ANALYSIS_EXPORT_ROOT) :].rstrip("/").split("/")
+    is_runtime_asset = (
+        len(source_parts) == 3
+        and source_parts[:2] == ["runtime_assets", "cached_envs"]
+    )
+    destination_matches = (
+        key == expected_keys[0]
+        if is_runtime_asset
+        else any(key.endswith(expected_key) for expected_key in expected_keys)
+    )
+    if not destination_matches:
         raise ExportError(
             "destination_s3_uri must end with one of "
             f"{expected_keys!r}; got s3://{parsed.netloc}/{key}"

@@ -507,6 +507,25 @@ def test_runtime_asset_export_requires_exact_aligned_source() -> None:
         )
 
 
+def test_runtime_asset_export_requires_standalone_bucket_layout() -> None:
+    source = (
+        "/fsx/analysis_results/runtime_assets/cached_envs/"
+        "sentieon-genomics-202503.04"
+    )
+    assert validate_export_destination_s3_uri(
+        "s3://bucket/cached_envs/sentieon-genomics-202503.04/",
+        source_path=source,
+        cluster_name="cluster-a",
+    ) == "s3://bucket/cached_envs/sentieon-genomics-202503.04/"
+    with pytest.raises(ExportError, match="must end with"):
+        validate_export_destination_s3_uri(
+            "s3://bucket/runtime_assets/cached_envs/"
+            "sentieon-genomics-202503.04/",
+            source_path=source,
+            cluster_name="cluster-a",
+        )
+
+
 def test_runtime_asset_export_uses_dra_without_clone_evidence(
     tmp_path, monkeypatch
 ) -> None:
@@ -525,7 +544,7 @@ def test_runtime_asset_export_uses_dra_without_clone_evidence(
                 "sentieon-genomics-202503.04"
             ),
             destination_s3_uri=(
-                "s3://bucket/runtime_assets/cached_envs/"
+                "s3://bucket/cached_envs/"
                 "sentieon-genomics-202503.04/"
             ),
             region="us-west-2",
@@ -556,7 +575,7 @@ def test_runtime_asset_export_forbids_fsx_deletion(tmp_path) -> None:
                 "sentieon-genomics-202503.04"
             ),
             destination_s3_uri=(
-                "s3://bucket/runtime_assets/cached_envs/"
+                "s3://bucket/cached_envs/"
                 "sentieon-genomics-202503.04/"
             ),
             region="us-west-2",
@@ -1239,7 +1258,7 @@ def test_cli_export_accepts_runtime_asset_contract(tmp_path, monkeypatch) -> Non
                 "--source-path",
                 "/fsx/analysis_results/runtime_assets/cached_envs/runtime-1",
                 "--destination-s3-uri",
-                "s3://bucket/runtime_assets/cached_envs/runtime-1/",
+                "s3://bucket/cached_envs/runtime-1/",
                 "--region",
                 "us-west-2",
                 "--output-dir",
