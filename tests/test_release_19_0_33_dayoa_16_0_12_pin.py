@@ -6,8 +6,6 @@ from pathlib import Path
 
 import yaml
 
-from daylily_ec.repositories import CURRENT_DYEC_BUILD
-
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_CATALOG = ROOT / "config/daylily_pipeline_command_catalog.yaml"
 PACKAGED_CATALOG = (
@@ -90,11 +88,8 @@ def _expected_19_0_33_commands(commands: dict) -> dict:
     return expected
 
 
-def test_19_0_33_is_current_and_uniformly_pins_dayoa_16_0_12() -> None:
-    assert CURRENT_DYEC_BUILD == DYEC_RELEASE
-    assert SOURCE_CATALOG.read_bytes() == PACKAGED_CATALOG.read_bytes()
-
-    raw = _catalog()
+def test_19_0_33_tag_uniformly_pins_dayoa_16_0_12() -> None:
+    raw = _tag_catalog(DYEC_RELEASE)
     repository = raw["repositories"]["daylily-omics-analysis"]
     release = raw["dyec_builds"][DYEC_RELEASE]
 
@@ -124,7 +119,7 @@ def test_19_0_33_preserves_history_and_retargets_the_existing_commands() -> None
 
 
 def test_production_bjuice_inflection_command_adds_only_the_product_manifest_target() -> None:
-    raw = _catalog()
+    raw = _tag_catalog(DYEC_RELEASE)
     tagged = _tag_catalog(PREVIOUS_DYEC_RELEASE)
     active = {
         item["command_id"]: item
