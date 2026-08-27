@@ -486,6 +486,11 @@ def agent_guidance() -> None:
             "Acquire an analysis write lock before workflow writes, deletes, unlocks, or restarts.",
             "Never take over another owner silently; use the token takeover flow and require explicit approval.",
         ],
+        "slurm_submission_contract": [
+            "DYEC clusters use CPU-only Slurm placement; explicit memory scheduling is disabled.",
+            "Never pass --mem, --mem-per-cpu, --mem-per-gpu, --mem-per-tres, or API memory fields; the wrapper and server-side policy reject them.",
+            "Select capacity with the exact partition, optional compute-resource constraint, and CPU/thread count; mem192nvme-style names are resource labels, not memory requests.",
+        ],
         "headnode_file_transfer": [
             "Upload: dyec headnode upload [-r] <local> <remote> --staging-s3-uri s3://bucket/prefix --profile <profile> --region <region> --cluster <cluster>",
             "Download: dyec headnode download [-r] <remote> <local> --staging-s3-uri s3://bucket/prefix --profile <profile> --region <region> --cluster <cluster>",

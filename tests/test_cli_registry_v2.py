@@ -351,6 +351,10 @@ def test_agent_guidance_json() -> None:
     assert "raw Snakemake" in payload["summary"]
     assert any("headnode upload" in item for item in payload["headnode_file_transfer"])
     assert any("dy-r" in item for item in payload["dayoa_controller_contract"])
+    slurm_guidance = payload["slurm_submission_contract"]
+    assert any("CPU-only" in item for item in slurm_guidance)
+    assert any("--mem-per-cpu" in item for item in slurm_guidance)
+    assert any("resource labels" in item for item in slurm_guidance)
     cache_guidance = payload["runtime_cache_export_contract"]
     assert any("runtime-cache export" in item for item in cache_guidance)
     assert any("aws s3 sync" in item for item in cache_guidance)

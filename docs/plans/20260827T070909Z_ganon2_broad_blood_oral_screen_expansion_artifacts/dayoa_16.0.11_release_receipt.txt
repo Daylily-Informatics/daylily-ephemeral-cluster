@@ -1,0 +1,10 @@
+release_tag	16.0.11
+tag_kind	annotated
+tag_message	Release 16.0.11
+commit	878749f1ea9d9f0d6585c02a3415f07724bd97ff
+branch	codex/ganon2-broad-blood-oral
+remote	git@github.com:lsmc-bio/daylily-omics-analysis.git
+branch_push	complete
+tag_push	complete
+focused_tests	138 passed in 2.07s
+git_diff_check	rc=0

@@ -1,0 +1,24 @@
+DayOA worktree: /Users/jmajor/projects/lsmc/.codex-worktrees/dayoa-16-0-11-ganon2
+Base tag: 16.0.10
+Base commit: 13daa804b7e32625844d849b39541b6437171e09
+
+Command:
+PYTHONPATH="$PWD" pytest -q tests/test_unmapped_metagenomics.py tests/test_multiqc_qc_targets.py tests/test_hiomr2_paired_alignment_qc.py tests/test_multiqc_staging_contracts.py tests/test_full_coverage_resource_tuning.py tests/test_plan_qc_benchmarking_contracts.py tests/test_pangenome_kitchensink_contracts.py tests/test_snakemake_parser_contracts.py
+
+Result:
+138 passed in 2.07s
+
+Additional checks:
+- git diff --check: rc=0
+- Python bytecode compilation for summarize_unmapped_ganon2.py and focused tests: rc=0
+- Local, Slurm, and Slurm-RHEL rule configuration YAML parsing: rc=0
+
+Scope exercised:
+- primary SR/LR selection and explicit RSR exclusion
+- structured component ordering, hierarchy, taxonomy, and k=27/w=51 compatibility
+- prepare/classify rule separation and dedicated thread/resource wiring
+- read-outcome reconciliation, zero-hit behavior, non-host top-hit ordering, and Sankey edges
+- final MultiQC staging and custom outcome/top-hit sections
+- adjacent parser and production-resource contracts
+
+This is focused implementation evidence, not a DayOA dy-r dry/live workflow receipt.

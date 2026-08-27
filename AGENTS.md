@@ -240,6 +240,24 @@ For cost/performance reports, aggregate directly from those rows: `sum(s)` for t
 - If signing is configured and expected, use signed annotated tags: `git tag -s 2.0.19 -m "Release 2.0.19"`.
 - Verify tag type with `git cat-file -t 2.0.18`; `tag` means annotated and `commit` means lightweight.
 
+# CPU-Only Slurm Memory Contract
+
+- DYEC-managed Slurm clusters deliberately disable memory-based scheduling.
+  Active templates use CPU-only placement, and both the DAY-EC `sbatch`
+  wrapper and the server-side job-submit policy reject explicit memory
+  requests rather than ignoring them.
+- Never pass `--mem`, `--mem-per-cpu`, `--mem-per-gpu`,
+  `--mem-per-tres`, or equivalent API memory fields to `sbatch`, `salloc`,
+  or `srun`. Such submissions fail. Select capacity with the exact partition,
+  optional compute-resource constraint, and CPU/thread count; use
+  `--exclusive` only when the workload actually requires the whole node.
+- Names such as `mem192nvme` and `bigmem192nvme` are ParallelCluster
+  compute-resource/constraint labels. They do not enable Slurm memory
+  placement and must not be translated into a `--mem` request.
+- Runtime RSS and benchmark memory fields remain useful measurements. Keep
+  those observations separate from scheduler placement, and never convert a
+  DayOA `mem_mb` accounting/resource value into a Slurm memory flag.
+
 # Slurm Service Boundary
 
 - Do not perform Slurm service, daemon, scheduler, partition, accounting, node-health, node drain/resume, or queue interventions unless the user first receives a specific proposal for that exact Slurm action and explicitly approves it in the current thread.

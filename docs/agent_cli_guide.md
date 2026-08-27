@@ -27,6 +27,26 @@ DYEC is neither an identity service nor a replacement for DayOA.
 | Share one exported S3 object | `dyec aws s3 presign` | The object must already exist; the read-only URL lifetime is explicitly bounded to seven days. |
 | Work interactively in DayOA | `dyec headnode connect`, then named `tmux` + `dy-r` | Never use raw `snakemake` or a noninteractive headnode command to run a controller. |
 
+### CPU-only Slurm placement
+
+DYEC clusters deliberately disable memory-based scheduling. Explicit Slurm
+memory requests are rejected, not ignored: do not pass `--mem`,
+`--mem-per-cpu`, `--mem-per-gpu`, `--mem-per-tres`, or equivalent API memory
+fields to `sbatch`, `salloc`, or `srun`. Select an appropriate node shape with
+the exact partition and optional compute-resource constraint, then request the
+required CPU/thread count. For example:
+
+```bash
+sbatch --comment=<cost-center> \
+  --partition=i192nvme --constraint=mem192nvme \
+  --nodes=1 --ntasks=1 --cpus-per-task=192 \
+  --exclusive --time=24:00:00 <script>
+```
+
+The `mem192nvme` token is a ParallelCluster compute-resource label; it is not
+a schedulable-memory request. Application RSS and benchmark memory fields are
+still useful evidence, but they do not become Slurm placement flags.
+
 ## 1. Start locally and identify the exact release
 
 Run DYEC from its activated checkout. Set only explicit, reviewed context:
