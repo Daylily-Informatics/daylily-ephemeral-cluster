@@ -26,12 +26,10 @@ Ledger path:
 
 ## Gate 0 inventory
 
-- Dayhoff GitHub default branch is currently `jemdev10` at `ee0cef67`; its
-  non-default `main` is a strict 66-commit descendant at `3fbf3a9e` and already
-  contains PR #196 plus the cluster-sweeper prerequisites. The supplied
-  handoff commit `13259de0` adds the terminal live-policy receipt and
-  integration instructions. Maximum numeric tag: `9.0.29`; candidate release:
-  `9.0.30`.
+- Dayhoff GitHub default branch `jemdev10` now contains the complete
+  prerequisite line and supplied handoff through PR #197, with release
+  evidence through PR #198. Annotated tag `9.0.30` points to merged default-
+  branch commit `b254238ff8a9831f6e21dec7bccd017125b565e2`.
 - The ordinary Dayhoff checkout is dirty and is not a release source. A clean
   integration worktree will begin at `origin/jemdev10`, advance through the
   complete `origin/main` prerequisite line, and then apply `13259de0`.
@@ -60,7 +58,7 @@ Ledger path:
 | ID | Area | Requirement | Status | Category | Gate | Evidence / blocker | Terminal note |
 |---|---|---|---|---|---|---|---|
 | DH-001 | Dayhoff | Integrate the complete `main` sweeper prerequisite line and supplied handoff into a clean branch from the actual default `jemdev10`. | SUCCESS | feature_implementation | Gate 1 | Clean branch advanced `ee0cef67` through `3fbf3a9e` and applied handoff as `b15444f`. | Full prerequisite line and supplied receipt are present without touching the dirty ordinary checkout. |
-| DH-002 | Dayhoff | Run focused and broad attributable tests, merge through a green PR without admin override, and push annotated tag `9.0.30`. | IN_PROGRESS | contract_test | Gate 2 | PR [#197](https://github.com/lsmc-bio/dayhoff/pull/197) is at `c3ebad2`. Review hardening fixed deployment-scoped paths, strict cleanup S3 destination shape, retired-contract tests, real refresh identity validation, and the Ursa `11.0.50` pin. Every Ursa sidecar now uses an exact credential-free config overlay at `URSA_CONFIG_PATH` and excludes Sysman identity from its environment. Full and Ursa-only rerenders share retired-key cleanup; the full-rerender regression proves both web and sidecar configs omit retired scheduler and `ursa_run_directory_analysis_*` keys. Focused tests pass `326/326`; Ruff, diff checks, and CodeQL pass. The 12 remaining non-E2E failures reproduce exactly on pristine `9.0.29`; E2E is unconfigured without `KAHLO_BASE_URL`. | Fresh CodeRabbit and Codex reviews were requested on `c3ebad2`; CodeRabbit remains in progress. Normal review clearance, merge, and annotated tag remain. |
+| DH-002 | Dayhoff | Run focused and broad attributable tests, merge through a green PR without admin override, and push annotated tag `9.0.30`. | SUCCESS | contract_test | Gate 2 | PR [#197](https://github.com/lsmc-bio/dayhoff/pull/197) merged normally as `78436daa555fc13aed52439e7968470c7bff0bb2` after exact-head `3c09e88` passed 332 focused tests, Ruff, diff checks, JavaScript/Python/aggregate CodeQL, CodeRabbit approval, and Codex review. Review hardening added deployment-scoped paths, strict S3 bucket/prefix contracts, credential-free sidecar config, exact least-authority binds, dedicated writable SQLite directories, retired-key cleanup, fail-closed placement config validation, and the Ursa `11.0.50` pin. Evidence PR [#198](https://github.com/lsmc-bio/dayhoff/pull/198) merged as `b254238ff8a9831f6e21dec7bccd017125b565e2`. Annotated tag object `44eb58ccc897fa3c666d33ab4d9c1aaff0cd9d9c` was pushed as `9.0.30`, peels to that exact commit, and `git cat-file -t 9.0.30` returned `tag`. | Dayhoff release complete without admin override; post-release receipt PR #199 only terminalizes the Dayhoff-local ledger. |
 | CLI-001 | Sentieon CLI | Resolve supported Hybrid haploid small-variant/gVCF behavior, validate fork `1.7.3i`, and publish its annotated tag. | BLOCKED | active_product_contract | Gate 3 | Sentieon issue #35 remained open with no vendor response at `2026-08-27T13:14:31Z`. Official `main`/`dev` inspection on `2026-08-27` found haploid BED processing only in `dnascope-longread`, which requires `haploid_model` and `haploid_hp_model`; official Hybrid has no such path and the installed Hybrid bundle lacks those members. The current fork therefore rejects haploid Hybrid core. | Vendor answer or executable/model proof is required; parser-only enablement is prohibited. |
 | DAY-001 | DayOA | Finish the scientifically supported XY core contract, exact candidate tests, and publish annotated tag `16.0.12`. | BLOCKED | active_product_contract | Gate 3 | DayOA ledger HYB-002/ENV-001/VAL-005/REL-DAY remain blocked on CLI-001. | Do not tag a release that cannot run the requested male HG002 fixture. |
 | DYEC-001 | DYEC | Set global and command-catalog DayOA pins exactly to released `16.0.12`, render/test the Ganon and HIOMR2 rows, and publish annotated tag `19.0.33`. | BLOCKED | config_or_startup_contract | Gate 4 | Source candidate and baseline comparison are complete; `16.0.12` does not yet exist. | Depends on DAY-001. |
