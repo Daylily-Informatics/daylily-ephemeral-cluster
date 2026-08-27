@@ -2240,40 +2240,40 @@ fi
 	controller_dag_stop="$DAYLILY_RUN_DIR/controller-dag-monitor.stop"
 	controller_dag_error="$DAYLILY_RUN_DIR/controller-dag-error.txt"
 	controller_dag_source="$DAYLILY_RUN_DIR/controller-dag-source.txt"
+	controller_dag_candidate="$repo_path/dags/dag.png"
 	rm -f "$controller_dag_stop" "$controller_dag_error" "$controller_dag_source"
-	if [[ -d "$repo_path/dags" ]]; then
-	  find "$repo_path/dags" -maxdepth 1 -type f -name 'dag_*.png' -print | sort \
+	if [[ -s "$controller_dag_candidate" ]]; then
+	  printf '%s:%s\n' \
+	    "$(sha256sum "$controller_dag_candidate" | cut -d ' ' -f 1)" \
+	    "$(stat -c %s "$controller_dag_candidate")" \
 	    > "$controller_dag_baseline"
 	else
 	  : > "$controller_dag_baseline"
 	fi
 
 	sync_controller_dag() {{
-	  local current="$DAYLILY_RUN_DIR/controller-dag-current.txt"
-	  local -a candidates=()
+	  local baseline=""
+	  local current=""
 	  if [[ -s "$CONTROLLER_DAG_PATH" ]]; then
 	    return 0
 	  fi
-	  if [[ -d "$repo_path/dags" ]]; then
-	    find "$repo_path/dags" -maxdepth 1 -type f -name 'dag_*.png' -print | sort > "$current"
-	  else
-	    : > "$current"
-	  fi
-	  mapfile -t candidates < <(comm -13 "$controller_dag_baseline" "$current")
-	  if [[ "${{#candidates[@]}}" -eq 0 ]]; then
+	  if [[ ! -s "$controller_dag_candidate" ]]; then
 	    return 1
 	  fi
-	  if [[ "${{#candidates[@]}}" -ne 1 ]]; then
-	    printf 'ambiguous new DAG files:\n%s\n' "${{candidates[*]}}" > "$controller_dag_error"
-	    return 2
+	  current="$(sha256sum "$controller_dag_candidate" | cut -d ' ' -f 1):$(stat -c %s "$controller_dag_candidate")"
+	  if [[ -s "$controller_dag_baseline" ]]; then
+	    baseline="$(<"$controller_dag_baseline")"
 	  fi
-	  cp --no-clobber -- "${{candidates[0]}}" "$CONTROLLER_DAG_PATH"
+	  if [[ -n "$baseline" && "$current" == "$baseline" ]]; then
+	    return 1
+	  fi
+	  cp --no-clobber -- "$controller_dag_candidate" "$CONTROLLER_DAG_PATH"
 	  if [[ ! -s "$CONTROLLER_DAG_PATH" ]]; then
-	    printf 'failed to create stable DAG copy from %s\n' "${{candidates[0]}}" \
+	    printf 'failed to create stable DAG copy from %s\n' "$controller_dag_candidate" \
 	      > "$controller_dag_error"
 	    return 2
 	  fi
-	  printf '%s\n' "${{candidates[0]}}" > "$controller_dag_source"
+	  printf '%s\n' "$controller_dag_candidate" > "$controller_dag_source"
 	  return 0
 	}}
 

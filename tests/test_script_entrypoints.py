@@ -683,8 +683,11 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'tmux has-session -t "=$tmux_session_name"' in script
         assert 'exec >> "$CONTROLLER_LOG_PATH" 2>&1' in script
         assert 'exec > >(tee -a "$CONTROLLER_LOG_PATH") 2>&1' not in script
-        assert "-name 'dag_*.png'" in script
-        assert 'comm -13 "$controller_dag_baseline" "$current"' in script
+        assert 'controller_dag_candidate="$repo_path/dags/dag.png"' in script
+        assert 'sha256sum "$controller_dag_candidate"' in script
+        assert 'stat -c %s "$controller_dag_candidate"' in script
+        assert 'cp --no-clobber -- "$controller_dag_candidate"' in script
+        assert "-name 'dag_*.png'" not in script
         assert "rulegraph" not in script[
             script.index("sync_controller_dag"):script.index("DAYLILY_STATUS_FINALIZED=1")
         ]
