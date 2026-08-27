@@ -12,6 +12,7 @@ import yaml
 from typer.testing import CliRunner
 
 from daylily_ec.workflow.export_data import (
+    RUNTIME_ASSET_EXPORT_KIND,
     ExportError,
     ExportOptions,
     analysis_dir_from_source_path,
@@ -27,6 +28,7 @@ from daylily_ec.workflow.export_data import (
     run_export_workflow,
     validate_export_destination_s3_uri,
     validate_no_overlapping_export_dra,
+    validate_runtime_asset_export_source,
     validate_s3_destination_prefix_empty,
     verify_exported_clone_status_v2_evidence,
 )
@@ -489,6 +491,87 @@ def test_analysis_export_rejects_nested_source_before_attaching_dra(tmp_path, mo
     receipt = yaml.safe_load((tmp_path / "fsx_export.yaml").read_text(encoding="utf-8"))["fsx_export"]
     assert receipt["phase"] == "validate"
     assert "complete analysis directory" in receipt["failure_details"]["message"]
+
+
+def test_runtime_asset_export_requires_exact_aligned_source() -> None:
+    assert validate_runtime_asset_export_source(
+        "/fsx/analysis_results/runtime_assets/cached_envs/"
+        "sentieon-genomics-202503.04"
+    ) == (
+        "/analysis_results/runtime_assets/cached_envs/"
+        "sentieon-genomics-202503.04/"
+    )
+    with pytest.raises(ExportError, match="require exactly"):
+        validate_runtime_asset_export_source(
+            "/fsx/analysis_results/user/run/sentieon-genomics-202503.04"
+        )
+
+
+def test_runtime_asset_export_uses_dra_without_clone_evidence(
+    tmp_path, monkeypatch
+) -> None:
+    client = FakeFsxClient()
+    monkeypatch.setattr(
+        "daylily_ec.workflow.export_data._create_session",
+        lambda _region, _profile: FakeSession(client),
+    )
+
+    rc = run_export_workflow(
+        ExportOptions(
+            cluster_name="cluster-a",
+            fsx_file_system_id="fs-123",
+            source_path=(
+                "/fsx/analysis_results/runtime_assets/cached_envs/"
+                "sentieon-genomics-202503.04"
+            ),
+            destination_s3_uri=(
+                "s3://bucket/runtime_assets/cached_envs/"
+                "sentieon-genomics-202503.04/"
+            ),
+            region="us-west-2",
+            profile="profile",
+            output_dir=tmp_path,
+            wait=False,
+            export_kind=RUNTIME_ASSET_EXPORT_KIND,
+        )
+    )
+
+    assert rc == 0
+    receipt = yaml.safe_load(
+        (tmp_path / "fsx_export.yaml").read_text(encoding="utf-8")
+    )["fsx_export"]
+    assert receipt["export_kind"] == "runtime_asset"
+    assert "clone_status_v2_evidence" not in receipt
+    assert "dayoa_analysis_root" not in receipt
+    assert client.created_association is not None
+
+
+def test_runtime_asset_export_forbids_fsx_deletion(tmp_path) -> None:
+    rc = run_export_workflow(
+        ExportOptions(
+            cluster_name="cluster-a",
+            fsx_file_system_id="fs-123",
+            source_path=(
+                "/fsx/analysis_results/runtime_assets/cached_envs/"
+                "sentieon-genomics-202503.04"
+            ),
+            destination_s3_uri=(
+                "s3://bucket/runtime_assets/cached_envs/"
+                "sentieon-genomics-202503.04/"
+            ),
+            region="us-west-2",
+            profile="profile",
+            output_dir=tmp_path,
+            delete_data_in_file_system=True,
+            export_kind=RUNTIME_ASSET_EXPORT_KIND,
+        )
+    )
+    assert rc == 1
+    receipt = yaml.safe_load(
+        (tmp_path / "fsx_export.yaml").read_text(encoding="utf-8")
+    )["fsx_export"]
+    assert receipt["phase"] == "validate"
+    assert "must retain staged FSx data" in receipt["failure_details"]["message"]
 
 
 def test_export_rejects_nonempty_s3_prefix_before_creating_dra(tmp_path, monkeypatch) -> None:
@@ -1134,6 +1217,39 @@ def test_cli_export_passes_only_provider_neutral_options(tmp_path, monkeypatch) 
     options = run.call_args.args[0]
     assert not hasattr(options, "dewey_url")
     assert not hasattr(options, "artifact_registration_policy")
+
+
+def test_cli_export_accepts_runtime_asset_contract(tmp_path, monkeypatch) -> None:
+    from daylily_ec.cli import app
+
+    monkeypatch.setenv("CONDA_PREFIX", "/tmp/dayec")
+    monkeypatch.setenv("CONDA_DEFAULT_ENV", "DAY-EC")
+    with (
+        patch("daylily_ec.workflow.export_data.configure_logging"),
+        patch(
+            "daylily_ec.workflow.export_data.run_export_workflow", return_value=0
+        ) as run,
+    ):
+        result = runner.invoke(
+            app,
+            [
+                "export",
+                "--cluster-name",
+                "cluster-a",
+                "--source-path",
+                "/fsx/analysis_results/runtime_assets/cached_envs/runtime-1",
+                "--destination-s3-uri",
+                "s3://bucket/runtime_assets/cached_envs/runtime-1/",
+                "--region",
+                "us-west-2",
+                "--output-dir",
+                str(tmp_path),
+                "--export-kind",
+                "runtime-asset",
+            ],
+        )
+    assert result.exit_code == 0, result.output
+    assert run.call_args.args[0].export_kind == RUNTIME_ASSET_EXPORT_KIND
 
 
 def test_removed_provider_export_options_fail_closed(tmp_path, monkeypatch) -> None:

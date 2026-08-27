@@ -51,7 +51,10 @@ EXPORT_INSPECTION_SCHEMA = "dyec.exports.inspect.v1"
 POLL_INTERVAL_SECONDS = 30
 ANALYSIS_EXPORT_KIND = "analysis"
 RUNTIME_CACHE_EXPORT_KIND = "runtime_cache"
-EXPORT_KINDS = frozenset({ANALYSIS_EXPORT_KIND, RUNTIME_CACHE_EXPORT_KIND})
+RUNTIME_ASSET_EXPORT_KIND = "runtime_asset"
+EXPORT_KINDS = frozenset(
+    {ANALYSIS_EXPORT_KIND, RUNTIME_ASSET_EXPORT_KIND, RUNTIME_CACHE_EXPORT_KIND}
+)
 MAX_DESTINATION_EVIDENCE_PAGES = 100
 
 
@@ -89,6 +92,21 @@ class ExportDraRecord:
 
     def to_payload(self) -> Dict[str, Any]:
         return dataclasses.asdict(self)
+
+
+def validate_runtime_asset_export_source(source_path: str) -> str:
+    """Require one immutable runtime asset beneath the aligned staging root."""
+
+    normalized = normalize_export_source_path(source_path)
+    suffix = normalized[len(ANALYSIS_EXPORT_ROOT) :].strip("/")
+    parts = suffix.split("/")
+    if len(parts) != 3 or parts[:2] != ["runtime_assets", "cached_envs"]:
+        raise ExportError(
+            "runtime_asset exports require exactly "
+            "/fsx/analysis_results/runtime_assets/cached_envs/<asset>"
+        )
+    validate_analysis_segment(parts[2], field_name="runtime_asset")
+    return normalized
 
 
 def configure_logging(verbose: bool) -> None:
@@ -1423,6 +1441,12 @@ def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
             f"unsupported export kind: {options.export_kind!r}; expected one of {sorted(EXPORT_KINDS)!r}"
         )
     normalized_source = normalize_export_source_path(options.source_path)
+    if options.export_kind == RUNTIME_ASSET_EXPORT_KIND:
+        validate_runtime_asset_export_source(normalized_source)
+        if options.delete_data_in_file_system:
+            raise ExportError(
+                "runtime_asset exports must retain staged FSx data for verification"
+            )
     destination_s3_uri = validate_export_destination_s3_uri(
         options.destination_s3_uri,
         source_path=normalized_source,
@@ -1452,6 +1476,7 @@ def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
     receipt = {
         "fsx_export": {
             "schema_version": EXPORT_SCHEMA_VERSION,
+            "export_kind": options.export_kind,
             "status": "started",
             "phase": "attach",
             "cluster_name": options.cluster_name,
@@ -1463,13 +1488,18 @@ def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
             "destination_analysis_id": options.destination_analysis_id,
             "fsx_root": headnode_path,
             "s3_root": destination_s3_uri,
-            "dayoa_analysis_root": f"{headnode_path}daylily-omics-analysis/",
-            "dayoa_s3_root": f"{destination_s3_uri}daylily-omics-analysis/",
             "detached": False,
             "delete_data_in_file_system": options.delete_data_in_file_system,
             "failure_details": {},
         }
     }
+    if options.export_kind == ANALYSIS_EXPORT_KIND:
+        receipt["fsx_export"].update(
+            {
+                "dayoa_analysis_root": f"{headnode_path}daylily-omics-analysis/",
+                "dayoa_s3_root": f"{destination_s3_uri}daylily-omics-analysis/",
+            }
+        )
     if clone_status_evidence is not None:
         receipt["fsx_export"]["clone_status_v2_evidence"] = clone_status_evidence
     if destination_evidence is not None:

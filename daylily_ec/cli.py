@@ -3454,16 +3454,30 @@ def export(
             "export DRA after a successful export task."
         ),
     ),
+    export_kind: str = typer.Option(
+        "analysis",
+        "--export-kind",
+        help=(
+            "Payload contract: analysis, or runtime-asset for one immutable "
+            "runtime_assets/cached_envs entry."
+        ),
+    ),
 ) -> None:
     """Export FSx outputs through an explicit DRA and immutable S3 receipt."""
 
     from daylily_ec.workflow.export_data import (
+        RUNTIME_ASSET_EXPORT_KIND,
         ExportOptions,
         configure_logging,
         run_export_workflow,
     )
 
     _warn_if_dayec_env_inactive()
+    normalized_export_kind = export_kind.strip().lower().replace("-", "_")
+    if normalized_export_kind not in {"analysis", RUNTIME_ASSET_EXPORT_KIND}:
+        raise typer.BadParameter(
+            "must be analysis or runtime-asset", param_hint="--export-kind"
+        )
     configure_logging(verbose)
     rc = run_export_workflow(
         ExportOptions(
@@ -3477,6 +3491,7 @@ def export(
             wait=wait,
             timeout_seconds=timeout_seconds,
             delete_data_in_file_system=delete_data_in_file_system,
+            export_kind=normalized_export_kind,
         )
     )
     raise typer.Exit(rc)
