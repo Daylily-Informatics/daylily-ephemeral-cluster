@@ -1,4 +1,4 @@
-# DYEC 19.0.36 headnode force-repair ledger
+# DYEC 19.0.36/19.0.37 headnode force-repair ledger
 
 ## Objective
 
@@ -30,6 +30,23 @@ environment without first invoking the stale managed shell bootstrap.
 | REL-001 | Commit, push, and annotate DYEC `19.0.36`. | IN_PROGRESS | Exact clean release commit and annotated tag required. |
 | LOCAL-001 | Merge the new release into the dirty operator checkout without losing user changes. | IN_PROGRESS | `19.0.36` must be an ancestor of the operator branch; existing dirty paths remain. |
 | DEPLOY-001 | Rerun the exact public `dyec headnode configure --force` command from released `19.0.36`. | IN_PROGRESS | Configure rc=0 and exact remote DYEC `19.0.36` / DayOA `16.0.23` refs and bootstrap receipt. |
+
+## 19.0.37 amendment
+
+The released `19.0.36` repair transport completed the reset, DYEC install,
+DayOA bootstrap, and normal-login activation successfully. Its final version
+check nevertheless used repair-mode transport with startup files suppressed,
+then invoked bare `dyec`; SSM command
+`1224ce5d-1a43-4ac1-8992-bb3c4fb54514` therefore returned `rc=1` even though a
+normal public headnode probe reported exact DYEC `19.0.36` at
+`a1961a4c4991d5e6e942dd39c324fa254fa762d2`.
+
+| ID | Work | Status | Terminal evidence |
+|---|---|---|---|
+| FIX-002 | Run the post-bootstrap version check through the strict managed startup contract and preserve bounded remote failure evidence. | SUCCESS | Direct normal-login probe resolved `/home/ubuntu/miniconda3/envs/DAY-EC/bin/dyec` and returned exact `19.0.36`; verifier now explicitly sets `require_startup_success=True`. |
+| REL-002 | Commit, push, and annotate DYEC `19.0.37` without changing the `19.0.35` command catalog or DayOA `16.0.23` pin. | IN_PROGRESS | Exact clean release commit and annotated tag required. |
+| LOCAL-002 | Merge `19.0.37` into the dirty operator checkout without losing user changes. | IN_PROGRESS | Release commit must be an ancestor; existing dirty paths must remain. |
+| DEPLOY-002 | Rerun the exact public forced configure from released `19.0.37`. | IN_PROGRESS | Configure rc=0; exact remote DYEC `19.0.37`, DayOA `16.0.23`, clean refs, and bootstrap receipt. |
 
 ## Boundaries
 

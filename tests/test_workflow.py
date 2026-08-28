@@ -2827,6 +2827,7 @@ class TestConfigureHeadnode:
         assert ok is True
         verify_call = mock_run_shell.call_args_list[-1]
         assert verify_call.kwargs["comment"] == "Verify installed DYEC version"
+        assert verify_call.kwargs["require_startup_success"] is True
         assert "dyec --version" in verify_call.args[2]
         assert "Daylily Ephemeral Cluster 16.1.85" in verify_call.args[2]
         mock_write_remote_text.assert_called()

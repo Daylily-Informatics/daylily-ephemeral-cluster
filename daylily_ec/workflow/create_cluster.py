@@ -4707,12 +4707,17 @@ def configure_headnode(
             verify_version_command,
             profile=profile,
             as_user=remote_user,
-            require_startup_success=False,
+            # Repair-mode transport deliberately suppresses every startup file,
+            # so bare ``dyec`` is not expected to be on PATH there.  All
+            # installation/bootstrap steps have completed at this boundary;
+            # use the managed startup contract both to expose the installed
+            # executable and to prove that a normal headnode login is healthy.
+            require_startup_success=True,
             comment="Verify installed DYEC version",
         )
         logger.info("  ✓ Installed DYEC version matches %s", expected_dyec_version)
     except (SsmCommandFailedError, TimeoutError, RuntimeError) as exc:
-        logger.error("  ✗ Installed DYEC version verification failed: %s", exc)
+        log_step_failure("Installed DYEC version verification", exc)
         return False
 
     if repo_overrides:
