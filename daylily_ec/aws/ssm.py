@@ -260,7 +260,30 @@ def _bash_login_interactive_source_bashrc_invocation(
     path directly into the inner command string.
     """
 
-    startup = SOURCE_HEADNODE_STARTUP_FILES if require_startup_success else "set +e +u"
+    if not require_startup_success:
+        # Headnode configure uses this mode to repair an absent or broken
+        # DAY-EC environment.  A normal ``bash -ilc`` still reads the user's
+        # profile and bashrc before evaluating its command string; on DayOA
+        # headnodes those files source the managed bootstrap, which can race
+        # the environment reset or reinstall the stale checkout before the
+        # repair payload runs.  Keep the required target-user interactive
+        # login shell, but explicitly suppress startup files for this one
+        # repair boundary.  Configure payloads source every dependency they
+        # need themselves.
+        repair = "set +e +u; source "
+        return " ".join(
+            [
+                "bash",
+                "--noprofile",
+                "--norc",
+                "--login",
+                "-i",
+                "-c",
+                f"{shlex.quote(repair)}{script_value}",
+            ]
+        )
+
+    startup = SOURCE_HEADNODE_STARTUP_FILES
     bootstrap = f"{startup}; source "
     return " ".join(
         [
@@ -366,8 +389,9 @@ def _encode_script_payload(
         "path.write_text(base64.b64decode(os.environ['DAYLILY_SSM_B64']).decode('utf-8'), encoding='utf-8')"
     )
     script_env_value = '"$tmp"'
+    sudo_prefix = "sudo -iu" if require_startup_success else "sudo -H -u"
     runner = (
-        f"sudo -iu {shlex.quote(user)} "
+        f"{sudo_prefix} {shlex.quote(user)} "
         f"{_bash_login_interactive_source_bashrc_invocation(script_env_value, require_startup_success=require_startup_success)}"
     )
     return "\n".join(

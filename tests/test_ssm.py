@@ -296,9 +296,14 @@ class TestRunShell:
 
         assert result.command_id == "cmd-1"
         command = client.send_command.call_args.kwargs["Parameters"]["commands"][0]
-        assert "sudo -iu ubuntu bash -ilc" in command
+        assert (
+            "sudo -H -u ubuntu bash --noprofile --norc --login -i -c"
+            in command
+        )
+        assert "sudo -iu ubuntu" not in command
         assert "source ~/.bashrc" not in command
         assert "source ~/.bash_profile" not in command
+        assert "DAYLILY_EC_HEADNODE_BOOTSTRAPPED" not in command
         encoded = command.split("DAYLILY_SSM_B64=")[1].split("\n", 1)[0]
         decoded = base64.b64decode(encoded).decode("utf-8")
         assert "echo repair" in decoded
