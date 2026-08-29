@@ -5,6 +5,7 @@ from __future__ import annotations
 import dataclasses
 import json
 import logging
+import shlex
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path, PurePosixPath
@@ -62,6 +63,7 @@ EXPORT_KINDS = frozenset(
     }
 )
 MAX_DESTINATION_EVIDENCE_PAGES = 100
+SHARED_REFERENCE_STAGE_MARKER = "DYEC_SHARED_REFERENCE_STAGE"
 
 
 class ExportError(RuntimeError):
@@ -1047,6 +1049,112 @@ def validate_no_overlapping_export_dra(
             )
 
 
+def resolve_shared_reference_dra(
+    client: Any,
+    *,
+    fsx_file_system_id: str,
+    destination_s3_uri: str,
+) -> Dict[str, Any]:
+    """Resolve one existing DRA that maps the requested shared-reference prefix."""
+
+    destination = normalize_s3_uri(destination_s3_uri)
+    matches: list[Dict[str, Any]] = []
+    for association in describe_data_repository_associations(
+        client,
+        filters=[{"Name": "file-system-id", "Values": [fsx_file_system_id]}],
+    ):
+        if not association_is_active(association):
+            continue
+        repository = normalize_s3_uri(str(association.get("DataRepositoryPath") or ""))
+        if not destination.startswith(repository) or destination == repository:
+            continue
+        file_system_path = str(association.get("FileSystemPath") or "").strip()
+        if not file_system_path.startswith("/") or "//" in file_system_path:
+            continue
+        file_system_path = file_system_path.rstrip("/") + "/"
+        relative = destination[len(repository) :]
+        target_file_system_path = f"{file_system_path}{relative}".replace("//", "/")
+        target_parts = PurePosixPath(target_file_system_path).parts
+        if any(part in {".", ".."} for part in target_parts):
+            continue
+        matches.append(
+            {
+                "association_id": str(association.get("AssociationId") or ""),
+                "association_lifecycle": str(association.get("Lifecycle") or "UNKNOWN"),
+                "association_file_system_path": file_system_path,
+                "association_data_repository_path": repository,
+                "target_file_system_path": target_file_system_path,
+                "target_headnode_path": f"/fsx{target_file_system_path}",
+            }
+        )
+    if len(matches) != 1 or not matches[0]["association_id"]:
+        raise ExportError(
+            "shared-reference export requires exactly one active existing DRA that maps "
+            f"the destination prefix; found {len(matches)}"
+        )
+    return matches[0]
+
+
+def build_shared_reference_stage_script(*, source_path: str, target_path: str) -> str:
+    """Build the fail-closed headnode copy into an existing reference DRA."""
+
+    source = analysis_headnode_path(source_path).rstrip("/")
+    target = str(target_path or "").rstrip("/")
+    if not target.startswith("/fsx/") or "//" in target:
+        raise ExportError("shared-reference target must be one absolute /fsx path")
+    if any(part in {".", ".."} for part in PurePosixPath(target).parts):
+        raise ExportError("shared-reference target must not contain '.' or '..'")
+    incomplete = f"{target}.dyec-incomplete"
+    return f"""set -Eeuo pipefail
+umask 077
+source_path={shlex.quote(source)}
+target_path={shlex.quote(target)}
+incomplete_path={shlex.quote(incomplete)}
+
+test -d "${{source_path}}"
+test ! -e "${{target_path}}"
+test ! -e "${{incomplete_path}}"
+mkdir -p "$(dirname -- "${{target_path}}")"
+cp -a --reflink=auto -- "${{source_path}}" "${{incomplete_path}}"
+source_bytes="$(du -sb -- "${{source_path}}" | cut -f1)"
+target_bytes="$(du -sb -- "${{incomplete_path}}" | cut -f1)"
+source_entries="$(find "${{source_path}}" -xdev -printf '.' | wc -c)"
+target_entries="$(find "${{incomplete_path}}" -xdev -printf '.' | wc -c)"
+test "${{source_bytes}}" = "${{target_bytes}}"
+test "${{source_entries}}" = "${{target_entries}}"
+mv -- "${{incomplete_path}}" "${{target_path}}"
+printf '{SHARED_REFERENCE_STAGE_MARKER}\t%s\t%s\t%s\n' \
+  "${{target_path}}" "${{target_bytes}}" "${{target_entries}}"
+"""
+
+
+def parse_shared_reference_stage_result(stdout: str) -> Dict[str, Any]:
+    matches = [
+        line
+        for line in str(stdout or "").splitlines()
+        if line.startswith(f"{SHARED_REFERENCE_STAGE_MARKER}\t")
+    ]
+    if len(matches) != 1:
+        raise ExportError("shared-reference staging did not emit one terminal result")
+    fields = matches[0].split("\t")
+    if len(fields) != 4:
+        raise ExportError("shared-reference staging result is malformed")
+    try:
+        byte_count = int(fields[2])
+        entry_count = int(fields[3])
+    except ValueError as exc:
+        raise ExportError("shared-reference staging counts are not integers") from exc
+    if byte_count <= 0 or entry_count <= 0:
+        raise ExportError("shared-reference staging produced an empty target")
+    return {
+        "target_headnode_path": fields[1],
+        "byte_count": byte_count,
+        "entry_count": entry_count,
+        "copy_command": "cp -a --reflink=auto",
+        "content_hashing": False,
+    }
+
+
 def preflight_export(
     *,
     cluster_name: Optional[str],
@@ -1081,12 +1189,20 @@ def preflight_export(
         destination_analysis_id=destination_analysis_id,
         export_kind=export_kind,
     )
-    validate_no_overlapping_export_dra(
-        fsx,
-        fsx_file_system_id=resolved_fsx_id,
-        source_path=normalized_source,
-        destination_s3_uri=destination,
-    )
+    shared_reference_dra: Dict[str, Any] | None = None
+    if export_kind == SHARED_REFERENCE_EXPORT_KIND:
+        shared_reference_dra = resolve_shared_reference_dra(
+            fsx,
+            fsx_file_system_id=resolved_fsx_id,
+            destination_s3_uri=destination,
+        )
+    else:
+        validate_no_overlapping_export_dra(
+            fsx,
+            fsx_file_system_id=resolved_fsx_id,
+            source_path=normalized_source,
+            destination_s3_uri=destination,
+        )
     destination = validate_s3_destination_prefix_empty(
         s3,
         destination,
@@ -1114,6 +1230,8 @@ def preflight_export(
     }
     if export_kind != ANALYSIS_EXPORT_KIND:
         payload["export_kind"] = export_kind
+    if shared_reference_dra is not None:
+        payload["existing_reference_dra"] = shared_reference_dra
     return payload
 
 
@@ -1236,6 +1354,7 @@ def run_export_task(
     fsx_client: Any,
     destination_analysis_id: Optional[str] = None,
     export_kind: str = ANALYSIS_EXPORT_KIND,
+    task_source_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     normalized_source = normalize_export_source_path(source_path)
     destination = validate_export_destination_s3_uri(
@@ -1245,6 +1364,16 @@ def run_export_task(
         destination_analysis_id=destination_analysis_id,
         export_kind=export_kind,
     )
+    normalized_task_source = normalized_source
+    if task_source_path is not None:
+        raw_task_source = str(task_source_path).strip()
+        if raw_task_source.startswith("/fsx/"):
+            raw_task_source = raw_task_source[len("/fsx") :]
+        if not raw_task_source.startswith("/") or "//" in raw_task_source:
+            raise ExportError("task_source_path must be one absolute FSx path")
+        if any(part in {".", ".."} for part in PurePosixPath(raw_task_source).parts):
+            raise ExportError("task_source_path must not contain '.' or '..'")
+        normalized_task_source = raw_task_source.rstrip("/") + "/"
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     report_path = (
         f"{destination.rstrip('/')}/_daylily_monitor/fsx-export/"
@@ -1254,7 +1383,7 @@ def run_export_task(
         response = fsx_client.create_data_repository_task(
             FileSystemId=fsx_file_system_id,
             Type="EXPORT_TO_REPOSITORY",
-            Paths=[normalized_source],
+            Paths=[normalized_task_source],
             Report={
                 "Enabled": True,
                 "Path": report_path,
@@ -1277,7 +1406,7 @@ def run_export_task(
     return {
         "task_id": task_id,
         "task_lifecycle": str(task.get("Lifecycle") or "UNKNOWN"),
-        "source_path": normalized_source,
+        "source_path": normalized_task_source,
         "report_path": report_path,
         "failure_details": task.get("FailureDetails") or {},
     }
@@ -1520,6 +1649,8 @@ def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
                 "runtime_asset exports must retain staged FSx data for verification"
             )
     if options.export_kind == SHARED_REFERENCE_EXPORT_KIND:
+        if not options.cluster_name:
+            raise ExportError("shared-reference exports require --cluster")
         if options.delete_data_in_file_system:
             raise ExportError(
                 "shared-reference exports must retain source FSx data for verification"
@@ -1593,8 +1724,170 @@ def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
     return receipt
 
 
+def run_shared_reference_export_workflow(options: ExportOptions) -> int:
+    """Stage one resource into an existing reference DRA and export it."""
+
+    from daylily_ec.aws.ssm import (
+        SsmError,
+        resolve_headnode_instance_id,
+        run_shell,
+        wait_for_ssm_online,
+    )
+
+    try:
+        receipt = _base_receipt(options)
+    except (RuntimeError, RunMountError, ExportError) as exc:
+        receipt = {
+            "fsx_export": {
+                "schema_version": EXPORT_SCHEMA_VERSION,
+                "status": "error",
+                "phase": "validate",
+                "export_kind": SHARED_REFERENCE_EXPORT_KIND,
+                "source_path": options.source_path,
+                "destination_s3_uri": options.destination_s3_uri,
+                "delete_data_in_file_system": False,
+                "failure_details": {"message": str(exc)},
+            }
+        }
+        _write_status(options, receipt)
+        ui.error_panel("Export failed", str(exc))
+        return 1
+
+    session = _create_session(options.region, options.profile)
+    fsx = session.client("fsx")
+    s3 = session.client("s3")
+    try:
+        receipt["fsx_export"]["phase"] = "preflight"
+        preflight = preflight_export(
+            cluster_name=options.cluster_name,
+            fsx_file_system_id=options.fsx_file_system_id,
+            source_path=options.source_path,
+            destination_s3_uri=options.destination_s3_uri,
+            destination_analysis_id=None,
+            export_kind=SHARED_REFERENCE_EXPORT_KIND,
+            region=options.region,
+            profile=options.profile,
+            fsx_client=fsx,
+            s3_client=s3,
+        )
+        mapping = preflight["existing_reference_dra"]
+        receipt["fsx_export"].update(
+            {
+                "fsx_file_system_id": preflight["fsx_file_system_id"],
+                "existing_reference_dra": mapping,
+                "association_id": mapping["association_id"],
+                "existing_dra_preserved": True,
+                "detached": False,
+                "detach_not_applicable": True,
+            }
+        )
+
+        target = resolve_headnode_instance_id(
+            str(options.cluster_name),
+            options.region,
+            profile=options.profile,
+        )
+        wait_for_ssm_online(
+            target.instance_id,
+            options.region,
+            profile=options.profile,
+            timeout=120,
+        )
+        receipt["fsx_export"]["phase"] = "stage"
+        stage_command = run_shell(
+            target.instance_id,
+            options.region,
+            build_shared_reference_stage_script(
+                source_path=options.source_path,
+                target_path=mapping["target_headnode_path"],
+            ),
+            profile=options.profile,
+            as_user="ubuntu",
+            timeout=options.timeout_seconds,
+            comment=(
+                "DYEC shared-reference stage "
+                f"{analysis_dir_from_source_path(options.source_path)}"
+            ),
+        )
+        receipt["fsx_export"]["headnode_instance_id"] = target.instance_id
+        receipt["fsx_export"]["stage_ssm_command_id"] = stage_command.command_id
+        receipt["fsx_export"]["stage"] = parse_shared_reference_stage_result(
+            stage_command.stdout
+        )
+
+        repeated = preflight_export(
+            cluster_name=options.cluster_name,
+            fsx_file_system_id=preflight["fsx_file_system_id"],
+            source_path=options.source_path,
+            destination_s3_uri=options.destination_s3_uri,
+            destination_analysis_id=None,
+            export_kind=SHARED_REFERENCE_EXPORT_KIND,
+            region=options.region,
+            profile=options.profile,
+            fsx_client=fsx,
+            s3_client=s3,
+        )
+        if repeated["existing_reference_dra"] != mapping:
+            raise ExportError("reference DRA mapping changed after staging")
+
+        receipt["fsx_export"]["phase"] = "run"
+        task_payload = run_export_task(
+            fsx_file_system_id=preflight["fsx_file_system_id"],
+            source_path=options.source_path,
+            task_source_path=mapping["target_file_system_path"],
+            destination_s3_uri=options.destination_s3_uri,
+            cluster_name=options.cluster_name,
+            wait=options.wait,
+            timeout_seconds=options.timeout_seconds,
+            fsx_client=fsx,
+            export_kind=SHARED_REFERENCE_EXPORT_KIND,
+        )
+        receipt["fsx_export"].update(task_payload)
+        if task_payload["task_lifecycle"] != "SUCCEEDED":
+            raise ExportError(
+                "FSx export task ended with lifecycle "
+                f"{task_payload['task_lifecycle']}: {task_payload['failure_details']}"
+            )
+        receipt["fsx_export"]["destination_s3_evidence"] = (
+            verify_exported_destination_evidence(
+                s3,
+                source_path=options.source_path,
+                destination_s3_uri=options.destination_s3_uri,
+                cluster_name=options.cluster_name,
+                export_kind=SHARED_REFERENCE_EXPORT_KIND,
+            )
+        )
+        receipt["fsx_export"].update(
+            {
+                "status": "success",
+                "phase": "complete",
+                "failure_details": {},
+                "source_fsx_preserved": True,
+                "reference_fsx_present": True,
+            }
+        )
+        _write_status(options, receipt)
+        ui.success_panel(
+            "Shared-reference export complete",
+            f"S3: {options.destination_s3_uri}",
+        )
+        return 0
+    except (BotoCoreError, ClientError, RuntimeError, RunMountError, ExportError, SsmError) as exc:
+        receipt["fsx_export"].update(
+            {
+                "status": "error",
+                "failure_details": {"message": str(exc)},
+            }
+        )
+        _write_status(options, receipt)
+        ui.error_panel("Shared-reference export failed", str(exc))
+        return 1
+
+
 def run_export_workflow(options: ExportOptions) -> int:
     """Attach an output DRA, run an explicit FSx export task, detach the DRA."""
+    if options.export_kind == SHARED_REFERENCE_EXPORT_KIND:
+        return run_shared_reference_export_workflow(options)
     ui.phase("EXPORT")
     ui.step("Preparing direct FSx export DRA")
 

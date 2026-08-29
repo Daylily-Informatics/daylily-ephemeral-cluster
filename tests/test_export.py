@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 import json
 from datetime import datetime, timezone
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
@@ -108,6 +109,21 @@ class FakeFsxClient:
             "AssociationId": kwargs["AssociationId"],
             "Lifecycle": "DELETING",
             "DeleteDataInFileSystem": kwargs["DeleteDataInFileSystem"],
+        }
+
+
+class FakeReferenceFsxClient(FakeFsxClient):
+    def describe_data_repository_associations(self, **_kwargs):
+        return {
+            "Associations": [
+                {
+                    "AssociationId": "dra-reference",
+                    "FileSystemId": "fs-123",
+                    "FileSystemPath": "/references/",
+                    "DataRepositoryPath": "s3://references/",
+                    "Lifecycle": "AVAILABLE",
+                }
+            ]
         }
 
 
@@ -417,7 +433,7 @@ def test_export_preflight_is_read_only_and_exact() -> None:
 
 
 def test_shared_reference_preflight_is_read_only_and_exact() -> None:
-    fsx = FakeFsxClient()
+    fsx = FakeReferenceFsxClient()
     s3 = EmptyS3Client()
     payload = preflight_export(
         cluster_name="cluster-a",
@@ -438,6 +454,14 @@ def test_shared_reference_preflight_is_read_only_and_exact() -> None:
     )
     assert payload["destination_empty"] is True
     assert payload["mutation_attempted"] is False
+    assert payload["existing_reference_dra"] == {
+        "association_id": "dra-reference",
+        "association_lifecycle": "AVAILABLE",
+        "association_file_system_path": "/references/",
+        "association_data_repository_path": "s3://references/",
+        "target_file_system_path": "/references/genomic_annotations/ganon2/ganon2_ref/",
+        "target_headnode_path": "/fsx/references/genomic_annotations/ganon2/ganon2_ref/",
+    }
     assert fsx.created_association is None
     assert fsx.created_task is None
     assert fsx.deleted_association is None
@@ -650,11 +674,30 @@ def test_shared_reference_destination_binds_exact_source_leaf() -> None:
 def test_shared_reference_export_uses_dra_and_verifies_objects(
     tmp_path, monkeypatch
 ) -> None:
-    client = FakeFsxClient()
+    client = FakeReferenceFsxClient()
     s3 = FakeS3Client(_exported_status_v2())
     monkeypatch.setattr(
         "daylily_ec.workflow.export_data._create_session",
         lambda _region, _profile: FakeSession(client, s3),
+    )
+    monkeypatch.setattr(
+        "daylily_ec.aws.ssm.resolve_headnode_instance_id",
+        lambda *_args, **_kwargs: SimpleNamespace(instance_id="i-head"),
+    )
+    monkeypatch.setattr(
+        "daylily_ec.aws.ssm.wait_for_ssm_online",
+        lambda *_args, **_kwargs: None,
+    )
+    monkeypatch.setattr(
+        "daylily_ec.aws.ssm.run_shell",
+        lambda *_args, **_kwargs: SimpleNamespace(
+            command_id="cmd-stage",
+            stdout=(
+                "DYEC_SHARED_REFERENCE_STAGE\t"
+                "/fsx/references/genomic_annotations/ganon2/ganon2_blood_oral_ref_v1"
+                "\t100\t10\n"
+            ),
+        ),
     )
 
     rc = run_export_workflow(
@@ -681,10 +724,15 @@ def test_shared_reference_export_uses_dra_and_verifies_objects(
     assert receipt["export_kind"] == SHARED_REFERENCE_EXPORT_KIND
     assert receipt["destination_s3_evidence"]["verified"] is True
     assert "clone_status_v2_evidence" not in receipt
-    assert client.deleted_association == {
-        "AssociationId": "dra-export",
-        "DeleteDataInFileSystem": False,
-    }
+    assert receipt["existing_dra_preserved"] is True
+    assert receipt["source_fsx_preserved"] is True
+    assert receipt["reference_fsx_present"] is True
+    assert client.created_association is None
+    assert client.deleted_association is None
+    assert client.created_task is not None
+    assert client.created_task["Paths"] == [
+        "/references/genomic_annotations/ganon2/ganon2_blood_oral_ref_v1/"
+    ]
 
 
 def test_export_rejects_nonempty_s3_prefix_before_creating_dra(tmp_path, monkeypatch) -> None:

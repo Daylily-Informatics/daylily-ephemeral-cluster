@@ -432,6 +432,13 @@ dyec export \
   --wait --timeout-seconds 5400
 ```
 
+When the destination is already covered by a long-lived reference DRA, DYEC
+copies the complete source with `cp -a` into that association's exact mapped
+`/fsx/references` path, compares byte and entry counts, runs the explicit FSx
+export task there, and preserves the existing DRA. It does not hash the bundle,
+detach the reference DRA, delete the original root, or transfer S3 objects
+individually.
+
 Presign one exact exported object only after the export receipt and object path
 have been verified:
 
