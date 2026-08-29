@@ -1408,7 +1408,8 @@ def run_export_task(
     return {
         "task_id": task_id,
         "task_lifecycle": str(task.get("Lifecycle") or "UNKNOWN"),
-        "source_path": normalized_task_source,
+        "source_path": normalized_source,
+        "task_source_path": normalized_task_source,
         "report_path": report_path,
         "failure_details": task.get("FailureDetails") or {},
     }

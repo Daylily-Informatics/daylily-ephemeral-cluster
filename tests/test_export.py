@@ -741,6 +741,12 @@ def test_shared_reference_export_uses_dra_and_verifies_objects(
     assert receipt["existing_dra_preserved"] is True
     assert receipt["source_fsx_preserved"] is True
     assert receipt["reference_fsx_present"] is True
+    assert receipt["source_path"] == (
+        "/analysis_results/team/ganon2_blood_oral_ref_v1/"
+    )
+    assert receipt["task_source_path"] == (
+        "/references/genomic_annotations/ganon2/ganon2_blood_oral_ref_v1/"
+    )
     assert client.created_association is None
     assert client.deleted_association is None
     assert client.created_task is not None
