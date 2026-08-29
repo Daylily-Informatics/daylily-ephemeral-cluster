@@ -437,7 +437,10 @@ copies the complete source with `cp -a` into that association's exact mapped
 `/fsx/references` path, compares byte and entry counts, runs the explicit FSx
 export task there, and preserves the existing DRA. It does not hash the bundle,
 detach the reference DRA, delete the original root, or transfer S3 objects
-individually.
+individually. Because the static reference namespace is root-owned and
+read-only to ordinary users, this one bounded staging copy uses non-interactive
+targeted `sudo`; all source reads and the export task remain ordinary DYEC
+operations.
 
 Presign one exact exported object only after the export receipt and object path
 have been verified:

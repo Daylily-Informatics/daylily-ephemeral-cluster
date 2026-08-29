@@ -1114,15 +1114,17 @@ incomplete_path={shlex.quote(incomplete)}
 test -d "${{source_path}}"
 test ! -e "${{target_path}}"
 test ! -e "${{incomplete_path}}"
-mkdir -p "$(dirname -- "${{target_path}}")"
-cp -a --reflink=auto -- "${{source_path}}" "${{incomplete_path}}"
+command -v sudo >/dev/null
+sudo -n true
+sudo -n install -d -m 0755 "$(dirname -- "${{target_path}}")"
+sudo -n cp -a --reflink=auto -- "${{source_path}}" "${{incomplete_path}}"
 source_bytes="$(du -sb -- "${{source_path}}" | cut -f1)"
-target_bytes="$(du -sb -- "${{incomplete_path}}" | cut -f1)"
+target_bytes="$(sudo -n du -sb -- "${{incomplete_path}}" | cut -f1)"
 source_entries="$(find "${{source_path}}" -xdev -printf '.' | wc -c)"
-target_entries="$(find "${{incomplete_path}}" -xdev -printf '.' | wc -c)"
+target_entries="$(sudo -n find "${{incomplete_path}}" -xdev -printf '.' | wc -c)"
 test "${{source_bytes}}" = "${{target_bytes}}"
 test "${{source_entries}}" = "${{target_entries}}"
-mv -- "${{incomplete_path}}" "${{target_path}}"
+sudo -n mv -- "${{incomplete_path}}" "${{target_path}}"
 printf '{SHARED_REFERENCE_STAGE_MARKER}\t%s\t%s\t%s\n' \
   "${{target_path}}" "${{target_bytes}}" "${{target_entries}}"
 """
@@ -1150,7 +1152,7 @@ def parse_shared_reference_stage_result(stdout: str) -> Dict[str, Any]:
         "target_headnode_path": fields[1],
         "byte_count": byte_count,
         "entry_count": entry_count,
-        "copy_command": "cp -a --reflink=auto",
+        "copy_command": "sudo -n cp -a --reflink=auto",
         "content_hashing": False,
     }
 

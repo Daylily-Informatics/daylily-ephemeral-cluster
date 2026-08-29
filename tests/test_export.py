@@ -20,6 +20,7 @@ from daylily_ec.workflow.export_data import (
     analysis_dir_from_source_path,
     analysis_headnode_path,
     attach_export_dra,
+    build_shared_reference_stage_script,
     cleanup_exported_analysis,
     clone_status_evidence_s3_uri,
     inspect_completed_export,
@@ -669,6 +670,19 @@ def test_shared_reference_destination_binds_exact_source_leaf() -> None:
             source_path=f"{source}/nested",
             export_kind=SHARED_REFERENCE_EXPORT_KIND,
         )
+
+
+def test_shared_reference_stage_uses_targeted_sudo_without_deletion() -> None:
+    script = build_shared_reference_stage_script(
+        source_path="/fsx/analysis_results/team/ganon2_ref",
+        target_path="/fsx/references/genomic_annotations/ganon2/ganon2_ref/",
+    )
+
+    assert "sudo -n cp -a --reflink=auto" in script
+    assert "sudo -n mv" in script
+    assert "test ! -e" in script
+    assert "rm " not in script
+    assert "aws s3" not in script
 
 
 def test_shared_reference_export_uses_dra_and_verifies_objects(
