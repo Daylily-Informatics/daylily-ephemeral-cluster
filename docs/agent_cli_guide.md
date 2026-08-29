@@ -410,6 +410,28 @@ clone-status-v2 verification.
 Deletion, DRA detachment that deletes data, and cleanup are separate destructive
 actions; they need their own explicit approval.
 
+To publish one complete top-level analysis root as an immutable shared
+reference, use the same visit, preflight, and export sequence with
+`--export-kind shared-reference` on both DYEC export commands. The explicit
+destination leaf must exactly match the source root name, the destination must
+be empty, and this export kind always preserves the FSx source. For example:
+
+```bash
+dyec --json exports preflight \
+  --export-kind shared-reference \
+  --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
+  --source-path "/fsx/analysis_results/$EXECUTING_ENTITY/$RESOURCE_ID" \
+  --destination-s3-uri "s3://<references-bucket>/genomic_annotations/ganon2/$RESOURCE_ID/"
+
+dyec export \
+  --export-kind shared-reference \
+  --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
+  --source-path "/fsx/analysis_results/$EXECUTING_ENTITY/$RESOURCE_ID" \
+  --destination-s3-uri "s3://<references-bucket>/genomic_annotations/ganon2/$RESOURCE_ID/" \
+  --output-dir "./export-receipts/$RESOURCE_ID" \
+  --wait --timeout-seconds 5400
+```
+
 Presign one exact exported object only after the export receipt and object path
 have been verified:
 

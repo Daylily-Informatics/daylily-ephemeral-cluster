@@ -13,6 +13,7 @@ from typer.testing import CliRunner
 
 from daylily_ec.workflow.export_data import (
     RUNTIME_ASSET_EXPORT_KIND,
+    SHARED_REFERENCE_EXPORT_KIND,
     ExportError,
     ExportOptions,
     analysis_dir_from_source_path,
@@ -415,6 +416,33 @@ def test_export_preflight_is_read_only_and_exact() -> None:
     assert fsx.deleted_association is None
 
 
+def test_shared_reference_preflight_is_read_only_and_exact() -> None:
+    fsx = FakeFsxClient()
+    s3 = EmptyS3Client()
+    payload = preflight_export(
+        cluster_name="cluster-a",
+        fsx_file_system_id="fs-123",
+        source_path="/fsx/analysis_results/team/ganon2_ref",
+        destination_s3_uri="s3://references/genomic_annotations/ganon2/ganon2_ref/",
+        region="us-west-2",
+        profile="lsmc",
+        export_kind=SHARED_REFERENCE_EXPORT_KIND,
+        fsx_client=fsx,
+        s3_client=s3,
+    )
+
+    assert payload["export_kind"] == SHARED_REFERENCE_EXPORT_KIND
+    assert payload["source_path"] == "/analysis_results/team/ganon2_ref/"
+    assert payload["destination_s3_uri"] == (
+        "s3://references/genomic_annotations/ganon2/ganon2_ref/"
+    )
+    assert payload["destination_empty"] is True
+    assert payload["mutation_attempted"] is False
+    assert fsx.created_association is None
+    assert fsx.created_task is None
+    assert fsx.deleted_association is None
+
+
 def test_run_export_task_uses_exact_analysis_path() -> None:
     client = FakeFsxClient()
     receipt = run_export_task(
@@ -591,6 +619,72 @@ def test_runtime_asset_export_forbids_fsx_deletion(tmp_path) -> None:
     )["fsx_export"]
     assert receipt["phase"] == "validate"
     assert "must retain staged FSx data" in receipt["failure_details"]["message"]
+
+
+def test_shared_reference_destination_binds_exact_source_leaf() -> None:
+    source = "/fsx/analysis_results/team/ganon2_blood_oral_ref_v1"
+    destination = (
+        "s3://references/genomic_annotations/ganon2/"
+        "ganon2_blood_oral_ref_v1/"
+    )
+
+    assert validate_export_destination_s3_uri(
+        destination,
+        source_path=source,
+        export_kind=SHARED_REFERENCE_EXPORT_KIND,
+    ) == destination
+    with pytest.raises(ExportError, match="leaf must exactly match"):
+        validate_export_destination_s3_uri(
+            "s3://references/genomic_annotations/ganon2/wrong/",
+            source_path=source,
+            export_kind=SHARED_REFERENCE_EXPORT_KIND,
+        )
+    with pytest.raises(ExportError, match="complete top-level"):
+        validate_export_destination_s3_uri(
+            destination,
+            source_path=f"{source}/nested",
+            export_kind=SHARED_REFERENCE_EXPORT_KIND,
+        )
+
+
+def test_shared_reference_export_uses_dra_and_verifies_objects(
+    tmp_path, monkeypatch
+) -> None:
+    client = FakeFsxClient()
+    s3 = FakeS3Client(_exported_status_v2())
+    monkeypatch.setattr(
+        "daylily_ec.workflow.export_data._create_session",
+        lambda _region, _profile: FakeSession(client, s3),
+    )
+
+    rc = run_export_workflow(
+        ExportOptions(
+            cluster_name="cluster-a",
+            fsx_file_system_id="fs-123",
+            source_path="/fsx/analysis_results/team/ganon2_blood_oral_ref_v1",
+            destination_s3_uri=(
+                "s3://references/genomic_annotations/ganon2/"
+                "ganon2_blood_oral_ref_v1/"
+            ),
+            region="us-west-2",
+            profile="profile",
+            output_dir=tmp_path,
+            wait=False,
+            export_kind=SHARED_REFERENCE_EXPORT_KIND,
+        )
+    )
+
+    assert rc == 0
+    receipt = yaml.safe_load(
+        (tmp_path / "fsx_export.yaml").read_text(encoding="utf-8")
+    )["fsx_export"]
+    assert receipt["export_kind"] == SHARED_REFERENCE_EXPORT_KIND
+    assert receipt["destination_s3_evidence"]["verified"] is True
+    assert "clone_status_v2_evidence" not in receipt
+    assert client.deleted_association == {
+        "AssociationId": "dra-export",
+        "DeleteDataInFileSystem": False,
+    }
 
 
 def test_export_rejects_nonempty_s3_prefix_before_creating_dra(tmp_path, monkeypatch) -> None:
@@ -1119,6 +1213,62 @@ def test_exports_preflight_emits_read_only_receipt(monkeypatch) -> None:
     assert payload["read_only"] is True
     assert payload["mutation_attempted"] is False
     assert observed["fsx_file_system_id"] == "fs-123"
+    assert observed["export_kind"] == "analysis"
+
+
+def test_exports_preflight_accepts_shared_reference_contract(monkeypatch) -> None:
+    from daylily_ec.cli import app
+
+    observed: dict[str, object] = {}
+
+    def fake_preflight(**kwargs):
+        observed.update(kwargs)
+        return {
+            "schema_version": "dyec.exports.preflight.v1",
+            "ok": True,
+            "operation": "preflight",
+            "read_only": True,
+            "mutation_attempted": False,
+            "headnode_path": "/fsx/analysis_results/team/ganon2_ref/",
+            "destination_s3_uri": "s3://references/genomic_annotations/ganon2/ganon2_ref/",
+            "destination_empty": True,
+            "overlapping_dra": False,
+            "export_kind": "shared_reference",
+        }
+
+    monkeypatch.setenv("CONDA_PREFIX", "/tmp/dayec")
+    monkeypatch.setenv("CONDA_DEFAULT_ENV", "DAY-EC")
+    monkeypatch.setattr(
+        "daylily_ec.workflow.export_data.preflight_export",
+        fake_preflight,
+    )
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "exports",
+            "preflight",
+            "--export-kind",
+            "shared-reference",
+            "--cluster",
+            "cluster-a",
+            "--fsx-file-system-id",
+            "fs-123",
+            "--source-path",
+            "/fsx/analysis_results/team/ganon2_ref",
+            "--destination-s3-uri",
+            "s3://references/genomic_annotations/ganon2/ganon2_ref/",
+            "--region",
+            "us-west-2",
+            "--profile",
+            "lsmc",
+        ],
+    )
+
+    assert result.exit_code == 0, result.stdout + result.stderr
+    payload = yaml.safe_load(result.stdout)
+    assert payload["export_kind"] == "shared_reference"
+    assert observed["export_kind"] == "shared_reference"
 
 
 def test_analysis_export_cli_has_no_legacy_evidence_opt_in() -> None:
@@ -1269,6 +1419,39 @@ def test_cli_export_accepts_runtime_asset_contract(tmp_path, monkeypatch) -> Non
         )
     assert result.exit_code == 0, result.output
     assert run.call_args.args[0].export_kind == RUNTIME_ASSET_EXPORT_KIND
+
+
+def test_cli_export_accepts_shared_reference_contract(tmp_path, monkeypatch) -> None:
+    from daylily_ec.cli import app
+
+    monkeypatch.setenv("CONDA_PREFIX", "/tmp/dayec")
+    monkeypatch.setenv("CONDA_DEFAULT_ENV", "DAY-EC")
+    with (
+        patch("daylily_ec.workflow.export_data.configure_logging"),
+        patch(
+            "daylily_ec.workflow.export_data.run_export_workflow", return_value=0
+        ) as run,
+    ):
+        result = runner.invoke(
+            app,
+            [
+                "export",
+                "--cluster-name",
+                "cluster-a",
+                "--source-path",
+                "/fsx/analysis_results/team/ganon2_blood_oral_ref_v1",
+                "--destination-s3-uri",
+                "s3://references/genomic_annotations/ganon2/ganon2_blood_oral_ref_v1/",
+                "--region",
+                "us-west-2",
+                "--output-dir",
+                str(tmp_path),
+                "--export-kind",
+                "shared-reference",
+            ],
+        )
+    assert result.exit_code == 0, result.output
+    assert run.call_args.args[0].export_kind == SHARED_REFERENCE_EXPORT_KIND
 
 
 def test_removed_provider_export_options_fail_closed(tmp_path, monkeypatch) -> None:

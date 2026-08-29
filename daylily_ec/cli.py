@@ -3458,8 +3458,9 @@ def export(
         "analysis",
         "--export-kind",
         help=(
-            "Payload contract: analysis, or runtime-asset for one immutable "
-            "runtime_assets/cached_envs entry."
+            "Payload contract: analysis, runtime-asset for one immutable "
+            "runtime_assets/cached_envs entry, or shared-reference for one "
+            "complete analysis root published under an explicit resource namespace."
         ),
     ),
 ) -> None:
@@ -3467,6 +3468,7 @@ def export(
 
     from daylily_ec.workflow.export_data import (
         RUNTIME_ASSET_EXPORT_KIND,
+        SHARED_REFERENCE_EXPORT_KIND,
         ExportOptions,
         configure_logging,
         run_export_workflow,
@@ -3474,9 +3476,14 @@ def export(
 
     _warn_if_dayec_env_inactive()
     normalized_export_kind = export_kind.strip().lower().replace("-", "_")
-    if normalized_export_kind not in {"analysis", RUNTIME_ASSET_EXPORT_KIND}:
+    if normalized_export_kind not in {
+        "analysis",
+        RUNTIME_ASSET_EXPORT_KIND,
+        SHARED_REFERENCE_EXPORT_KIND,
+    }:
         raise typer.BadParameter(
-            "must be analysis or runtime-asset", param_hint="--export-kind"
+            "must be analysis, runtime-asset, or shared-reference",
+            param_hint="--export-kind",
         )
     configure_logging(verbose)
     rc = run_export_workflow(
@@ -3653,20 +3660,32 @@ def exports_preflight(
         None,
         "--destination-analysis-id",
     ),
+    export_kind: str = typer.Option(
+        "analysis",
+        "--export-kind",
+        help="Payload contract: analysis or shared-reference.",
+    ),
     region: Optional[str] = context_option("aws_region", None, "--region", required=True),
     profile: Optional[str] = typer.Option(None, "--profile"),
 ) -> None:
     """Read-only validate an empty, non-overlapping export destination."""
 
-    from daylily_ec.workflow.export_data import preflight_export
+    from daylily_ec.workflow.export_data import (
+        SHARED_REFERENCE_EXPORT_KIND,
+        preflight_export,
+    )
 
     try:
+        normalized_export_kind = export_kind.strip().lower().replace("-", "_")
+        if normalized_export_kind not in {"analysis", SHARED_REFERENCE_EXPORT_KIND}:
+            raise ValueError("--export-kind must be analysis or shared-reference")
         payload = preflight_export(
             cluster_name=cluster_name,
             fsx_file_system_id=fsx_file_system_id,
             source_path=source_path,
             destination_s3_uri=destination_s3_uri,
             destination_analysis_id=destination_analysis_id,
+            export_kind=normalized_export_kind,
             region=str(region),
             profile=profile,
         )

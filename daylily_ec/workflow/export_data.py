@@ -52,8 +52,14 @@ POLL_INTERVAL_SECONDS = 30
 ANALYSIS_EXPORT_KIND = "analysis"
 RUNTIME_CACHE_EXPORT_KIND = "runtime_cache"
 RUNTIME_ASSET_EXPORT_KIND = "runtime_asset"
+SHARED_REFERENCE_EXPORT_KIND = "shared_reference"
 EXPORT_KINDS = frozenset(
-    {ANALYSIS_EXPORT_KIND, RUNTIME_ASSET_EXPORT_KIND, RUNTIME_CACHE_EXPORT_KIND}
+    {
+        ANALYSIS_EXPORT_KIND,
+        RUNTIME_ASSET_EXPORT_KIND,
+        RUNTIME_CACHE_EXPORT_KIND,
+        SHARED_REFERENCE_EXPORT_KIND,
+    }
 )
 MAX_DESTINATION_EVIDENCE_PAGES = 100
 
@@ -255,16 +261,48 @@ def validate_export_destination_s3_uri(
     source_path: str,
     cluster_name: Optional[str] = None,
     destination_analysis_id: Optional[str] = None,
+    export_kind: str = ANALYSIS_EXPORT_KIND,
 ) -> str:
     destination = normalize_s3_uri(destination_s3_uri)
     parsed = urlparse(destination)
     key = parsed.path.lstrip("/")
+    normalized_source = normalize_export_source_path(source_path)
+    if export_kind == SHARED_REFERENCE_EXPORT_KIND:
+        source_parts = (
+            normalized_source[len(ANALYSIS_EXPORT_ROOT) :].rstrip("/").split("/")
+        )
+        if len(source_parts) != 2:
+            raise ExportError(
+                "shared-reference exports require one complete top-level "
+                "/fsx/analysis_results/<executing_entity>/<resource_id> root"
+            )
+        resource_id = validate_analysis_segment(
+            source_parts[1], field_name="shared_reference_resource_id"
+        )
+        destination_parts = [part for part in key.rstrip("/").split("/") if part]
+        if len(destination_parts) < 2:
+            raise ExportError(
+                "shared-reference destination_s3_uri must include a namespace and resource id"
+            )
+        for index, part in enumerate(destination_parts, start=1):
+            validate_analysis_segment(
+                part, field_name=f"shared_reference_destination_component_{index}"
+            )
+        if destination_parts[-1] != resource_id:
+            raise ExportError(
+                "shared-reference destination leaf must exactly match source resource id "
+                f"{resource_id!r}; got {destination_parts[-1]!r}"
+            )
+        return destination
+    if export_kind not in EXPORT_KINDS:
+        raise ExportError(
+            f"unsupported export kind: {export_kind!r}; expected one of {sorted(EXPORT_KINDS)!r}"
+        )
     expected_keys = _allowed_export_destination_suffixes(
         source_path=source_path,
         cluster_name=cluster_name,
         destination_analysis_id=destination_analysis_id,
     )
-    normalized_source = normalize_export_source_path(source_path)
     source_parts = normalized_source[len(ANALYSIS_EXPORT_ROOT) :].rstrip("/").split("/")
     is_runtime_asset = (
         len(source_parts) == 3
@@ -386,6 +424,7 @@ def verify_exported_destination_evidence(
     destination_s3_uri: str,
     cluster_name: Optional[str] = None,
     destination_analysis_id: Optional[str] = None,
+    export_kind: str = ANALYSIS_EXPORT_KIND,
 ) -> Dict[str, Any]:
     """Return bounded, exact-prefix evidence for a completed DRA export.
 
@@ -399,6 +438,7 @@ def verify_exported_destination_evidence(
         source_path=source_path,
         cluster_name=cluster_name,
         destination_analysis_id=destination_analysis_id,
+        export_kind=export_kind,
     )
     parsed = urlparse(destination)
     bucket = parsed.netloc
@@ -507,6 +547,7 @@ def validate_s3_destination_prefix_empty(
     source_path: str,
     cluster_name: Optional[str] = None,
     destination_analysis_id: Optional[str] = None,
+    export_kind: str = ANALYSIS_EXPORT_KIND,
 ) -> str:
     """Validate the destination suffix and fail if the S3 prefix already has objects."""
     destination = validate_export_destination_s3_uri(
@@ -514,6 +555,7 @@ def validate_s3_destination_prefix_empty(
         source_path=source_path,
         cluster_name=cluster_name,
         destination_analysis_id=destination_analysis_id,
+        export_kind=export_kind,
     )
     parsed = urlparse(destination)
     bucket = parsed.netloc
@@ -1014,6 +1056,7 @@ def preflight_export(
     region: str,
     profile: Optional[str],
     destination_analysis_id: Optional[str] = None,
+    export_kind: str = ANALYSIS_EXPORT_KIND,
     fsx_client: Optional[Any] = None,
     s3_client: Optional[Any] = None,
 ) -> Dict[str, Any]:
@@ -1036,6 +1079,7 @@ def preflight_export(
         source_path=normalized_source,
         cluster_name=cluster_name,
         destination_analysis_id=destination_analysis_id,
+        export_kind=export_kind,
     )
     validate_no_overlapping_export_dra(
         fsx,
@@ -1049,8 +1093,9 @@ def preflight_export(
         source_path=normalized_source,
         cluster_name=cluster_name,
         destination_analysis_id=destination_analysis_id,
+        export_kind=export_kind,
     )
-    return {
+    payload = {
         "schema_version": "dyec.exports.preflight.v1",
         "ok": True,
         "operation": "preflight",
@@ -1067,6 +1112,9 @@ def preflight_export(
         "overlapping_dra": False,
         "fsx_dra_compatible": True,
     }
+    if export_kind != ANALYSIS_EXPORT_KIND:
+        payload["export_kind"] = export_kind
+    return payload
 
 
 def attach_export_dra(
@@ -1080,6 +1128,7 @@ def attach_export_dra(
     wait: bool,
     timeout_seconds: int,
     destination_analysis_id: Optional[str] = None,
+    export_kind: str = ANALYSIS_EXPORT_KIND,
     fsx_client: Optional[Any] = None,
     s3_client: Optional[Any] = None,
     require_empty_destination: bool = False,
@@ -1100,6 +1149,7 @@ def attach_export_dra(
         source_path=file_system_path,
         cluster_name=cluster_name,
         destination_analysis_id=destination_analysis_id,
+        export_kind=export_kind,
     )
     validate_no_overlapping_export_dra(
         client,
@@ -1123,6 +1173,7 @@ def attach_export_dra(
             source_path=file_system_path,
             cluster_name=cluster_name,
             destination_analysis_id=destination_analysis_id,
+            export_kind=export_kind,
         )
     try:
         response = client.create_data_repository_association(
@@ -1184,6 +1235,7 @@ def run_export_task(
     timeout_seconds: int,
     fsx_client: Any,
     destination_analysis_id: Optional[str] = None,
+    export_kind: str = ANALYSIS_EXPORT_KIND,
 ) -> Dict[str, Any]:
     normalized_source = normalize_export_source_path(source_path)
     destination = validate_export_destination_s3_uri(
@@ -1191,6 +1243,7 @@ def run_export_task(
         source_path=normalized_source,
         cluster_name=cluster_name,
         destination_analysis_id=destination_analysis_id,
+        export_kind=export_kind,
     )
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     report_path = (
@@ -1466,11 +1519,21 @@ def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
             raise ExportError(
                 "runtime_asset exports must retain staged FSx data for verification"
             )
+    if options.export_kind == SHARED_REFERENCE_EXPORT_KIND:
+        if options.delete_data_in_file_system:
+            raise ExportError(
+                "shared-reference exports must retain source FSx data for verification"
+            )
+        if options.destination_analysis_id:
+            raise ExportError(
+                "shared-reference exports do not accept destination_analysis_id"
+            )
     destination_s3_uri = validate_export_destination_s3_uri(
         options.destination_s3_uri,
         source_path=normalized_source,
         cluster_name=options.cluster_name,
         destination_analysis_id=options.destination_analysis_id,
+        export_kind=options.export_kind,
     )
     headnode_path = analysis_headnode_path(normalized_source)
     clone_status_evidence: Dict[str, Any] | None = None
@@ -1486,6 +1549,10 @@ def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
                 destination_analysis_id=options.destination_analysis_id,
             ),
         }
+    if options.export_kind in {
+        ANALYSIS_EXPORT_KIND,
+        SHARED_REFERENCE_EXPORT_KIND,
+    }:
         destination_evidence = {
             "required": True,
             "verified": False,
@@ -1577,6 +1644,7 @@ def run_export_workflow(options: ExportOptions) -> int:
             wait=options.wait,
             timeout_seconds=options.timeout_seconds,
             destination_analysis_id=options.destination_analysis_id,
+            export_kind=options.export_kind,
             fsx_client=client,
             s3_client=session.client("s3"),
             require_empty_destination=True,
@@ -1595,6 +1663,7 @@ def run_export_workflow(options: ExportOptions) -> int:
             timeout_seconds=options.timeout_seconds,
             fsx_client=client,
             destination_analysis_id=options.destination_analysis_id,
+            export_kind=options.export_kind,
         )
         receipt["fsx_export"].update(task_payload)
         if task_payload["task_lifecycle"] != "SUCCEEDED":
@@ -1612,6 +1681,10 @@ def run_export_workflow(options: ExportOptions) -> int:
                     destination_analysis_id=options.destination_analysis_id,
                 )
             )
+        if options.export_kind in {
+            ANALYSIS_EXPORT_KIND,
+            SHARED_REFERENCE_EXPORT_KIND,
+        }:
             receipt["fsx_export"]["destination_s3_evidence"] = (
                 verify_exported_destination_evidence(
                     session.client("s3"),
@@ -1619,6 +1692,7 @@ def run_export_workflow(options: ExportOptions) -> int:
                     destination_s3_uri=record.destination_s3_uri,
                     cluster_name=record.cluster_name,
                     destination_analysis_id=options.destination_analysis_id,
+                    export_kind=options.export_kind,
                 )
             )
         rc = 0
