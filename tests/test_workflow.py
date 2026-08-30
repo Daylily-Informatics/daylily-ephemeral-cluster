@@ -2967,6 +2967,12 @@ class TestConfigureHeadnode:
             in mock_run_shell.call_args_list[5].args[2]
         )
         rebuild_cmd = mock_run_shell.call_args_list[5].args[2]
+        assert 'mktemp -d "$dayec_conda_pkgs_root/configure.XXXXXX"' in rebuild_cmd
+        assert 'export CONDA_PKGS_DIRS="$dayec_conda_pkgs"' in rebuild_cmd
+        assert 'rm -rf -- "$dayec_conda_pkgs"' in rebuild_cmd
+        assert rebuild_cmd.index("python -m pip --version") < rebuild_cmd.index(
+            "python -m pip install --editable ."
+        )
         assert "python -m pip install --upgrade 'pygraphviz==2.0.1'" in rebuild_cmd
         assert "python -m pip install --upgrade pygraphviz" not in rebuild_cmd
         assert "pygraphviz DAY-EC import OK" in rebuild_cmd
