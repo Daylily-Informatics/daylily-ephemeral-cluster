@@ -53,3 +53,9 @@ presign_url_sofar.md
 
 # Large local analysis outputs
 /*.vcf.gz
+
+# Repository-local agent, external checkout, output, and scratch trees
+/.codex/
+/TrusSV/
+/outputs/
+/tmp/

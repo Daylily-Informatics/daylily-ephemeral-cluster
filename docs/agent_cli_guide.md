@@ -370,10 +370,9 @@ workflow launch paths intentionally reject `--export-destination-s3-uri`,
 `--export-trigger`, and `--delete-on-export-success`; those options are not an
 alternative to the explicit receipt-producing export below.
 
-Use a unique, currently empty destination that maps to the complete analysis
-root. **Do not pass `--s3-visit-uri` for the intended export destination:** the
-visit marker would create an object before `dyec export` performs its
-fail-closed empty-prefix preflight.
+The default `new` policy requires a unique, currently empty destination that
+maps to the complete analysis root. Do not pass `--s3-visit-uri` for a new
+destination because the marker makes the prefix nonempty.
 
 ```bash
 export DESTINATION_S3_URI="s3://<results-bucket>/<prefix>/$EXECUTING_ENTITY/$ANALYSIS_ID/"
@@ -381,7 +380,8 @@ export DESTINATION_S3_URI="s3://<results-bucket>/<prefix>/$EXECUTING_ENTITY/$ANA
 dyec --json exports preflight \
   --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
   --source-path "$ANALYSIS_ROOT" \
-  --destination-s3-uri "$DESTINATION_S3_URI"
+  --destination-s3-uri "$DESTINATION_S3_URI" \
+  --destination-policy new
 
 dyec analysis visit \
   --analysis-root "$ANALYSIS_ROOT" \
@@ -392,14 +392,22 @@ dyec export \
   --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER" \
   --source-path "$ANALYSIS_ROOT" \
   --destination-s3-uri "$DESTINATION_S3_URI" \
+  --destination-policy new \
   --output-dir "./export-receipts/$ANALYSIS_ID" \
   --wait --timeout-seconds 5400
 ```
 
 `dyec exports preflight` is read-only. It verifies the FSx identity and DRA
 compatibility, the exact source/destination suffix contract, destination
-emptiness, and absence of any active DRA overlap without creating an
-association or task. Run it before seeking approval for a destructive export.
+admission policy, and absence of active DRA overlap without creating an
+association or task.
+
+For an existing exact analysis destination, repeat preflight and export with
+`--destination-policy update-existing`. FSx `EXPORT_TO_REPOSITORY` adds new
+objects and replaces objects for modified FSx files. DYEC never deletes S3
+objects for files missing from FSx and exposes no mirror, prune, delete, or
+two-way mode. Preflight remains read-only; successful FSx task evidence proves
+write access.
 
 Record the `fsx_export.yaml` path, export task ID, destination, effective
 controller command, and manifest/config hashes. Accept the export only when

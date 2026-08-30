@@ -113,6 +113,16 @@
 			"Resource": "*"
 		},
 		{
+			"Effect": "Deny",
+			"Action": [
+				"s3:Delete*",
+				"s3:ReplicateDelete",
+				"s3:PutLifecycleConfiguration",
+				"s3:CreateJob"
+			],
+			"Resource": "*"
+		},
+		{
 			"Effect": "Allow",
 			"Action": [
 				"budgets:*"

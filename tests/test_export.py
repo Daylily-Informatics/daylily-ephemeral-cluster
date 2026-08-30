@@ -13,8 +13,10 @@ import yaml
 from typer.testing import CliRunner
 
 from daylily_ec.workflow.export_data import (
+    NEW_DESTINATION_POLICY,
     RUNTIME_ASSET_EXPORT_KIND,
     SHARED_REFERENCE_EXPORT_KIND,
+    UPDATE_EXISTING_DESTINATION_POLICY,
     ExportError,
     ExportOptions,
     analysis_dir_from_source_path,
@@ -30,6 +32,7 @@ from daylily_ec.workflow.export_data import (
     run_export_task,
     run_export_workflow,
     validate_export_destination_s3_uri,
+    validate_destination_policy,
     validate_no_overlapping_export_dra,
     validate_runtime_asset_export_source,
     validate_s3_destination_prefix_empty,
@@ -424,7 +427,20 @@ def test_export_preflight_is_read_only_and_exact() -> None:
         "headnode_path": "/fsx/analysis_results/cluster-a/run-a/",
         "destination_s3_uri": "s3://bucket/derived/cluster-a/run-a/",
         "destination_analysis_id": None,
+        "destination_policy": "new",
         "destination_empty": True,
+        "destination_admission": {
+            "schema_version": "dyec.export.destination_admission.v1",
+            "destination_policy": "new",
+            "destination_empty": True,
+            "observation_max_keys": 1,
+            "observed_key_count": 0,
+            "s3_delete_requested": False,
+            "s3_delete_supported": False,
+            "deleted_fsx_files_leave_s3_objects_untouched": True,
+        },
+        "s3_delete_requested": False,
+        "s3_delete_supported": False,
         "overlapping_dra": False,
         "fsx_dra_compatible": True,
     }
@@ -784,6 +800,89 @@ def test_export_rejects_nonempty_s3_prefix_before_creating_dra(tmp_path, monkeyp
     receipt = yaml.safe_load((tmp_path / "fsx_export.yaml").read_text(encoding="utf-8"))["fsx_export"]
     assert receipt["phase"] == "preflight"
     assert "destination prefix is not empty" in receipt["failure_details"]["message"]
+
+
+def test_export_update_existing_allows_nonempty_and_records_no_delete_contract(
+    tmp_path, monkeypatch
+) -> None:
+    client = FakeFsxClient()
+    s3 = FakeS3Client(_exported_status_v2(), key_count=1)
+    monkeypatch.setattr(
+        "daylily_ec.workflow.export_data._create_session",
+        lambda _region, _profile: FakeSession(client, s3),
+    )
+
+    rc = run_export_workflow(
+        ExportOptions(
+            cluster_name="cluster-a",
+            fsx_file_system_id="fs-123",
+            source_path="/fsx/analysis_results/user/run",
+            destination_s3_uri="s3://bucket/root/user/run/",
+            destination_policy=UPDATE_EXISTING_DESTINATION_POLICY,
+            region="us-west-2",
+            profile="profile",
+            output_dir=tmp_path,
+            wait=False,
+        )
+    )
+
+    assert rc == 0
+    assert client.created_association is not None
+    assert client.created_task is not None
+    assert client.created_task["Type"] == "EXPORT_TO_REPOSITORY"
+    assert "S3" not in client.created_association
+    assert "AutoExportPolicy" not in client.created_association
+    receipt = yaml.safe_load(
+        (tmp_path / "fsx_export.yaml").read_text(encoding="utf-8")
+    )["fsx_export"]
+    assert receipt["schema_version"] == 7
+    assert receipt["destination_policy"] == UPDATE_EXISTING_DESTINATION_POLICY
+    assert receipt["destination_was_empty"] is False
+    assert receipt["s3_delete_requested"] is False
+    assert receipt["s3_delete_supported"] is False
+    assert receipt["deleted_fsx_files_leave_s3_objects_untouched"] is True
+    assert client.deleted_association == {
+        "AssociationId": "dra-export",
+        "DeleteDataInFileSystem": False,
+    }
+
+
+def test_update_existing_is_analysis_only_and_delete_modes_do_not_exist() -> None:
+    for policy in ("delete", "mirror", "two-way", "UPDATE_EXISTING"):
+        with pytest.raises(ExportError, match="delete, mirror, and two-way"):
+            validate_destination_policy(policy)
+
+    for export_kind in (RUNTIME_ASSET_EXPORT_KIND, SHARED_REFERENCE_EXPORT_KIND):
+        with pytest.raises(ExportError, match="supported only for analysis exports"):
+            validate_destination_policy(
+                UPDATE_EXISTING_DESTINATION_POLICY,
+                export_kind=export_kind,
+            )
+
+
+def test_export_preflight_update_existing_is_read_only() -> None:
+    fsx = FakeFsxClient()
+    s3 = FakeS3Client(_exported_status_v2(), key_count=1)
+
+    payload = preflight_export(
+        cluster_name="cluster-a",
+        fsx_file_system_id="fs-123",
+        source_path="/fsx/analysis_results/cluster-a/run-a",
+        destination_s3_uri="s3://bucket/derived/cluster-a/run-a/",
+        destination_policy=UPDATE_EXISTING_DESTINATION_POLICY,
+        region="us-west-2",
+        profile="lsmc",
+        fsx_client=fsx,
+        s3_client=s3,
+    )
+
+    assert payload["destination_policy"] == UPDATE_EXISTING_DESTINATION_POLICY
+    assert payload["destination_empty"] is False
+    assert payload["s3_delete_requested"] is False
+    assert payload["s3_delete_supported"] is False
+    assert fsx.created_association is None
+    assert fsx.created_task is None
+    assert fsx.deleted_association is None
 
 
 def test_verify_exported_clone_status_v2_evidence_reads_retained_attempts() -> None:
@@ -1244,6 +1343,7 @@ def test_exports_preflight_emits_read_only_receipt(monkeypatch) -> None:
             "mutation_attempted": False,
             "headnode_path": "/fsx/analysis_results/cluster-a/run-a/",
             "destination_s3_uri": "s3://bucket/derived/cluster-a/run-a/",
+            "destination_policy": kwargs["destination_policy"],
             "destination_empty": True,
             "overlapping_dra": False,
         }
@@ -1299,6 +1399,7 @@ def test_exports_preflight_accepts_shared_reference_contract(monkeypatch) -> Non
             "mutation_attempted": False,
             "headnode_path": "/fsx/analysis_results/team/ganon2_ref/",
             "destination_s3_uri": "s3://references/genomic_annotations/ganon2/ganon2_ref/",
+            "destination_policy": kwargs["destination_policy"],
             "destination_empty": True,
             "overlapping_dra": False,
             "export_kind": "shared_reference",

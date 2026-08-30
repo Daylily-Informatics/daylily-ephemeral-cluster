@@ -3463,6 +3463,16 @@ def export(
             "complete analysis root published under an explicit resource namespace."
         ),
     ),
+    destination_policy: str = typer.Option(
+        "new",
+        "--destination-policy",
+        help=(
+            "Destination admission: new requires an empty exact prefix; "
+            "update-existing explicitly allows existing objects for analysis exports "
+            "and only adds or replaces objects for new or modified FSx files. "
+            "S3 deletion is never supported."
+        ),
+    ),
 ) -> None:
     """Export FSx outputs through an explicit DRA and immutable S3 receipt."""
 
@@ -3499,6 +3509,7 @@ def export(
             timeout_seconds=timeout_seconds,
             delete_data_in_file_system=delete_data_in_file_system,
             export_kind=normalized_export_kind,
+            destination_policy=destination_policy,
         )
     )
     raise typer.Exit(rc)
@@ -3667,8 +3678,16 @@ def exports_preflight(
     ),
     region: Optional[str] = context_option("aws_region", None, "--region", required=True),
     profile: Optional[str] = typer.Option(None, "--profile"),
+    destination_policy: str = typer.Option(
+        "new",
+        "--destination-policy",
+        help=(
+            "Use new for an empty prefix or explicit update-existing for an "
+            "additive or replacement-only analysis export."
+        ),
+    ),
 ) -> None:
-    """Read-only validate an empty, non-overlapping export destination."""
+    """Read-only validate an exact, non-overlapping export destination."""
 
     from daylily_ec.workflow.export_data import (
         SHARED_REFERENCE_EXPORT_KIND,
@@ -3686,6 +3705,7 @@ def exports_preflight(
             destination_s3_uri=destination_s3_uri,
             destination_analysis_id=destination_analysis_id,
             export_kind=normalized_export_kind,
+            destination_policy=destination_policy,
             region=str(region),
             profile=profile,
         )
@@ -3693,7 +3713,9 @@ def exports_preflight(
             payload,
             text=(
                 f"Export preflight passed: {payload['headnode_path']}\n"
-                f"S3 destination is empty: {payload['destination_s3_uri']}\n"
+                f"Destination policy: {payload['destination_policy']}\n"
+                f"S3 destination empty: {payload['destination_empty']}\n"
+                f"S3 destination: {payload['destination_s3_uri']}\n"
                 "No overlapping DRA found; no mutation attempted"
             ),
         )
@@ -3710,6 +3732,14 @@ def exports_attach(
     profile: Optional[str] = typer.Option(None, "--profile"),
     wait: bool = typer.Option(True, "--wait/--no-wait"),
     timeout_seconds: int = typer.Option(900, "--timeout-seconds"),
+    destination_policy: str = typer.Option(
+        "new",
+        "--destination-policy",
+        help=(
+            "Use new for an empty prefix or explicit update-existing for a "
+            "nonempty analysis-export prefix."
+        ),
+    ),
 ) -> None:
     """Attach a temporary output DRA to a completed analysis directory."""
 
@@ -3725,6 +3755,7 @@ def exports_attach(
             profile=profile,
             wait=wait,
             timeout_seconds=timeout_seconds,
+            destination_policy=destination_policy,
         )
         export_payload = {
             "schema_version": "dyec.exports.attach.v1",
@@ -3806,6 +3837,14 @@ def exports_transfer(
     region: Optional[str] = context_option("aws_region", None, "--region", required=True),
     profile: Optional[str] = typer.Option(None, "--profile"),
     timeout_seconds: int = typer.Option(5400, "--timeout-seconds"),
+    destination_policy: str = typer.Option(
+        "new",
+        "--destination-policy",
+        help=(
+            "Use new for an empty prefix or explicit update-existing for an "
+            "additive or replacement-only analysis export."
+        ),
+    ),
 ) -> None:
     """Attach, export, and detach one exact analysis directory without deletion."""
 
@@ -3831,6 +3870,7 @@ def exports_transfer(
                 wait=True,
                 timeout_seconds=timeout_seconds,
                 delete_data_in_file_system=False,
+                destination_policy=destination_policy,
             )
             with (
                 contextlib.redirect_stdout(captured_stdout),

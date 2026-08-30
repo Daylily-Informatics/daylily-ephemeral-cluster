@@ -230,6 +230,23 @@ For cost/performance reports, aggregate directly from those rows: `sum(s)` for t
   and future-cluster import/linkage has been verified. Cleanup or replacement
   is a separate destructive operation and approval boundary.
 
+# Permanent S3 No-Delete Boundary
+
+- DYEC and every action, helper, generated policy, and provisioned role owned
+  by DYEC must never delete S3 objects or buckets. Do not call or grant
+  `DeleteObject`, `DeleteObjects`, `DeleteObjectVersion`, bucket deletion,
+  lifecycle-based deletion, replication deletion, or S3 Batch deletion.
+- Do not expose an S3 mirror, prune, delete, or two-way synchronization mode.
+  The normal export destination policy remains fail-closed on a new/empty
+  exact prefix.
+- An explicit `update-existing` analysis export may only create objects for new
+  FSx files and replace objects corresponding to modified FSx files. It leaves
+  all other S3 objects untouched, including objects whose corresponding FSx
+  files were removed.
+- S3 export preflight remains read-only. Actual write capability is proven by
+  the FSx `EXPORT_TO_REPOSITORY` task and its validated receipt, not by writing
+  and deleting a probe object.
+
 # Version Tags
 
 - Use non-v semver tags for package releases, e.g. `2.0.19` or `5.0.21`, not `v2.0.19`.

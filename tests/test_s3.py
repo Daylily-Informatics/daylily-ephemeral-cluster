@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import io
+import json
 from datetime import datetime, timezone
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -32,6 +34,70 @@ from daylily_ec.aws.s3_presign import (
     presign_get_object,
 )
 from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport
+
+
+def test_dyec_python_source_has_no_s3_object_delete_calls() -> None:
+    """DYEC may export S3 objects, but it never deletes S3 objects."""
+
+    repo_root = Path(__file__).resolve().parents[1]
+    offenders = []
+    forbidden_fragments = (
+        ".delete_object(",
+        ".delete_objects(",
+        "aws s3 rm ",
+        "aws s3api delete-object",
+    )
+    for source_root in (repo_root / "daylily_ec", repo_root / "bin"):
+        for pattern in ("*.py", "*.sh"):
+            for path in source_root.rglob(pattern):
+                text = path.read_text(encoding="utf-8")
+                if any(fragment in text for fragment in forbidden_fragments):
+                    offenders.append(str(path.relative_to(repo_root)))
+    assert offenders == []
+
+
+def test_current_s3_policy_documents_never_grant_s3_deletion() -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    policy_paths = []
+    for root in (
+        repo_root / "bin",
+        repo_root / "config",
+        repo_root / "daylily_ec" / "resources" / "payload",
+    ):
+        for path in root.rglob("*.json"):
+            text = path.read_text(encoding="utf-8")
+            if '"Statement"' not in text:
+                continue
+            payload = json.loads(text)
+            if isinstance(payload, dict) and isinstance(payload.get("Statement"), list):
+                policy_paths.append(path)
+
+    assert policy_paths
+    indirect_delete_actions = {
+        "s3:ReplicateDelete",
+        "s3:PutLifecycleConfiguration",
+        "s3:CreateJob",
+    }
+    required_wildcard_denies = {"s3:Delete*", *indirect_delete_actions}
+    for path in policy_paths:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        global_denies: set[str] = set()
+        for statement in payload["Statement"]:
+            actions = statement.get("Action", [])
+            if isinstance(actions, str):
+                actions = [actions]
+            if statement.get("Effect") == "Deny" and statement.get("Resource") == "*":
+                global_denies.update(actions)
+        for statement in payload["Statement"]:
+            if statement.get("Effect") != "Allow":
+                continue
+            actions = statement.get("Action", [])
+            if isinstance(actions, str):
+                actions = [actions]
+            assert not any(action.startswith("s3:Delete") for action in actions), path
+            assert indirect_delete_actions.isdisjoint(actions), path
+            if "s3:*" in actions:
+                assert required_wildcard_denies.issubset(global_denies), path
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -493,8 +559,13 @@ class TestExplicitRoleUris:
         assert "control/genomic_data/organism_reads/" in checked_prefixes
         assert "staged_external_data/" in checked_prefixes
         assert "derived/" in checked_prefixes
-        assert client.put_object.call_count == 1
-        assert client.delete_object.call_count == 1
+        assert client.put_object.call_count == 0
+        assert client.delete_object.call_count == 0
+        assert details["capability_boundary"] == {
+            "preflight_is_read_only": True,
+            "s3_put_capability_proven_by": "successful FSx export task and receipt",
+            "s3_delete_actions_supported": False,
+        }
 
     @patch("daylily_ec.aws.s3._reference_role_s3_client")
     def test_verify_s3_roles_rejects_bad_explicit_staging_prefix(self, mock_client_factory):
@@ -523,15 +594,19 @@ class TestExplicitRoleUris:
         )
 
     @patch("daylily_ec.aws.s3._reference_role_s3_client")
-    def test_verify_s3_roles_rejects_unwritable_export_destination(self, mock_client_factory):
+    def test_verify_s3_roles_does_not_mutate_to_probe_export_write_access(
+        self, mock_client_factory
+    ):
         client = _make_reference_s3_client()
         client.put_object.side_effect = Exception("AccessDenied")
         mock_client_factory.return_value = client
 
         ok, details = verify_s3_roles(_role_values(), profile="prof", region="us-west-2")
 
-        assert ok is False
-        assert any("unable to write temporary object" in issue for issue in details["issues"])
+        assert ok is True
+        assert details["issues"] == []
+        client.put_object.assert_not_called()
+        client.delete_object.assert_not_called()
 
     def test_verify_s3_roles_rejects_overlapping_role_prefixes(self):
         values = _role_values()

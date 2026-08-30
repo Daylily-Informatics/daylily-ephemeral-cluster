@@ -573,18 +573,22 @@ dyec export \
   --cluster "$CLUSTER" \
   --source-path /fsx/analysis_results/"$CLUSTER"/"$ANALYSIS_ID" \
   --destination-s3-uri "$DESTINATION_S3_URI" \
+  --destination-policy new \
   --output-dir ./export-receipts/"$ANALYSIS_ID"
 ```
 
 `dyec catalog list`, `show`, and `render` expose the same `result_export`
 contract. DayOA never exports: after the controller succeeds, run the displayed
-DYEC visit and DRA export commands from the analysis root. Leave the destination
-prefix empty for `dyec export`'s fail-closed preflight; do not put an
-`--s3-visit-uri` marker in that intended destination.
+DYEC visit and DRA export commands from the analysis root. The default
+`--destination-policy new` requires an empty prefix. Explicit
+`--destination-policy update-existing` adds new objects and replaces objects
+for modified FSx files in an existing exact destination. It never deletes S3
+objects for files absent from FSx and is not a mirror or two-way sync.
 `dyec export` records a local receipt and uses an explicit DRA/export path.
 Verify `status=success`, `phase=complete`, `task_lifecycle=SUCCEEDED`,
-`detached=true`, and the expected S3 objects. FSx data is preserved unless a
-separately approved destructive option is explicitly supplied.
+`detached=true`, `s3_delete_requested=false`, and the expected S3 objects. FSx
+data is preserved unless a separately approved FSx cleanup is explicitly run;
+such cleanup never deletes S3 data.
 
 ## Development and tests
 

@@ -2284,7 +2284,6 @@ def _permission_groups(
                 "s3:ListBucket",
                 "s3:GetObject",
                 "s3:PutObject",
-                "s3:DeleteObject",
             ),
         ),
         PermissionGroup(

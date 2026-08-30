@@ -46,7 +46,7 @@ LOGGER = logging.getLogger("daylily.export_fsx")
 ANALYSIS_EXPORT_ROOT = "/analysis_results/"
 HEADNODE_ANALYSIS_EXPORT_ROOT = "/fsx/analysis_results/"
 STATUS_FILENAME = "fsx_export.yaml"
-EXPORT_SCHEMA_VERSION = 6
+EXPORT_SCHEMA_VERSION = 7
 EXPORT_PURPOSE_TAG = "output-export"
 EXPORT_INSPECTION_SCHEMA = "dyec.exports.inspect.v1"
 POLL_INTERVAL_SECONDS = 30
@@ -64,6 +64,11 @@ EXPORT_KINDS = frozenset(
 )
 MAX_DESTINATION_EVIDENCE_PAGES = 100
 SHARED_REFERENCE_STAGE_MARKER = "DYEC_SHARED_REFERENCE_STAGE"
+NEW_DESTINATION_POLICY = "new"
+UPDATE_EXISTING_DESTINATION_POLICY = "update-existing"
+DESTINATION_POLICIES = frozenset(
+    {NEW_DESTINATION_POLICY, UPDATE_EXISTING_DESTINATION_POLICY}
+)
 
 
 class ExportError(RuntimeError):
@@ -84,6 +89,7 @@ class ExportOptions:
     timeout_seconds: int = 3600
     delete_data_in_file_system: bool = False
     export_kind: str = ANALYSIS_EXPORT_KIND
+    destination_policy: str = NEW_DESTINATION_POLICY
 
 
 @dataclasses.dataclass(frozen=True)
@@ -97,9 +103,39 @@ class ExportDraRecord:
     destination_s3_uri: str
     association_id: str
     lifecycle: str
+    destination_policy: Optional[str] = None
+    destination_was_empty: Optional[bool] = None
+    s3_delete_requested: bool = False
 
     def to_payload(self) -> Dict[str, Any]:
         return dataclasses.asdict(self)
+
+
+def validate_destination_policy(
+    destination_policy: str,
+    *,
+    export_kind: str = ANALYSIS_EXPORT_KIND,
+) -> str:
+    """Require one explicit non-destructive destination policy.
+
+    Updating an existing destination is limited to ordinary analysis exports.
+    Runtime assets, runtime caches, and shared references remain immutable
+    fresh-prefix contracts.
+    """
+
+    policy = str(destination_policy or "").strip()
+    if policy not in DESTINATION_POLICIES:
+        raise ExportError(
+            "destination_policy must be exactly one of "
+            f"{sorted(DESTINATION_POLICIES)!r}; S3 delete, mirror, and two-way "
+            "synchronization modes are not supported"
+        )
+    if policy == UPDATE_EXISTING_DESTINATION_POLICY and export_kind != ANALYSIS_EXPORT_KIND:
+        raise ExportError(
+            "destination_policy=update-existing is supported only for analysis exports; "
+            "runtime assets, runtime caches, and shared references require a new prefix"
+        )
+    return policy
 
 
 def validate_runtime_asset_export_source(source_path: str) -> str:
@@ -542,16 +578,19 @@ def resolve_launch_export_destination_s3_uri(
     )
 
 
-def validate_s3_destination_prefix_empty(
+def inspect_s3_destination_admission(
     client: Any,
     destination_s3_uri: str,
     *,
+    destination_policy: str,
     source_path: str,
     cluster_name: Optional[str] = None,
     destination_analysis_id: Optional[str] = None,
     export_kind: str = ANALYSIS_EXPORT_KIND,
-) -> str:
-    """Validate the destination suffix and fail if the S3 prefix already has objects."""
+) -> tuple[str, Dict[str, Any]]:
+    """Inspect one exact S3 prefix and enforce its non-destructive admission policy."""
+
+    policy = validate_destination_policy(destination_policy, export_kind=export_kind)
     destination = validate_export_destination_s3_uri(
         destination_s3_uri,
         source_path=source_path,
@@ -566,8 +605,50 @@ def validate_s3_destination_prefix_empty(
         response = client.list_objects_v2(Bucket=bucket, Prefix=prefix, MaxKeys=1)
     except (BotoCoreError, ClientError) as exc:
         raise ExportError(f"Unable to inspect S3 destination prefix {destination}: {exc}") from exc
-    if response.get("KeyCount", 0):
+    raw_key_count = response.get("KeyCount", 0)
+    if isinstance(raw_key_count, bool) or not isinstance(raw_key_count, int):
+        raise ExportError(
+            f"S3 destination prefix inspection returned an invalid KeyCount: {destination}"
+        )
+    if raw_key_count < 0 or raw_key_count > 1:
+        raise ExportError(
+            f"S3 destination prefix inspection returned an out-of-range KeyCount: {destination}"
+        )
+    destination_empty = raw_key_count == 0
+    if policy == NEW_DESTINATION_POLICY and not destination_empty:
         raise ExportError(f"S3 destination prefix is not empty: {destination}")
+    return destination, {
+        "schema_version": "dyec.export.destination_admission.v1",
+        "destination_policy": policy,
+        "destination_empty": destination_empty,
+        "observation_max_keys": 1,
+        "observed_key_count": raw_key_count,
+        "s3_delete_requested": False,
+        "s3_delete_supported": False,
+        "deleted_fsx_files_leave_s3_objects_untouched": True,
+    }
+
+
+def validate_s3_destination_prefix_empty(
+    client: Any,
+    destination_s3_uri: str,
+    *,
+    source_path: str,
+    cluster_name: Optional[str] = None,
+    destination_analysis_id: Optional[str] = None,
+    export_kind: str = ANALYSIS_EXPORT_KIND,
+) -> str:
+    """Preserve the historical fail-closed fresh-prefix validator."""
+
+    destination, _evidence = inspect_s3_destination_admission(
+        client,
+        destination_s3_uri,
+        destination_policy=NEW_DESTINATION_POLICY,
+        source_path=source_path,
+        cluster_name=cluster_name,
+        destination_analysis_id=destination_analysis_id,
+        export_kind=export_kind,
+    )
     return destination
 
 
@@ -1167,10 +1248,11 @@ def preflight_export(
     profile: Optional[str],
     destination_analysis_id: Optional[str] = None,
     export_kind: str = ANALYSIS_EXPORT_KIND,
+    destination_policy: str = NEW_DESTINATION_POLICY,
     fsx_client: Optional[Any] = None,
     s3_client: Optional[Any] = None,
 ) -> Dict[str, Any]:
-    """Read-only validate one exact fresh FSx-to-S3 export mapping."""
+    """Read-only validate one exact FSx-to-S3 export mapping."""
 
     session = None
     if fsx_client is None or s3_client is None:
@@ -1205,9 +1287,10 @@ def preflight_export(
             source_path=normalized_source,
             destination_s3_uri=destination,
         )
-    destination = validate_s3_destination_prefix_empty(
+    destination, destination_admission = inspect_s3_destination_admission(
         s3,
         destination,
+        destination_policy=destination_policy,
         source_path=normalized_source,
         cluster_name=cluster_name,
         destination_analysis_id=destination_analysis_id,
@@ -1226,7 +1309,11 @@ def preflight_export(
         "headnode_path": analysis_headnode_path(normalized_source),
         "destination_s3_uri": destination,
         "destination_analysis_id": destination_analysis_id,
-        "destination_empty": True,
+        "destination_policy": destination_admission["destination_policy"],
+        "destination_empty": destination_admission["destination_empty"],
+        "destination_admission": destination_admission,
+        "s3_delete_requested": False,
+        "s3_delete_supported": False,
         "overlapping_dra": False,
         "fsx_dra_compatible": True,
     }
@@ -1251,7 +1338,7 @@ def attach_export_dra(
     export_kind: str = ANALYSIS_EXPORT_KIND,
     fsx_client: Optional[Any] = None,
     s3_client: Optional[Any] = None,
-    require_empty_destination: bool = False,
+    destination_policy: Optional[str] = None,
     on_created: Optional[Callable[[ExportDraRecord], None]] = None,
 ) -> ExportDraRecord:
     """Create an output DRA directly on an analysis directory without AutoExport."""
@@ -1277,19 +1364,22 @@ def attach_export_dra(
         source_path=file_system_path,
         destination_s3_uri=destination,
     )
-    if require_empty_destination:
+    destination_admission: Optional[Dict[str, Any]] = None
+    if destination_policy is not None:
         destination_s3_client = s3_client
         if destination_s3_client is None and session is not None:
             destination_s3_client = session.client("s3")
         if destination_s3_client is None:
             raise ExportError(
-                "S3 client is required to verify an empty export destination before DRA creation."
+                "S3 client is required to enforce the export destination policy before DRA creation."
             )
-        # This must stay directly adjacent to the mutating association request: a
-        # non-empty destination is never a valid target for a fresh no-delete export.
-        destination = validate_s3_destination_prefix_empty(
+        # Keep admission directly adjacent to the mutating DRA request. The
+        # update-existing policy changes only admission and never adds an S3
+        # delete, mirror, prune, or two-way synchronization operation.
+        destination, destination_admission = inspect_s3_destination_admission(
             destination_s3_client,
             destination,
+            destination_policy=destination_policy,
             source_path=file_system_path,
             cluster_name=cluster_name,
             destination_analysis_id=destination_analysis_id,
@@ -1322,6 +1412,16 @@ def attach_export_dra(
         destination_s3_uri=destination,
         association_id=association_id,
         lifecycle=str(association.get("Lifecycle") or "UNKNOWN"),
+        destination_policy=(
+            destination_admission["destination_policy"]
+            if destination_admission is not None
+            else None
+        ),
+        destination_was_empty=(
+            destination_admission["destination_empty"]
+            if destination_admission is not None
+            else None
+        ),
     )
     if on_created is not None:
         on_created(created_record)
@@ -1342,6 +1442,16 @@ def attach_export_dra(
         destination_s3_uri=destination,
         association_id=association_id,
         lifecycle=str(association.get("Lifecycle") or "UNKNOWN"),
+        destination_policy=(
+            destination_admission["destination_policy"]
+            if destination_admission is not None
+            else None
+        ),
+        destination_was_empty=(
+            destination_admission["destination_empty"]
+            if destination_admission is not None
+            else None
+        ),
     )
 
 
@@ -1645,6 +1755,10 @@ def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
             f"unsupported export kind: {options.export_kind!r}; expected one of {sorted(EXPORT_KINDS)!r}"
         )
     normalized_source = normalize_export_source_path(options.source_path)
+    destination_policy = validate_destination_policy(
+        options.destination_policy,
+        export_kind=options.export_kind,
+    )
     if options.export_kind == RUNTIME_ASSET_EXPORT_KIND:
         validate_runtime_asset_export_source(normalized_source)
         if options.delete_data_in_file_system:
@@ -1706,10 +1820,14 @@ def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
             "headnode_path": headnode_path,
             "destination_s3_uri": destination_s3_uri,
             "destination_analysis_id": options.destination_analysis_id,
+            "destination_policy": destination_policy,
             "fsx_root": headnode_path,
             "s3_root": destination_s3_uri,
             "detached": False,
             "delete_data_in_file_system": options.delete_data_in_file_system,
+            "s3_delete_requested": False,
+            "s3_delete_supported": False,
+            "deleted_fsx_files_leave_s3_objects_untouched": True,
             "failure_details": {},
         }
     }
@@ -1907,8 +2025,11 @@ def run_export_workflow(options: ExportOptions) -> int:
                 "source_path": options.source_path,
                 "destination_s3_uri": options.destination_s3_uri,
                 "destination_analysis_id": options.destination_analysis_id,
+                "destination_policy": options.destination_policy,
                 "detached": False,
                 "delete_data_in_file_system": options.delete_data_in_file_system,
+                "s3_delete_requested": False,
+                "s3_delete_supported": False,
                 "failure_details": {"message": str(exc)},
             }
         }
@@ -1943,7 +2064,7 @@ def run_export_workflow(options: ExportOptions) -> int:
             export_kind=options.export_kind,
             fsx_client=client,
             s3_client=session.client("s3"),
-            require_empty_destination=True,
+            destination_policy=options.destination_policy,
             on_created=_capture_created_dra,
         )
         receipt["fsx_export"].update(record.to_payload())

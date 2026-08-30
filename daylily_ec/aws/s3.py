@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import dataclasses
 import logging
-import uuid
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
@@ -269,8 +268,6 @@ def _candidate_prefixes_for_role(role: str, bucket_name: str) -> Tuple[str, ...]
 def _role_contract_issues(
     s3_client: Any,
     spec: S3RoleSpec,
-    *,
-    verify_writable: bool = False,
 ) -> List[str]:
     issues: List[str] = []
 
@@ -314,36 +311,11 @@ def _role_contract_issues(
         if not prefix_exists:
             issues.append(f"{spec.role}: missing objects under {key_prefix}")
 
-    if verify_writable and spec.role == ROLE_EXPORT_DESTINATION:
-        write_issue = _verify_export_destination_writable(s3_client, spec)
-        if write_issue:
-            issues.append(write_issue)
-
     return issues
 
 
-def _verify_export_destination_writable(s3_client: Any, spec: S3RoleSpec) -> str:
-    preflight_prefix = role_prefix_key(spec, "dayec-preflight/")
-    key = f"{preflight_prefix}write-check-{uuid.uuid4().hex}.txt"
-    try:
-        s3_client.put_object(
-            Bucket=spec.bucket,
-            Key=key,
-            Body=b"dayec export destination preflight\n",
-        )
-    except Exception as exc:
-        return f"{spec.role}: unable to write temporary object under {preflight_prefix}: {exc}"
-
-    try:
-        s3_client.delete_object(Bucket=spec.bucket, Key=key)
-    except Exception as exc:
-        return f"{spec.role}: wrote temporary object but could not delete {key}: {exc}"
-
-    return ""
-
-
 def _role_candidate_meets_contract(s3_client: Any, spec: S3RoleSpec) -> bool:
-    return not _role_contract_issues(s3_client, spec, verify_writable=False)
+    return not _role_contract_issues(s3_client, spec)
 
 
 def list_role_candidate_uris(
@@ -415,17 +387,16 @@ def verify_s3_roles(
             for role, spec in specs.items()
         },
         "buckets": sorted({spec.bucket for spec in specs.values()}),
+        "capability_boundary": {
+            "preflight_is_read_only": True,
+            "s3_put_capability_proven_by": "successful FSx export task and receipt",
+            "s3_delete_actions_supported": False,
+        },
         "issues": issues,
     }
 
     for role, spec in specs.items():
-        issues.extend(
-            _role_contract_issues(
-                s3_client,
-                spec,
-                verify_writable=role == ROLE_EXPORT_DESTINATION,
-            )
-        )
+        issues.extend(_role_contract_issues(s3_client, spec))
 
     return not issues, details
 

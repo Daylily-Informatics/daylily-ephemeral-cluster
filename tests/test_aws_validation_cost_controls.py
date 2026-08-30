@@ -85,6 +85,7 @@ def test_permission_catalog_covers_recent_cost_control_surfaces() -> None:
         "sns:ListSubscriptionsByTopic",
         "secretsmanager:DescribeSecret",
     } <= actions
+    assert "s3:DeleteObject" not in actions
     assert f"arn:aws:dynamodb:us-west-2:{ACCOUNT_ID}:table/dayec-cost-centers" in resources
     assert f"arn:aws:dynamodb:us-west-2:{ACCOUNT_ID}:table/dayec-cost-center-usage" in resources
     assert any(
