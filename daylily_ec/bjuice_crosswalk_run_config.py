@@ -468,8 +468,10 @@ def _validate_generated(
     if any(sorted(value) != ["lr", "sr"] for value in roles.values()):
         raise BjuiceConfigError("each generated AU must have exactly one SR and one LR input")
     runtime = yaml.safe_load(runtime_yaml.read_text(encoding="utf-8"))
-    if runtime.get("ont_fastq_hour_window_mode") != "full_input":
-        raise BjuiceConfigError("runtime YAML must explicitly select full ONT input")
+    if "ont_fastq_hour_window_mode" in runtime:
+        raise BjuiceConfigError(
+            "runtime YAML must omit ont_fastq_hour_window_mode for blank full-input ONT slicing"
+        )
     return {
         "manifest_hashes": dict(manifests.hashes),
         "analysis_unit_count": len(units),
@@ -696,7 +698,6 @@ def materialize_bjuice_crosswalk_run(
         sample_ids=sorted({row["SAMPLEID"] for row in manifest_rows["samples.tsv"]}),
     )
     runtime["bjuice_workflow_config_file"] = "config/dyec_runtime_config.yaml"
-    runtime["ont_fastq_hour_window_mode"] = "full_input"
     runtime["multiqc_qc"]["contributing_data"] = {
         "enabled": True,
         "receipt": str(CONTRIBUTING_DATA_RECEIPT_RELATIVE_PATH),

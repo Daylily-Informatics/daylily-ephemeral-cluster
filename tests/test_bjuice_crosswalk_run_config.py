@@ -203,6 +203,10 @@ def test_materializer_aggregates_three_hg002_b_chips_and_blanks_hour_slicing(
     assert receipt["runtime_yaml_sha256"]
     assert receipt["contributing_data_receipt"] == "config/contributing_data_receipt.v1.json"
     assert receipt["selection_contract"]["ont_hour_slicing"] == "blank_full_input"
+    runtime = yaml.safe_load(
+        (tmp_path / "output" / receipt["runtime_yaml"]).read_text(encoding="utf-8")
+    )
+    assert "ont_fastq_hour_window_mode" not in runtime
     assert len(hg002_ont["ONT_R1_PATH"].split(",")) == 75
     assert {
         path.split("/")[-1].split("_", 1)[0] for path in hg002_ont["ONT_R1_PATH"].split(",")
