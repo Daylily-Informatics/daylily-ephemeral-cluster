@@ -222486,3 +222486,2865 @@ dyec_builds:
             export, or live-workflow claim is made.'
         repository: daylily-omics-analysis
     aliases: {}
+  19.0.58:
+    repository: daylily-omics-analysis
+    dayoa_git_tags:
+    - 16.0.39
+    commands:
+      simple-test:
+        command_id: simple-test
+        type: dev
+        validated_version: 15.0.1
+        test_data_profile: none
+        display_name: Simple Test
+        description: Smoke-test DayOA shell initialization and local help target without
+          staged sample inputs.
+        datasource: DayOA
+        launcher: workflow_launch
+        command_class: utility
+        input_contract: none
+        requires_staging: false
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements: {}
+        targets:
+        - help
+        genome: hg38
+        jobs: 1
+        aligners: []
+        dedupers: []
+        snv_callers: []
+        sv_callers: []
+        dy_command: source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help
+        dryrun_dy_command: source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help
+        compatible_platforms:
+        - local
+        compatible_cluster_types:
+        - daywgs
+        compatible_data_modes:
+        - none
+        git_tag: 16.0.39
+        no_containerized: true
+        validation_runs: []
+        repository: daylily-omics-analysis
+      illumina_snv_alignstats:
+        command_id: illumina_snv_alignstats
+        type: research
+        validated_version: 15.0.1
+        test_data_profile: default_reads_slim
+        display_name: Illumina SNV + Alignstats
+        description: Illumina WGS Sentieon DNAscope and alignment-statistics launch
+          profile.
+        datasource: Illumina
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          required_source_columns:
+          - ILMN_R1_FQ
+          - ILMN_R2_FQ
+        targets:
+        - produce_sent_align
+        - produce_dmd_dedup_cram
+        - produce_sentd_snv_vcf
+        - produce_snv_concordances
+        - produce_alignstats
+        genome: hg38
+        jobs: 20
+        aligners:
+        - sent
+        dedupers:
+        - dmd
+        snv_callers:
+        - sentd
+        sv_callers: []
+        dy_command: dy-r produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf
+          produce_snv_concordances produce_alignstats -p -k -j 20
+        dryrun_dy_command: dy-r produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf
+          produce_snv_concordances produce_alignstats -p -k -j 20 -n
+        compatible_platforms:
+        - ILMN
+        compatible_cluster_types:
+        - daywgs
+        compatible_data_modes:
+        - ilmn_solo
+        git_tag: 16.0.39
+        no_containerized: false
+        validation_runs:
+        - run_id: tstver411b_dayoa_catalog_recipe_validation
+          generated_at: '2026-05-25T20:04:39Z'
+          report_path: docs/tstver411b_command_catalog_test_results.md
+          ledger_path: docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md
+          cluster: tstVer4-1-1b
+          region: us-west-2
+          region_az: us-west-2d
+          dayec_tag: 4.1.3
+          dayec_commit: 012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4
+          dayoa_tag: 1.0.21
+          dayoa_commit: c2ffe93f246ff19c346f0a99e04fddc9e2712ff3
+          tested_command: bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf
+            produce_snv_concordances produce_alignstats -p -k -j 20
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: tvb_illumina_snv_alignstats_5x_1021_dryrun
+          live_analysis_id: tvb_illumina_snv_alignstats_5x_1021
+          stage_or_context: /fsx/staging/staged_external_sequencing_data/remote_stage_20260525T071517Z
+          notes: Live run completed with CRAM, VCF, alignstats, and concordance outputs.
+        repository: daylily-omics-analysis
+      illumina_snv_alignstats_relatedness_vep_multiqc:
+        command_id: illumina_snv_alignstats_relatedness_vep_multiqc
+        type: research
+        validated_version: 15.0.1
+        test_data_profile: default_reads_slim
+        display_name: Illumina SNV + Alignstats + Relatedness + VEP MultiQC
+        description: Illumina WGS Sentieon DNAscope, alignment statistics, relatedness,
+          VEP annotation, and final MultiQC launch profile.
+        datasource: Illumina
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          required_source_columns:
+          - ILMN_R1_FQ
+          - ILMN_R2_FQ
+        targets:
+        - produce_sent_align
+        - produce_dmd_dedup_cram
+        - produce_sentd_snv_vcf
+        - produce_alignstats
+        - produce_snv_concordances
+        - produce_relatedness
+        - produce_vep
+        - produce_multiqc_all
+        genome: hg38
+        jobs: 100
+        aligners:
+        - sent
+        dedupers:
+        - dmd
+        snv_callers:
+        - sentd
+        sv_callers: []
+        dy_command: dy-r produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf
+          produce_alignstats produce_snv_concordances produce_relatedness produce_vep
+          produce_multiqc_all --config 'multiqc_qc={"enable_tools":["vep"]}' -p -j
+          100 -k
+        dryrun_dy_command: dy-r produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf
+          produce_alignstats produce_snv_concordances produce_relatedness produce_vep
+          produce_multiqc_all --config 'multiqc_qc={"enable_tools":["vep"]}' -p -j
+          100 -k -n
+        compatible_platforms:
+        - ILMN
+        compatible_cluster_types:
+        - daywgs
+        compatible_data_modes:
+        - ilmn_solo
+        git_tag: 16.0.39
+        no_containerized: false
+        artifact_registration:
+          enabled: true
+          manifest_source: dayoa_manifest
+          evidence_manifest_path: results/day/{genome}/reports/dayoa_evidence_manifest.json
+          include_classifications:
+          - multiqc_html
+          - multiqc_data_json
+          - multiqc_general_stats
+          - multiqc_sources
+          - multiqc_log
+          - multiqc_data_file
+          - custom_mqc_tsv
+          - staging_manifest
+          - benchmark
+          - alignment_cram
+          - alignment_cram_index
+          - alignment_bam
+          - alignment_bam_index
+          - variant_vcf
+          - variant_vcf_index
+          - samples_manifest
+          - units_manifest
+          include_paths:
+          - config/samples.tsv
+          - config/units.tsv
+          - results/day/{genome}/reports/DAY_final_multiqc.html
+          - results/day/{genome}/reports/DAY_final_multiqc_data/**
+          - results/day/{genome}/reports/multiqc_inputs/final/manifest.tsv
+          - results/day/{genome}/other_reports/*_mqc.tsv
+          - results/day/{genome}/**/*.cram
+          - results/day/{genome}/**/*.crai
+          - results/day/{genome}/**/*.bam
+          - results/day/{genome}/**/*.bai
+          - results/day/{genome}/**/*.vcf
+          - results/day/{genome}/**/*.vcf.gz
+          - results/day/{genome}/**/*.tbi
+          - results/day/{genome}/**/*.csi
+          require_existing: true
+          parser_family_hint: multiqc
+          multiqc_report_kind: final
+          multiqc_version: '1.35'
+          multiqc_reports:
+          - report_kind: final
+            html_path: results/day/{genome}/reports/DAY_final_multiqc.html
+            data_dir_path: results/day/{genome}/reports/DAY_final_multiqc_data/
+          identity:
+            analysis_euid: '{analysis_id}'
+            run_euid: '{analysis_id}'
+        validation_runs:
+        - run_id: tstver411b_dayoa_catalog_recipe_validation
+          generated_at: '2026-05-25T20:04:39Z'
+          report_path: docs/tstver411b_command_catalog_test_results.md
+          ledger_path: docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md
+          cluster: tstVer4-1-1b
+          region: us-west-2
+          region_az: us-west-2d
+          dayec_tag: 4.1.3
+          dayec_commit: 012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4
+          dayoa_tag: 1.0.21
+          dayoa_commit: c2ffe93f246ff19c346f0a99e04fddc9e2712ff3
+          tested_command: bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf
+            produce_alignstats produce_snv_concordances produce_relatedness produce_vep
+            produce_multiqc_all --config 'multiqc_qc={"enable_tools":["vep"]}' -p
+            -j 100 -k
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: tvb_illumina_related_vep_multiqc_5x_1021_dryrun
+          live_analysis_id: tvb_illumina_related_vep_multiqc_5x_1021
+          stage_or_context: /fsx/staging/staged_external_sequencing_data/remote_stage_20260525T072540Z
+          notes: Live run completed with CRAM, VCF, alignstats, concordance, MultiQC,
+            and relatedness outputs.
+        repository: daylily-omics-analysis
+      all_metagenomic_pipelines:
+        command_id: all_metagenomic_pipelines
+        type: research
+        validated_version: 15.0.1
+        test_data_profile: default_reads_slim
+        sample_manifest_template: examples/staging/ilmn_hg003_5x_solo/analysis_samples_manifest.tsv
+        display_name: All Metagenomic Pipelines
+        description: 'HG003 5x Illumina benchmark profile for the complete DayOA metagenomics
+          aggregate: Kraken2, Ganon2, and sourmash gather over human-unmapped reads.'
+        datasource: Illumina
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          required_source_columns:
+          - ILMN_R1_FQ
+          - ILMN_R2_FQ
+        targets:
+        - produce_metagenomics
+        genome: hg38
+        jobs: 100
+        aligners:
+        - sent
+        dedupers:
+        - dmd
+        snv_callers: []
+        sv_callers: []
+        dy_command: dy-r produce_metagenomics --config 'aligners=["sent"]' 'dedupers=["dmd"]'
+          'multiqc_qc={"enable_tools":["metagenomics"]}' -j 100 -p -k --rerun-triggers
+          mtime
+        dryrun_dy_command: dy-r produce_metagenomics --config 'aligners=["sent"]'
+          'dedupers=["dmd"]' 'multiqc_qc={"enable_tools":["metagenomics"]}' -j 100
+          -p -k --rerun-triggers mtime -n
+        compatible_platforms:
+        - ILMN
+        compatible_cluster_types:
+        - daywgs
+        compatible_data_modes:
+        - ilmn_solo
+        git_tag: 16.0.39
+        no_containerized: false
+        validation_runs: []
+        repository: daylily-omics-analysis
+      illumina_hg002_kitchensink_multiqc:
+        command_id: illumina_hg002_kitchensink_multiqc
+        type: prod
+        validated_version: 15.0.1
+        validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ilmn_solo_slim_1510_ccenter_20260817t020600z_live/
+        test_data_profile: default_reads_slim
+        manifest_dir_template: ''
+        display_name: Illumina HG002 Kitchen Sink MultiQC
+        description: HG002 Illumina WGS Sentieon DNAscope, dmd CRAM, concordance,
+          relatedness, GATK/site-mix contamination, VEP, ExpansionHunter, explicit
+          HTD, metagenomics, and final MultiQC validation profile. Global Haplocheck/read-haps
+          contamination identity and SMAca are not default surfaces.
+        datasource: Illumina
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: six_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          required_source_columns:
+          - ILMN_R1_FQ
+          - ILMN_R2_FQ
+        targets:
+        - produce_sent_align
+        - produce_dmd_dedup_cram
+        - produce_sentd_snv_vcf
+        - produce_alignstats
+        - produce_snv_concordances
+        - produce_relatedness
+        - produce_gatk_contam_estimate
+        - produce_site_mix_contam_estimate
+        - produce_vep
+        - produce_expansionhunter
+        - produce_htd_calls
+        - produce_metagenomics
+        - produce_multiqc_all
+        - results/day/hg38/reports/DAY_final_multiqc.html
+        - results/day/hg38/reports/dayoa_evidence_manifest.json
+        - ilmn_solo_kitchensink_manifest
+        genome: hg38
+        jobs: 333
+        aligners:
+        - sent
+        dedupers:
+        - dmd
+        snv_callers:
+        - sentd
+        sv_callers: []
+        dy_command: dy-r produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf
+          produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate
+          produce_site_mix_contam_estimate produce_vep produce_expansionhunter produce_htd_calls
+          produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html
+          results/day/hg38/reports/dayoa_evidence_manifest.json ilmn_solo_kitchensink_manifest
+          --config 'aligners=["sent"]' 'dedupers=["dmd"]' 'snv_callers=["sentd"]'
+          'htd_callers=["cyrius"]' 'multiqc_qc={"enable_tools":["vep","metagenomics","unmapped_metagenomics_ganon2"]}'
+          'sentD={"hg38_sentD_chrms":"1-25"}' -j 333 -p -T 0 --rerun-triggers mtime
+        dryrun_dy_command: dy-r produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf
+          produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate
+          produce_site_mix_contam_estimate produce_vep produce_expansionhunter produce_htd_calls
+          produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html
+          results/day/hg38/reports/dayoa_evidence_manifest.json ilmn_solo_kitchensink_manifest
+          --config 'aligners=["sent"]' 'dedupers=["dmd"]' 'snv_callers=["sentd"]'
+          'htd_callers=["cyrius"]' 'multiqc_qc={"enable_tools":["vep","metagenomics","unmapped_metagenomics_ganon2"]}'
+          'sentD={"hg38_sentD_chrms":"1-25"}' -j 333 -p -T 0 --rerun-triggers mtime
+          -n
+        compatible_platforms:
+        - ILMN
+        compatible_cluster_types:
+        - daywgs
+        compatible_data_modes:
+        - ilmn_solo
+        git_tag: 16.0.39
+        no_containerized: false
+        artifact_registration:
+          enabled: true
+          manifest_source: dayoa_manifest
+          evidence_manifest_path: results/day/{genome}/reports/dayoa_evidence_manifest.json
+          include_classifications:
+          - multiqc_html
+          - multiqc_data_json
+          - multiqc_general_stats
+          - multiqc_sources
+          - multiqc_log
+          - multiqc_data_file
+          - custom_mqc_tsv
+          - staging_manifest
+          - benchmark
+          - alignment_cram
+          - alignment_cram_index
+          - alignment_bam
+          - alignment_bam_index
+          - variant_vcf
+          - variant_vcf_index
+          - samples_manifest
+          - units_manifest
+          include_paths:
+          - config/samples.tsv
+          - config/units.tsv
+          - results/day/{genome}/reports/DAY_final_multiqc.html
+          - results/day/{genome}/reports/DAY_final_multiqc_data/**
+          - results/day/{genome}/reports/multiqc_inputs/final/manifest.tsv
+          - results/day/{genome}/other_reports/*_mqc.tsv
+          - results/day/{genome}/**/*.cram
+          - results/day/{genome}/**/*.crai
+          - results/day/{genome}/**/*.bam
+          - results/day/{genome}/**/*.bai
+          - results/day/{genome}/**/*.vcf
+          - results/day/{genome}/**/*.vcf.gz
+          - results/day/{genome}/**/*.tbi
+          - results/day/{genome}/**/*.csi
+          require_existing: true
+          parser_family_hint: multiqc
+          multiqc_report_kind: final
+          multiqc_version: '1.35'
+          multiqc_reports:
+          - report_kind: final
+            html_path: results/day/{genome}/reports/DAY_final_multiqc.html
+            data_dir_path: results/day/{genome}/reports/DAY_final_multiqc_data/
+          identity:
+            analysis_euid: '{analysis_id}'
+            run_euid: '{analysis_id}'
+        validation_runs:
+        - run_id: dayoa_2017_hg002_kitchensink_j200_readhapsfix2_151101
+          generated_at: '2026-05-28T15:11:45Z'
+          report_path: docs/plans/20260528T152607Z_dayoa_2017_release_train_ledger.md
+          ledger_path: docs/plans/20260528T152607Z_dayoa_2017_release_train_ledger.md
+          cluster: goodole3
+          region: us-west-2
+          region_az: us-west-2d
+          dayec_tag: 5.0.20-dev
+          dayec_commit: fbad3b802f2886afdc011d41228c12a1b9094322
+          dayoa_tag: 2.0.19
+          dayoa_commit: b377b8b557306fbb6832763a39661ce36d6f4bbd
+          tested_command: bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf
+            produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate
+            produce_site_mix_contam_estimate produce_vep produce_expansionhunter produce_htd_calls
+            produce_metagenomics produce_multiqc_all --config 'aligners=["sent"]'
+            'dedupers=["dmd"]' 'snv_callers=["sentd"]' 'htd_callers=["cyrius"]' 'multiqc_qc={"enable_tools":["vep","metagenomics"]}'
+            -j 200 -p -k --rerun-triggers mtime
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: dayoa_2017_hg002_kitchensink_j200_readhapsfix2_151101_dryrun
+          live_analysis_id: dayoa_2017_hg002_kitchensink_j200_readhapsfix2_151101
+          stage_or_context: /fsx/analysis_results/ubuntu/2.0.17/daylily-omics-analysis
+          notes: Headnode run used the dy-r alias with the same targets/config on
+            the 2.0.17 clone plus local stabilization patches that were mirrored into
+            DayOA release 2.0.19; final report was results/day/hg38/reports/DAY_final_multiqc.html.
+        - run_id: pcand18015_ilmn_solo_slim_1510_ccenter_20260817t020600z_live
+          generated_at: '2026-08-17T03:30:59Z'
+          report_path: docs/plans/20260817T031500Z_pcand18015_solo_kitchensink_export_release_ledger.md
+          ledger_path: docs/plans/20260817T031500Z_pcand18015_solo_kitchensink_export_release_ledger.md
+          cluster: pcand-18015
+          region: us-west-2
+          region_az: us-west-2c
+          dayec_tag: 18.0.18
+          dayec_commit: 7f6f8ea82b2bd6a7fb1efae20870949b29b13887
+          dayoa_tag: 15.0.10
+          dayoa_commit: 3a501d3f927a9573dc52adb978af31b5b64c85f3
+          tested_command: dyec catalog launch illumina_hg002_kitchensink_multiqc --dyec-version
+            current --cost-center pcand-18015-ccenter
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: pcand18015_ilmn_solo_slim_1510_20260817t011900z_dry
+          live_analysis_id: pcand18015_ilmn_solo_slim_1510_ccenter_20260817t020600z_live
+          stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ilmn_solo_slim_1510_ccenter_20260817t020600z_live/
+          notes: No-delete DRA task task-0cba5482e91a16c8a SUCCEEDED, detached dra-044cb9ffb45f00362,
+            and the exported final MultiQC HTML was verified in S3 (8548561 bytes).
+        repository: daylily-omics-analysis
+      illumina_pangenome_snv:
+        command_id: illumina_pangenome_snv
+        type: dev
+        validated_version: 15.0.1
+        test_data_profile: default_reads_slim
+        display_name: Illumina Pangenome SNV
+        description: Illumina HG003 Sentieon pangenome SNV validation profile using
+          the current DayOA pangenome branch.
+        datasource: Illumina
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          required_source_columns:
+          - ILMN_R1_FQ
+          - ILMN_R2_FQ
+        targets:
+        - produce_sentpg_snv_vcf
+        genome: hg38
+        jobs: 150
+        aligners:
+        - sent
+        dedupers: []
+        snv_callers:
+        - sentpg
+        sv_callers: []
+        dy_command: dy-r produce_sentpg_snv_vcf -p -j 150 -k -T 1 --rerun-triggers
+          mtime
+        dryrun_dy_command: dy-r produce_sentpg_snv_vcf -p -j 150 -k -T 1 --rerun-triggers
+          mtime -n
+        compatible_platforms:
+        - ILMN
+        compatible_cluster_types:
+        - daywgs
+        compatible_data_modes:
+        - ilmn_solo
+        git_tag: 16.0.39
+        no_containerized: false
+        repository: daylily-omics-analysis
+      illumina_dragen_pangenome_snv_concordance:
+        command_id: illumina_dragen_pangenome_snv_concordance
+        type: dev
+        validated_version: 15.0.1
+        test_data_profile: default_reads_slim
+        display_name: Illumina DRAGEN Pangenome SNV Concordance
+        description: DRAGEN pangenome HG003 slim-read SNV concordance profile using
+          pre-mounted /fsx/references reads, reference assets, and GIAB truth resources.
+        datasource: Illumina
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          required_source_columns:
+          - ILMN_R1_FQ
+          - ILMN_R2_FQ
+        targets:
+        - produce_drgpg_snv_vcf
+        - produce_snv_concordances
+        genome: hg38
+        day_profile: slurm_rhel
+        jobs: 6
+        aligners:
+        - drbwa
+        dedupers:
+        - na
+        snv_callers:
+        - drgpg
+        sv_callers: []
+        dy_command: source dyoainit; dy-a slurm_rhel hg38; dy-r produce_drgpg_snv_vcf
+          produce_snv_concordances -p -j 6 -k -T 1 --rerun-triggers mtime --config
+          'aligners=["drbwa"]' 'dedupers=["na"]' 'snv_callers=["drgpg"]'
+        dryrun_dy_command: source dyoainit; dy-a slurm_rhel hg38; dy-r produce_drgpg_snv_vcf
+          produce_snv_concordances -p -j 6 -k -T 1 --rerun-triggers mtime --config
+          'aligners=["drbwa"]' 'dedupers=["na"]' 'snv_callers=["drgpg"]' -n
+        compatible_platforms:
+        - ILMN
+        compatible_cluster_types:
+        - dragen
+        compatible_data_modes:
+        - ilmn_solo
+        git_tag: 16.0.39
+        no_containerized: false
+        default_activation: false
+        repository: daylily-omics-analysis
+      ultima_snv_alignstats:
+        command_id: ultima_snv_alignstats
+        type: research
+        validated_version: 15.0.1
+        test_data_profile: default_reads_slim
+        display_name: Ultima SNV + Alignstats
+        description: Ultima CRAM/FASTQ Sentieon DNAscope and alignment-statistics
+          launch profile.
+        datasource: Ultima
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          accepted_source_column_sets:
+          - - UG_R1_FQ
+            - UG_R2_FQ
+          - - ULTIMA_CRAM
+            - ULTIMA_CRAM_ALIGNER
+            - ULTIMA_CRAM_SNV_CALLER
+        targets:
+        - produce_alignstats
+        - produce_na_dedup_cram
+        - produce_sentdug_snv_vcf
+        - produce_snv_concordances
+        genome: hg38
+        jobs: 20
+        aligners:
+        - ug
+        dedupers:
+        - na
+        snv_callers:
+        - sentdug
+        sv_callers: []
+        dy_command: dy-r produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf
+          produce_snv_concordances -p -j 20 -k
+        dryrun_dy_command: dy-r produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf
+          produce_snv_concordances -p -j 20 -k -n
+        compatible_platforms:
+        - ULTIMA
+        compatible_cluster_types:
+        - daywgs
+        compatible_data_modes:
+        - ultima_solo
+        git_tag: 16.0.39
+        no_containerized: false
+        validation_runs:
+        - run_id: tstver411b_dayoa_catalog_recipe_validation
+          generated_at: '2026-05-25T20:04:39Z'
+          report_path: docs/tstver411b_command_catalog_test_results.md
+          ledger_path: docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md
+          cluster: tstVer4-1-1b
+          region: us-west-2
+          region_az: us-west-2d
+          dayec_tag: 4.1.3
+          dayec_commit: 012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4
+          dayoa_tag: 1.0.21
+          dayoa_commit: c2ffe93f246ff19c346f0a99e04fddc9e2712ff3
+          tested_command: bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf
+            produce_snv_concordances -p -j 20 -k
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: tvb_ultima_snv_alignstats_5x_1021_dryrun
+          live_analysis_id: tvb_ultima_snv_alignstats_5x_1021
+          stage_or_context: /fsx/staging/staged_external_sequencing_data/remote_stage_20260525T072907Z
+          notes: Live run completed with VCF, alignstats, and concordance outputs.
+        repository: daylily-omics-analysis
+      ultima_snv_alignstats_kitchensink:
+        command_id: ultima_snv_alignstats_kitchensink
+        type: prod
+        validated_version: 15.0.1
+        validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ultima_solo_slim_1510_ccenter_20260817t021200z_live/
+        test_data_profile: default_reads_slim
+        display_name: Ultima SNV + Alignstats Kitchen Sink
+        description: Ultima CRAM/FASTQ Sentieon DNAscope, alignment statistics, relatedness,
+          VEP annotation, Kraken2/Ganon2/sourmash metagenomics, and final MultiQC
+          launch profile.
+        datasource: Ultima
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: six_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          accepted_source_column_sets:
+          - - UG_R1_FQ
+            - UG_R2_FQ
+          - - ULTIMA_CRAM
+            - ULTIMA_CRAM_ALIGNER
+            - ULTIMA_CRAM_SNV_CALLER
+        targets:
+        - produce_alignstats
+        - produce_na_dedup_cram
+        - produce_sentdug_snv_vcf
+        - produce_snv_concordances
+        - produce_relatedness
+        - produce_vep
+        - produce_metagenomics
+        - produce_multiqc_all
+        - ultima_solo_kitchensink_manifest
+        genome: hg38
+        jobs: 333
+        aligners:
+        - ug
+        dedupers:
+        - na
+        snv_callers:
+        - sentdug
+        sv_callers: []
+        dy_command: dy-r produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf
+          produce_snv_concordances produce_relatedness produce_vep produce_metagenomics
+          produce_multiqc_all ultima_solo_kitchensink_manifest --config 'aligners=["ug"]'
+          'multiqc_qc={"enable_tools":["vep","metagenomics","unmapped_metagenomics_ganon2"]}'
+          'sentdug={"hg38_sentdug_chrms":"1-25"}' -p -j 333 -T 0 --rerun-triggers
+          mtime
+        dryrun_dy_command: dy-r produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf
+          produce_snv_concordances produce_relatedness produce_vep produce_metagenomics
+          produce_multiqc_all ultima_solo_kitchensink_manifest --config 'aligners=["ug"]'
+          'multiqc_qc={"enable_tools":["vep","metagenomics","unmapped_metagenomics_ganon2"]}'
+          'sentdug={"hg38_sentdug_chrms":"1-25"}' -p -j 333 -T 0 --rerun-triggers
+          mtime -n
+        compatible_platforms:
+        - ULTIMA
+        compatible_cluster_types:
+        - daywgs
+        compatible_data_modes:
+        - ultima_solo
+        git_tag: 16.0.39
+        no_containerized: false
+        artifact_registration:
+          enabled: true
+          manifest_source: dayoa_manifest
+          evidence_manifest_path: results/day/{genome}/reports/dayoa_evidence_manifest.json
+          include_classifications:
+          - multiqc_html
+          - multiqc_data_json
+          - multiqc_general_stats
+          - multiqc_sources
+          - multiqc_log
+          - multiqc_data_file
+          - custom_mqc_tsv
+          - staging_manifest
+          - benchmark
+          - alignment_cram
+          - alignment_cram_index
+          - alignment_bam
+          - alignment_bam_index
+          - variant_vcf
+          - variant_vcf_index
+          - samples_manifest
+          - units_manifest
+          include_paths:
+          - config/samples.tsv
+          - config/units.tsv
+          - results/day/{genome}/reports/DAY_final_multiqc.html
+          - results/day/{genome}/reports/DAY_final_multiqc_data/**
+          - results/day/{genome}/reports/multiqc_inputs/final/manifest.tsv
+          - results/day/{genome}/other_reports/*_mqc.tsv
+          - results/day/{genome}/**/*.cram
+          - results/day/{genome}/**/*.crai
+          - results/day/{genome}/**/*.bam
+          - results/day/{genome}/**/*.bai
+          - results/day/{genome}/**/*.vcf
+          - results/day/{genome}/**/*.vcf.gz
+          - results/day/{genome}/**/*.tbi
+          - results/day/{genome}/**/*.csi
+          require_existing: true
+          parser_family_hint: multiqc
+          multiqc_report_kind: final
+          multiqc_version: '1.35'
+          multiqc_reports:
+          - report_kind: final
+            html_path: results/day/{genome}/reports/DAY_final_multiqc.html
+            data_dir_path: results/day/{genome}/reports/DAY_final_multiqc_data/
+          identity:
+            analysis_euid: '{analysis_id}'
+            run_euid: '{analysis_id}'
+        validation_runs:
+        - run_id: pcand18015_ultima_solo_slim_1510_ccenter_20260817t021200z_live
+          generated_at: '2026-08-17T03:30:59Z'
+          report_path: docs/plans/20260817T031500Z_pcand18015_solo_kitchensink_export_release_ledger.md
+          ledger_path: docs/plans/20260817T031500Z_pcand18015_solo_kitchensink_export_release_ledger.md
+          cluster: pcand-18015
+          region: us-west-2
+          region_az: us-west-2c
+          dayec_tag: 18.0.18
+          dayec_commit: 7f6f8ea82b2bd6a7fb1efae20870949b29b13887
+          dayoa_tag: 15.0.10
+          dayoa_commit: 3a501d3f927a9573dc52adb978af31b5b64c85f3
+          tested_command: dyec catalog launch ultima_snv_alignstats_kitchensink --dyec-version
+            current --cost-center pcand-18015-ccenter
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: pcand18015_ultima_solo_slim_1510_20260817t012700z_dry
+          live_analysis_id: pcand18015_ultima_solo_slim_1510_ccenter_20260817t021200z_live
+          stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ultima_solo_slim_1510_ccenter_20260817t021200z_live/
+          notes: No-delete DRA task task-03aef1ba4e80efa95 SUCCEEDED, detached dra-08d22e4432145f447,
+            and the exported final MultiQC HTML was verified in S3 (7642590 bytes).
+        repository: daylily-omics-analysis
+      ultima_pangenome_snv:
+        command_id: ultima_pangenome_snv
+        type: dev
+        validated_version: 15.0.1
+        test_data_profile: default_reads_slim
+        display_name: Ultima Pangenome SNV
+        description: Ultima HG003 Sentieon pangenome SNV validation profile using
+          the current DayOA pangenome branch.
+        datasource: Ultima
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          accepted_source_column_sets:
+          - - UG_R1_FQ
+            - UG_R2_FQ
+          - - ULTIMA_CRAM
+            - ULTIMA_CRAM_ALIGNER
+            - ULTIMA_CRAM_SNV_CALLER
+        targets:
+        - produce_pangenome_ug_vcf
+        genome: hg38
+        jobs: 150
+        aligners:
+        - pangenome_ug
+        dedupers: []
+        snv_callers:
+        - sentpg
+        sv_callers: []
+        dy_command: dy-r produce_pangenome_ug_vcf -p -j 150 -k -T 1 --rerun-triggers
+          mtime
+        dryrun_dy_command: dy-r produce_pangenome_ug_vcf -p -j 150 -k -T 1 --rerun-triggers
+          mtime -n
+        compatible_platforms:
+        - ULTIMA
+        compatible_cluster_types:
+        - daywgs
+        compatible_data_modes:
+        - ultima_solo
+        git_tag: 16.0.39
+        no_containerized: false
+        repository: daylily-omics-analysis
+      ont_snv_alignstats:
+        command_id: ont_snv_alignstats
+        type: research
+        validated_version: 15.0.1
+        test_data_profile: default_reads_slim
+        display_name: ONT SNV + Alignstats
+        description: ONT alignment, Sentieon DNAscope, and alignment-statistics launch
+          profile.
+        datasource: ONT
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          accepted_source_column_sets:
+          - - ONT_R1_FQ
+            - ONT_R2_FQ
+          - - ONT_FASTQ_PREFIX
+          - - ONT_CRAM
+            - ONT_CRAM_ALIGNER
+            - ONT_CRAM_SNV_CALLER
+          - - ONT_BAM
+            - ONT_BAM_ALIGNER
+            - ONT_BAM_SNV_CALLER
+        targets:
+        - produce_alignstats
+        - produce_sentdont_snv_vcf
+        - produce_snv_concordances
+        genome: hg38
+        jobs: 5
+        aligners:
+        - ont
+        dedupers:
+        - na
+        snv_callers:
+        - sentdont
+        sv_callers: []
+        dy_command: dy-r produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances
+          -p -j 5 -k
+        dryrun_dy_command: dy-r produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances
+          -p -j 5 -k -n
+        compatible_platforms:
+        - ONT
+        compatible_cluster_types:
+        - daywgs
+        compatible_data_modes:
+        - ont_solo
+        git_tag: 16.0.39
+        no_containerized: false
+        validation_runs:
+        - run_id: tstver411b_dayoa_catalog_recipe_validation
+          generated_at: '2026-05-25T20:04:39Z'
+          report_path: docs/tstver411b_command_catalog_test_results.md
+          ledger_path: docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md
+          cluster: tstVer4-1-1b
+          region: us-west-2
+          region_az: us-west-2d
+          dayec_tag: 4.1.3
+          dayec_commit: 012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4
+          dayoa_tag: 1.0.21
+          dayoa_commit: c2ffe93f246ff19c346f0a99e04fddc9e2712ff3
+          tested_command: bin/day_run produce_alignstats produce_sentdont_snv_vcf
+            produce_snv_concordances -p -j 5 -k
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: tvb_ont_snv_alignstats_5x_1021_dryrun
+          live_analysis_id: tvb_ont_snv_alignstats_5x_1021
+          stage_or_context: /fsx/staging/staged_external_sequencing_data/remote_stage_20260525T073112Z
+          notes: Live run completed with VCF, alignstats, and concordance outputs.
+        repository: daylily-omics-analysis
+      ont_snv_alignstats_kitchensink:
+        command_id: ont_snv_alignstats_kitchensink
+        type: prod
+        validated_version: 15.0.1
+        validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ont_solo_slim_1510_ccenter_20260817t020900z_live/
+        test_data_profile: default_reads_slim
+        display_name: ONT SNV + Alignstats Kitchen Sink
+        description: ONT alignment, Sentieon DNAscope, alignment statistics, relatedness,
+          VEP annotation, Kraken2/Ganon2/sourmash metagenomics, and final MultiQC
+          launch profile.
+        datasource: ONT
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: six_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          accepted_source_column_sets:
+          - - ONT_R1_FQ
+            - ONT_R2_FQ
+          - - ONT_FASTQ_PREFIX
+          - - ONT_CRAM
+            - ONT_CRAM_ALIGNER
+            - ONT_CRAM_SNV_CALLER
+          - - ONT_BAM
+            - ONT_BAM_ALIGNER
+            - ONT_BAM_SNV_CALLER
+        targets:
+        - produce_alignstats
+        - produce_na_dedup_cram
+        - produce_sentdont_snv_vcf
+        - produce_snv_concordances
+        - produce_relatedness
+        - produce_vep
+        - produce_metagenomics
+        - produce_multiqc_all
+        - results/day/hg38/reports/DAY_final_multiqc.html
+        - results/day/hg38/reports/dayoa_evidence_manifest.json
+        - ont_solo_kitchensink_manifest
+        genome: hg38
+        jobs: 333
+        aligners:
+        - ont
+        dedupers:
+        - na
+        snv_callers:
+        - sentdont
+        sv_callers: []
+        dy_command: dy-r produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf
+          produce_snv_concordances produce_relatedness produce_vep produce_metagenomics
+          produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json
+          ont_solo_kitchensink_manifest --config 'aligners=["ont"]' 'multiqc_qc={"enable_tools":["vep","metagenomics","unmapped_metagenomics_ganon2"]}'
+          'sentdont={"hg38_sentdont_chrms":"1-25"}' -p -j 333 -T 0 --rerun-triggers
+          mtime
+        dryrun_dy_command: dy-r produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf
+          produce_snv_concordances produce_relatedness produce_vep produce_metagenomics
+          produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json
+          ont_solo_kitchensink_manifest --config 'aligners=["ont"]' 'multiqc_qc={"enable_tools":["vep","metagenomics","unmapped_metagenomics_ganon2"]}'
+          'sentdont={"hg38_sentdont_chrms":"1-25"}' -p -j 333 -T 0 --rerun-triggers
+          mtime -n
+        compatible_platforms:
+        - ONT
+        compatible_cluster_types:
+        - daywgs
+        compatible_data_modes:
+        - ont_solo
+        git_tag: 16.0.39
+        no_containerized: false
+        artifact_registration:
+          enabled: true
+          manifest_source: dayoa_manifest
+          evidence_manifest_path: results/day/{genome}/reports/dayoa_evidence_manifest.json
+          include_classifications:
+          - multiqc_html
+          - multiqc_data_json
+          - multiqc_general_stats
+          - multiqc_sources
+          - multiqc_log
+          - multiqc_data_file
+          - custom_mqc_tsv
+          - staging_manifest
+          - benchmark
+          - alignment_cram
+          - alignment_cram_index
+          - alignment_bam
+          - alignment_bam_index
+          - variant_vcf
+          - variant_vcf_index
+          - samples_manifest
+          - units_manifest
+          include_paths:
+          - config/samples.tsv
+          - config/units.tsv
+          - results/day/{genome}/reports/DAY_final_multiqc.html
+          - results/day/{genome}/reports/DAY_final_multiqc_data/**
+          - results/day/{genome}/reports/multiqc_inputs/final/manifest.tsv
+          - results/day/{genome}/other_reports/*_mqc.tsv
+          - results/day/{genome}/**/*.cram
+          - results/day/{genome}/**/*.crai
+          - results/day/{genome}/**/*.bam
+          - results/day/{genome}/**/*.bai
+          - results/day/{genome}/**/*.vcf
+          - results/day/{genome}/**/*.vcf.gz
+          - results/day/{genome}/**/*.tbi
+          - results/day/{genome}/**/*.csi
+          require_existing: true
+          parser_family_hint: multiqc
+          multiqc_report_kind: final
+          multiqc_version: '1.35'
+          multiqc_reports:
+          - report_kind: final
+            html_path: results/day/{genome}/reports/DAY_final_multiqc.html
+            data_dir_path: results/day/{genome}/reports/DAY_final_multiqc_data/
+          identity:
+            analysis_euid: '{analysis_id}'
+            run_euid: '{analysis_id}'
+        validation_runs:
+        - run_id: pcand18015_ont_solo_slim_1510_ccenter_20260817t020900z_live
+          generated_at: '2026-08-17T03:30:59Z'
+          report_path: docs/plans/20260817T031500Z_pcand18015_solo_kitchensink_export_release_ledger.md
+          ledger_path: docs/plans/20260817T031500Z_pcand18015_solo_kitchensink_export_release_ledger.md
+          cluster: pcand-18015
+          region: us-west-2
+          region_az: us-west-2c
+          dayec_tag: 18.0.18
+          dayec_commit: 7f6f8ea82b2bd6a7fb1efae20870949b29b13887
+          dayoa_tag: 15.0.10
+          dayoa_commit: 3a501d3f927a9573dc52adb978af31b5b64c85f3
+          tested_command: dyec catalog launch ont_snv_alignstats_kitchensink --dyec-version
+            current --cost-center pcand-18015-ccenter
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: pcand18015_ont_solo_slim_1510_20260817t012300z_dry
+          live_analysis_id: pcand18015_ont_solo_slim_1510_ccenter_20260817t020900z_live
+          stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ont_solo_slim_1510_ccenter_20260817t020900z_live/
+          notes: No-delete DRA task task-002eacd7a1405af78 SUCCEEDED, detached dra-03db1877decce2e50,
+            and the exported final MultiQC HTML was verified in S3 (6941320 bytes).
+        repository: daylily-omics-analysis
+      pacbio_snv_alignstats:
+        command_id: pacbio_snv_alignstats
+        type: research
+        validated_version: 15.0.1
+        test_data_profile: default_reads_slim
+        display_name: PacBio SNV + Alignstats
+        description: PacBio HiFi Sentieon DeepVariant and alignment-statistics launch
+          profile.
+        datasource: PacBio
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          accepted_source_column_sets:
+          - - PACBIO_R1_FQ
+            - PACBIO_R2_FQ
+          - - PB_BAM
+            - PB_BAM_ALIGNER
+            - PB_BAM_SNV_CALLER
+        targets:
+        - produce_sentmm2_align
+        - produce_na_dedup_cram
+        - produce_sentdpb_snv_vcf
+        - produce_alignstats
+        - produce_snv_concordances
+        genome: hg38
+        jobs: 2
+        aligners:
+        - sentmm2
+        dedupers:
+        - na
+        snv_callers:
+        - sentdpb
+        sv_callers: []
+        dy_command: dy-r produce_sentmm2_align produce_na_dedup_cram produce_sentdpb_snv_vcf
+          produce_alignstats produce_snv_concordances -p -j 2 -k -T 1
+        dryrun_dy_command: dy-r produce_sentmm2_align produce_na_dedup_cram produce_sentdpb_snv_vcf
+          produce_alignstats produce_snv_concordances -p -j 2 -k -T 1 -n
+        compatible_platforms:
+        - PACBIO
+        compatible_cluster_types:
+        - daywgs
+        compatible_data_modes:
+        - pacbio_solo
+        git_tag: 16.0.39
+        no_containerized: false
+        validation_runs:
+        - run_id: tstver411b_dayoa_catalog_recipe_validation
+          generated_at: '2026-05-25T20:04:39Z'
+          report_path: docs/tstver411b_command_catalog_test_results.md
+          ledger_path: docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md
+          cluster: tstVer4-1-1b
+          region: us-west-2
+          region_az: us-west-2d
+          dayec_tag: 4.1.3
+          dayec_commit: 012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4
+          dayoa_tag: 1.0.21
+          dayoa_commit: c2ffe93f246ff19c346f0a99e04fddc9e2712ff3
+          tested_command: bin/day_run produce_sentmm2_align produce_na_dedup_cram
+            produce_sentdpb_snv_vcf produce_alignstats produce_snv_concordances -p
+            -j 2 -k -T 1
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: tvb_pacbio_snv_alignstats_5x_1021_dryrun
+          live_analysis_id: tvb_pacbio_snv_alignstats_5x_1021
+          stage_or_context: /fsx/staging/staged_external_sequencing_data/remote_stage_20260525T073306Z
+          notes: Live run completed with CRAM, VCF, alignstats, and concordance outputs.
+        repository: daylily-omics-analysis
+      roche_snv_alignstats:
+        command_id: roche_snv_alignstats
+        type: research
+        validated_version: 15.0.1
+        test_data_profile: default_reads_slim
+        display_name: Roche SNV + Alignstats
+        description: Roche aligned BAM Sentieon DNAscope and alignment-statistics
+          launch profile.
+        datasource: Roche
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          required_source_columns:
+          - ROCHE_BAM
+          - ROCHE_BAM_ALIGNER
+          - ROCHE_BAM_SNV_CALLER
+        targets:
+        - produce_alignstats
+        - produce_na_dedup_cram
+        - produce_sentD_vcf
+        genome: hg38
+        jobs: 5
+        aligners:
+        - roche
+        dedupers:
+        - na
+        snv_callers:
+        - sentd
+        sv_callers: []
+        dy_command: dy-r produce_alignstats produce_na_dedup_cram produce_sentD_vcf
+          -p -j 5 -k
+        dryrun_dy_command: dy-r produce_alignstats produce_na_dedup_cram produce_sentD_vcf
+          -p -j 5 -k -n
+        compatible_platforms:
+        - ROCHE
+        compatible_cluster_types:
+        - daywgs
+        compatible_data_modes:
+        - roche_solo
+        git_tag: 16.0.39
+        no_containerized: false
+        validation_runs:
+        - run_id: tstver411b_dayoa_catalog_recipe_validation
+          generated_at: '2026-05-25T20:04:39Z'
+          report_path: docs/tstver411b_command_catalog_test_results.md
+          ledger_path: docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md
+          cluster: tstVer4-1-1b
+          region: us-west-2
+          region_az: us-west-2d
+          dayec_tag: 4.1.3
+          dayec_commit: 012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4
+          dayoa_tag: 1.0.21
+          dayoa_commit: c2ffe93f246ff19c346f0a99e04fddc9e2712ff3
+          tested_command: bin/day_run produce_alignstats produce_na_dedup_cram produce_rochehc_snv_vcf
+            -p -j 5 -k
+          status: failed
+          dryrun_status: failed
+          live_status: not_run
+          dryrun_analysis_id: tvb_roche_snv_alignstats_5x_1021_dryrun
+          stage_or_context: /fsx/staging/staged_external_sequencing_data/remote_stage_20260525T073504Z
+          failure_cause: 'Dry-run failed while preparing Roche/GATK containers: missing
+            Singularity image /fsx/resources/environments/containers/ubuntu/ip-10-0-0-103/7a424a40c6fd659f4d052893dd3554fa.simg.'
+        repository: daylily-omics-analysis
+      hybrid_ilmn_ont_hiomr:
+        command_id: hybrid_ilmn_ont_hiomr
+        type: dev
+        validated_version: 15.0.1
+        test_data_profile: hg003_hiomrs_1x_raw_fastq
+        manifest_dir_template: examples/staging/hg003_hiomrs_1x_raw_fastq
+        display_name: Hybrid ILMN+ONT HIOMR
+        description: Granular Sentieon HIOMR hybrid caller path with native SNV, native
+          LongReadSV, CNV, and concordance targets.
+        datasource: Hybrid ILMN+ONT
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: six_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          accepted_source_column_sets:
+          - - ILMN_R1_FQ
+            - ILMN_R2_FQ
+            - ONT_R1_FQ
+        targets:
+        - produce_sentdhiomr_snv_vcf
+        - produce_sentdhiomr_sv
+        - produce_sentdhiomr_cnv
+        - produce_snv_concordances
+        genome: hg38
+        jobs: 500
+        keep_going: true
+        restart_times: 0
+        aligners:
+        - sentmm2ont
+        dedupers:
+        - na
+        snv_callers:
+        - sentdhiomr
+        sv_callers: []
+        dy_command: dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv
+          produce_snv_concordances --config 'genome_build=hg38' 'aligners=["sentmm2ont"]'
+          'dedupers=["na"]' 'snv_callers=["sentdhiomr"]' 'sv_callers=[]' use_fq_data_starting_hrs=0
+          use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime
+        dryrun_dy_command: dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv
+          produce_snv_concordances --config 'genome_build=hg38' 'aligners=["sentmm2ont"]'
+          'dedupers=["na"]' 'snv_callers=["sentdhiomr"]' 'sv_callers=[]' use_fq_data_starting_hrs=0
+          use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers mtime -n
+        compatible_platforms:
+        - ILMN
+        - ONT
+        compatible_cluster_types:
+        - sentieon-single
+        compatible_data_modes:
+        - hybrid_ilmn_ont
+        git_tag: 16.0.39
+        no_containerized: false
+        repository: daylily-omics-analysis
+      hybrid_ilmn_ont_hiomr_kitchensink:
+        command_id: hybrid_ilmn_ont_hiomr_kitchensink
+        type: dev
+        validated_version: 15.0.1
+        test_data_profile: hg003_hiomrs_1x_raw_fastq
+        manifest_dir_template: examples/staging/hg003_hiomrs_1x_raw_fastq
+        display_name: Hybrid ILMN+ONT HIOMR Kitchen Sink
+        description: Granular HIOMR hybrid caller path plus native LongReadSV, CNV,
+          SegDup, mitochondrial calling, generic QC, relatedness, Peddy, SMN12 orthogonal
+          evidence, metagenomics, MultiQC, DAG, rulegraph, filegraph, and artifact
+          manifest outputs.
+        datasource: Hybrid ILMN+ONT
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: six_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          accepted_source_column_sets:
+          - - ILMN_R1_FQ
+            - ILMN_R2_FQ
+            - ONT_R1_FQ
+        targets:
+        - produce_sentdhiomr_snv_vcf
+        - produce_sentdhiomr_sv
+        - produce_sentdhiomr_cnv
+        - produce_sentdhiomr_mito
+        - produce_sentdhiomr_segdup
+        - produce_snv_concordances
+        - produce_tiddit_sv_vcf
+        - produce_alignstats
+        - produce_relatedness
+        - produce_peddy
+        - produce_gatk_contam_estimate
+        - produce_site_mix_contam_estimate
+        - produce_vep
+        - produce_htd_calls
+        - produce_smn12_orthogonal_calls
+        - produce_metagenomics
+        - produce_multiqc_all
+        - results/day/hg38/reports/DAY_final_multiqc.html
+        - results/day/hg38/reports/dayoa_evidence_manifest.json
+        genome: hg38
+        jobs: 500
+        keep_going: true
+        restart_times: 0
+        aligners:
+        - sentmm2ont
+        dedupers:
+        - na
+        snv_callers:
+        - sentdhiomr
+        sv_callers:
+        - tiddit
+        dy_command: dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv
+          produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances
+          produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy
+          produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep
+          produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all
+          results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json
+          --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]'
+          'snv_callers=["sentdhiomr"]' 'sv_callers=["tiddit"]' 'htd_callers=["smn12"]'
+          'multiqc_qc={"enable_tools":["vep","unmapped_metagenomics_ganon2","gatk_contam","site_mix","peddy"]}'
+          use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers
+          mtime --rerun-incomplete
+        dryrun_dy_command: dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv
+          produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances
+          produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy
+          produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep
+          produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all
+          results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json
+          --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]'
+          'snv_callers=["sentdhiomr"]' 'sv_callers=["tiddit"]' 'htd_callers=["smn12"]'
+          'multiqc_qc={"enable_tools":["vep","unmapped_metagenomics_ganon2","gatk_contam","site_mix","peddy"]}'
+          use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers
+          mtime --rerun-incomplete -n
+        compatible_platforms:
+        - ILMN
+        - ONT
+        compatible_cluster_types:
+        - sentieon-single
+        compatible_data_modes:
+        - hybrid_ilmn_ont
+        git_tag: 16.0.39
+        no_containerized: false
+        repository: daylily-omics-analysis
+      hiomr2:
+        command_id: hiomr2
+        type: dev
+        validated_version: 15.0.1
+        test_data_profile: hg003_hiomrs_1x_raw_fastq
+        manifest_dir_template: examples/staging/hg003_hiomrs_1x_raw_fastq
+        display_name: Hybrid ILMN+ONT HIOMR2 Kitchen Sink
+        description: HIOMR kitchen-sink port that retains its targets and flags while
+          using the independent HIOMR2 gVCF and HIOMR2-native mito, SegDup, and TIDDIT
+          outputs. SMNCopyNumber is the sole selected special caller. SNV consumers
+          read the native gVCF, not the Inflection VCF-name compatibility link.
+        datasource: Hybrid ILMN+ONT
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: six_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          accepted_source_column_sets:
+          - - ILMN_R1_FQ
+            - ILMN_R2_FQ
+            - ONT_R1_FQ
+        targets:
+        - produce_sentdhiomr2_gvcf
+        - produce_sentdhiomr2_longreadsv
+        - produce_sentdhiomr2_cnv
+        - produce_sentdhiomr2_mito
+        - produce_sentdhiomr2_segdup
+        - produce_snv_concordances
+        - produce_sentdhiomr2_tiddit_sv_vcf
+        - produce_alignstats
+        - produce_relatedness
+        - produce_peddy
+        - produce_gatk_contam_estimate
+        - produce_site_mix_contam_estimate
+        - produce_vep
+        - produce_htd_calls
+        - produce_smn12_orthogonal_calls
+        - produce_metagenomics
+        - produce_multiqc_all
+        - results/day/hg38/reports/DAY_final_multiqc.html
+        - results/day/hg38/reports/dayoa_evidence_manifest.json
+        genome: hg38
+        jobs: 500
+        keep_going: true
+        restart_times: 0
+        aligners:
+        - sentmm2ont
+        dedupers:
+        - na
+        snv_callers:
+        - sentdhiomr2
+        sv_callers:
+        - tiddit
+        dy_command: dy-r produce_sentdhiomr2_gvcf produce_sentdhiomr2_longreadsv produce_sentdhiomr2_cnv
+          produce_sentdhiomr2_mito produce_sentdhiomr2_segdup produce_snv_concordances
+          produce_sentdhiomr2_tiddit_sv_vcf produce_alignstats produce_relatedness
+          produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate
+          produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics
+          produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json
+          --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]'
+          'snv_callers=["sentdhiomr2"]' 'sv_callers=["tiddit"]' 'htd_callers=["smn12"]'
+          'multiqc_qc={"enable_tools":["vep","unmapped_metagenomics_ganon2","gatk_contam","site_mix","peddy"],"library_summary":{"primary_alignments":{"sr":{"aligner":"sentdhiomr2_sr","deduper":"smd"},"ont":{"aligner":"sentdhiomr2_lr","deduper":"na"}},"contamination_method":"site_mix"}}'
+          use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers
+          mtime --rerun-incomplete
+        dryrun_dy_command: dy-r produce_sentdhiomr2_gvcf produce_sentdhiomr2_longreadsv
+          produce_sentdhiomr2_cnv produce_sentdhiomr2_mito produce_sentdhiomr2_segdup
+          produce_snv_concordances produce_sentdhiomr2_tiddit_sv_vcf produce_alignstats
+          produce_relatedness produce_peddy produce_gatk_contam_estimate produce_site_mix_contam_estimate
+          produce_vep produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics
+          produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json
+          --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]'
+          'snv_callers=["sentdhiomr2"]' 'sv_callers=["tiddit"]' 'htd_callers=["smn12"]'
+          'multiqc_qc={"enable_tools":["vep","unmapped_metagenomics_ganon2","gatk_contam","site_mix","peddy"],"library_summary":{"primary_alignments":{"sr":{"aligner":"sentdhiomr2_sr","deduper":"smd"},"ont":{"aligner":"sentdhiomr2_lr","deduper":"na"}},"contamination_method":"site_mix"}}'
+          use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers
+          mtime --rerun-incomplete -n
+        compatible_platforms:
+        - ILMN
+        - ONT
+        compatible_cluster_types:
+        - sentieon-single
+        compatible_data_modes:
+        - hybrid_ilmn_ont
+        git_tag: 16.0.39
+        no_containerized: false
+        repository: daylily-omics-analysis
+      package_inflection_hybrid_data:
+        command_id: package_inflection_hybrid_data
+        type: dev
+        validated_version: 15.0.1
+        test_data_profile: hg003_hiomrs_1x_raw_fastq
+        manifest_dir_template: examples/staging/hg003_hiomrs_1x_raw_fastq
+        display_name: Package Inflection Hybrid Data
+        description: Package completed Hybrid ILMN+ONT HIOMR2 outputs into the strict
+          Inflection SeqOne v2 delivery set. The caller graph must already be complete,
+          and an explicit config-scoped SeqOne v2 release config is required.
+        datasource: Hybrid ILMN+ONT
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: six_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters:
+          seqone_delivery_batch_id_env: SEQONE_DELIVERY_BATCH_ID
+          hiomr2_seqone_v2_config_file_env: HIOMR2_SEQONE_V2_CONFIG_FILE
+        input_requirements:
+          accepted_source_column_sets:
+          - - ILMN_R1_FQ
+            - ILMN_R2_FQ
+            - ONT_R1_FQ
+        targets:
+        - produce_sentdhiomr2_inflection_seqone_v2
+        genome: hg38
+        jobs: 400
+        keep_going: true
+        restart_times: 0
+        aligners:
+        - sentmm2ont
+        dedupers:
+        - na
+        snv_callers:
+        - sentdhiomr2
+        sv_callers: []
+        dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_inflection_seqone_v2
+          --configfile "${HIOMR2_SEQONE_V2_CONFIG_FILE:?Set explicit SeqOne v2 release
+          config file}" --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]'
+          'snv_callers=["sentdhiomr2"]' 'sv_callers=[]' 'htd_callers=["smn12"]' 'hiomr2_inflection_package_mode=seqone_v2'
+          "seqone_delivery_batch_id=${SEQONE_DELIVERY_BATCH_ID:?Set explicit SeqOne
+          v2 delivery batch ID}" -j 400 -p -k -T 0 --rerun-triggers mtime
+        dryrun_dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_inflection_seqone_v2
+          --configfile "${HIOMR2_SEQONE_V2_CONFIG_FILE:?Set explicit SeqOne v2 release
+          config file}" --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]'
+          'snv_callers=["sentdhiomr2"]' 'sv_callers=[]' 'htd_callers=["smn12"]' 'hiomr2_inflection_package_mode=seqone_v2'
+          "seqone_delivery_batch_id=${SEQONE_DELIVERY_BATCH_ID:?Set explicit SeqOne
+          v2 delivery batch ID}" -j 400 -p -k -T 0 --rerun-triggers mtime -n
+        compatible_platforms:
+        - ILMN
+        - ONT
+        compatible_cluster_types:
+        - sentieon-single
+        compatible_data_modes:
+        - hybrid_ilmn_ont
+        git_tag: 16.0.39
+        no_containerized: false
+        return_results: false
+        repository: daylily-omics-analysis
+      betelgeuser_hiomr_prod_v1:
+        command_id: betelgeuser_hiomr_prod_v1
+        type: research
+        validated_version: 15.0.1
+        test_data_profile: default_reads_slim
+        display_name: Betelgeuser HIOMR Prod v1
+        description: Production catalog copy of the strict six-manifest HIOMR kitchen-sink
+          contract for Betelgeuser.
+        datasource: Hybrid ILMN+ONT
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: six_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          accepted_source_column_sets:
+          - - ILMN_R1_FQ
+            - ILMN_R2_FQ
+            - ONT_CRAM
+            - ONT_CRAM_ALIGNER
+            - ONT_CRAM_SNV_CALLER
+        targets:
+        - produce_sentdhiomr_snv_vcf
+        - produce_sentdhiomr_sv
+        - produce_sentdhiomr_cnv
+        - produce_sentdhiomr_mito
+        - produce_sentdhiomr_segdup
+        - produce_snv_concordances
+        - produce_tiddit_sv_vcf
+        - produce_alignstats
+        - produce_relatedness
+        - produce_peddy
+        - produce_gatk_contam_estimate
+        - produce_site_mix_contam_estimate
+        - produce_vep
+        - produce_htd_calls
+        - produce_smn12_orthogonal_calls
+        - produce_metagenomics
+        - produce_multiqc_all
+        - results/day/hg38/reports/DAY_final_multiqc.html
+        - results/day/hg38/reports/dayoa_evidence_manifest.json
+        genome: hg38
+        jobs: 500
+        keep_going: true
+        restart_times: 0
+        aligners:
+        - sentmm2ont
+        dedupers:
+        - na
+        snv_callers:
+        - sentdhiomr
+        sv_callers:
+        - tiddit
+        dy_command: dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv
+          produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances
+          produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy
+          produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep
+          produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all
+          results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json
+          --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]'
+          'snv_callers=["sentdhiomr"]' 'sv_callers=["tiddit"]' 'htd_callers=["smn12"]'
+          'multiqc_qc={"enable_tools":["vep","unmapped_metagenomics_ganon2","gatk_contam","site_mix","peddy"]}'
+          use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers
+          mtime --rerun-incomplete
+        dryrun_dy_command: dy-r produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv
+          produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_snv_concordances
+          produce_tiddit_sv_vcf produce_alignstats produce_relatedness produce_peddy
+          produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep
+          produce_htd_calls produce_smn12_orthogonal_calls produce_metagenomics produce_multiqc_all
+          results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json
+          --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]'
+          'snv_callers=["sentdhiomr"]' 'sv_callers=["tiddit"]' 'htd_callers=["smn12"]'
+          'multiqc_qc={"enable_tools":["vep","unmapped_metagenomics_ganon2","gatk_contam","site_mix","peddy"]}'
+          use_fq_data_starting_hrs=0 use_fq_data_up_to_hrs=24 -j 500 -p -k -T 0 --rerun-triggers
+          mtime --rerun-incomplete -n
+        compatible_platforms:
+        - ILMN
+        - ONT
+        compatible_cluster_types:
+        - sentieon-single
+        compatible_data_modes:
+        - hybrid_ilmn_ont
+        git_tag: 16.0.39
+        no_containerized: false
+        repository: daylily-omics-analysis
+      hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical:
+        command_id: hybrid_ilmn_ont_hiomr2_kitchensink_inflection_analytical
+        type: dev
+        validated_version: 15.0.1
+        test_data_profile: hg003_hiomrs_1x_raw_fastq
+        manifest_dir_template: examples/staging/hg003_hiomrs_1x_raw_fastq
+        display_name: Hybrid ILMN+ONT HIOMR2 Kitchen Sink + SeqOne v2 Inflection
+        description: Literal scoped HIOMR2 kitchen sink followed by strict Inflection
+          SeqOne v2 packaging. The catalog command defaults the HIOMR2 caller to the
+          quick two-contig test scope 19-20 and demonstrates the numeric range syntax;
+          for a full production call replace 19-20 with 1-25 (23=X, 24=Y, and 25=M/MT
+          as resolved from the reference FAI). Symbolic X,Y,MT tokens are not accepted
+          by this setting. SMNCopyNumber is the sole selected special caller. It never
+          invokes legacy HIOMR or HIOMRS targets and requires an explicit config-scoped
+          SeqOne v2 release config.
+        datasource: Hybrid ILMN+ONT
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: six_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters:
+          seqone_delivery_batch_id_env: SEQONE_DELIVERY_BATCH_ID
+          hiomr2_seqone_v2_config_file_env: HIOMR2_SEQONE_V2_CONFIG_FILE
+        input_requirements:
+          accepted_source_column_sets:
+          - - ILMN_R1_FQ
+            - ILMN_R2_FQ
+            - ONT_R1_FQ
+        targets:
+        - produce_sentdhiomr2_kitchensink
+        - produce_sentdhiomr2_inflection_seqone_v2
+        - produce_sentdhiomr2_segdup_smn12_multiqc
+        genome: hg38
+        jobs: 200
+        keep_going: true
+        restart_times: 0
+        aligners:
+        - sentmm2ont
+        dedupers:
+        - na
+        snv_callers:
+        - sentdhiomr2
+        sv_callers: []
+        dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_kitchensink produce_sentdhiomr2_inflection_seqone_v2
+          produce_sentdhiomr2_segdup_smn12_multiqc --configfile "${HIOMR2_SEQONE_V2_CONFIG_FILE:?Set
+          explicit SeqOne v2 release config file}" -p -T 0 -k -j 200 --config 'genome_build=hg38'
+          'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]'
+          'sentdhiomr2={"hg38_sentdhiomr2_chrms":"19-20"}' 'sv_callers=[]' 'htd_callers=["smn12"]'
+          'hiomr2_inflection_package_mode=seqone_v2' "seqone_delivery_batch_id=${SEQONE_DELIVERY_BATCH_ID:?Set
+          explicit SeqOne v2 delivery batch ID}" --rerun-triggers mtime
+        dryrun_dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_kitchensink
+          produce_sentdhiomr2_inflection_seqone_v2 produce_sentdhiomr2_segdup_smn12_multiqc
+          --configfile "${HIOMR2_SEQONE_V2_CONFIG_FILE:?Set explicit SeqOne v2 release
+          config file}" -p -T 0 -k -j 200 --config 'genome_build=hg38' 'aligners=["sentmm2ont"]'
+          'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"19-20"}'
+          'sv_callers=[]' 'htd_callers=["smn12"]' 'hiomr2_inflection_package_mode=seqone_v2'
+          "seqone_delivery_batch_id=${SEQONE_DELIVERY_BATCH_ID:?Set explicit SeqOne
+          v2 delivery batch ID}" --rerun-triggers mtime -n
+        compatible_platforms:
+        - ILMN
+        - ONT
+        compatible_cluster_types:
+        - sentieon-single
+        compatible_data_modes:
+        - hybrid_ilmn_ont
+        git_tag: 16.0.39
+        no_containerized: false
+        return_results: false
+        repository: daylily-omics-analysis
+      hiomr2_slim_kitchensink_mega:
+        command_id: hiomr2_slim_kitchensink_mega
+        type: prod
+        validated_version: 15.0.1
+        test_data_profile: hg002_bjuice_verified_5x5x_fastq
+        manifest_dir_template: examples/staging/hg002_bjuice_verified_5x5x_fastq
+        display_name: HIOMR2 Slim 5x+5x Kitchen Sink Mega
+        description: Generic HG002 5.862704556x Illumina plus receipt-bound 4.794169766x
+          ONT three-caller HIOMR2 kitchen-sink mega run. It selects only Sniffles2,
+          LongReadSV, and TIDDIT for normalized TrusSV consensus, runs exactly four
+          native Truvari bench comparisons, produces tagged SV/CNV results, full DAY
+          MultiQC, and isolated per-analysis-unit Inflection MultiQC. The DayOA overlay
+          disables the retained legacy six-caller, NICU, Jasmine, SURVIVOR, and retired
+          Sniffles1/Iris lanes. The standalone NICU FASTQ recoverability producer
+          is deliberately excluded. The catalog command defaults the HIOMR2 caller
+          to numeric chromosomes 1-25 (23=X, 24=Y, and 25=M/MT as resolved from the
+          reference FAI). Symbolic X,Y,MT tokens are not accepted by this setting.
+          The packaged six-manifest fixture binds the canonical slim-data FASTQs to
+          exact receipt identities; full-coverage inputs must not be substituted.
+          SMNCopyNumber is the sole selected special caller.
+        datasource: Hybrid ILMN+ONT
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: six_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          accepted_source_column_sets:
+          - - ILMN_R1_FQ
+            - ILMN_R2_FQ
+            - ONT_R1_FQ
+        targets:
+        - produce_sentdhiomr2_slim_kitchensink_mega
+        - bjuice_manifest
+        genome: hg38
+        jobs: 333
+        keep_going: true
+        restart_times: 1
+        aligners:
+        - sentmm2ont
+        dedupers:
+        - na
+        snv_callers:
+        - sentdhiomr2
+        sv_callers: []
+        dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega
+          bjuice_manifest --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config
+          'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]'
+          'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}' 'sv_callers=[]' 'htd_callers=["smn12"]'
+          -j 333 -T 0 -p --rerun-triggers mtime
+        dryrun_dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega
+          bjuice_manifest --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config
+          'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]'
+          'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}' 'sv_callers=[]' 'htd_callers=["smn12"]'
+          -j 333 -T 0 -p --rerun-triggers mtime -n
+        compatible_platforms:
+        - ILMN
+        - ONT
+        compatible_cluster_types:
+        - sentieon-single
+        compatible_data_modes:
+        - hybrid_ilmn_ont
+        git_tag: 16.0.39
+        no_containerized: false
+        return_results: false
+        repository: daylily-omics-analysis
+        validation_runs:
+        - run_id: pcand18022-hg002-slim5x5x-hiomr2-20260817t0648z
+          generated_at: '2026-08-17T09:14:04Z'
+          report_path: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022-hg002-slim5x5x-hiomr2-20260817t0648z/daylily-omics-analysis/results/day/hg38/reports/DAY_final_multiqc_data/multiqc_giab_concordance.txt
+          ledger_path: docs/plans/20260817T064328Z_slim5x5x_bjuice_hiomr2_execution_ledger.md
+          cluster: pcand-18022
+          region: us-west-2
+          region_az: us-west-2c
+          dayec_tag: 18.0.22
+          dayec_commit: unrecorded
+          dayoa_tag: 15.0.11
+          dayoa_commit: c113b6140b20a308c78c61bd035dde1bd48e0ed5
+          tested_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega
+            --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38'
+            'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]'
+            'sentdhiomr2={"hg38_sentdhiomr2_chrms":"19-20"}' 'sv_callers=[]' 'htd_callers=["smn12"]'
+            -j 333 -T 0 -p --rerun-triggers mtime
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: pcand18022-hg002-slim5x5x-hiomr2-dry2-20260817t0700z
+          live_analysis_id: pcand18022-hg002-slim5x5x-hiomr2-20260817t0648z
+          stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022-hg002-slim5x5x-hiomr2-20260817t0648z/
+          notes: Historical DayOA 15.0.11 production evidence. Both attributable controllers
+            reached rc=0. No-delete DRA task task-07042d644f5dfb3fb succeeded, detached
+            DRA dra-099bf60af970a4503, and verified this 82,088-byte GIAB MultiQC
+            concordance artifact in S3. It does not validate the new 18.0.25 default
+            numeric 1-25 scope.
+      inflection-bjuice-product-v0.9:
+        command_id: inflection-bjuice-product-v0.9
+        type: prod
+        validated_version: 15.0.3
+        test_data_profile: hg002_bjuice_v2_full_preval_run_mounts
+        display_name: Inflection BJuice HG002 Full-Prevalence Product v0.9
+        description: HG002 full-prevalence HIOMR2 kitchen-sink and analytical Inflection
+          product. It consumes the verified existing BJuice slim-data mounts and runs
+          numeric chromosomes 1-25. All supplied ONT FASTQs are selected by default.
+          To select an explicit global ONT[n,n+n) slice, pass both --dy-config use_fq_data_starting_hrs=<n>
+          and --dy-config use_fq_data_up_to_hrs=<n+n>; no per-analysis-unit ONT window
+          selector is set. Launch with an active DYEC cost center; use the same value
+          with --project on a dedicated cluster.
+        datasource: Hybrid ILMN+ONT
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: six_manifest
+        requires_staging: true
+        requires_run_mount: true
+        staging_receipt_required: false
+        runtime_config_target: config/dyec_runtime_config.yaml
+        contributing_data_receipt_required: true
+        runtime_parameters:
+          direct_ilmn_coverage_receipt_required: 'true'
+        input_requirements:
+          accepted_source_column_sets:
+          - - ILMN_R1_FQ
+            - ILMN_R2_FQ
+            - ONT_R1_FQ
+        targets:
+        - produce_sentdhiomr2_slim_kitchensink_mega
+        - produce_sentdhiomr2_inflection_analytical_package
+        - bjuice_manifest
+        genome: hg38
+        jobs: 333
+        keep_going: true
+        restart_times: 1
+        aligners:
+        - sentmm2ont
+        dedupers:
+        - na
+        snv_callers:
+        - sentdhiomr2
+        sv_callers: []
+        dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega
+          produce_sentdhiomr2_inflection_analytical_package bjuice_manifest --configfile
+          config/dyec_runtime_config.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]'
+          'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}'
+          'sv_callers=[]' 'htd_callers=["smn12"]' 'hiomr2_inflection_package_mode=analytical'
+          "seqone_delivery_batch_id=$ANALYSIS_ID" -j 333 -T 0 -p --rerun-triggers
+          mtime
+        dryrun_dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega
+          produce_sentdhiomr2_inflection_analytical_package bjuice_manifest --configfile
+          config/dyec_runtime_config.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]'
+          'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}'
+          'sv_callers=[]' 'htd_callers=["smn12"]' 'hiomr2_inflection_package_mode=analytical'
+          "seqone_delivery_batch_id=$ANALYSIS_ID" -j 333 -T 0 -p --rerun-triggers
+          mtime -n
+        compatible_platforms:
+        - ILMN
+        - ONT
+        compatible_cluster_types:
+        - sentieon-single
+        compatible_data_modes:
+        - hybrid_ilmn_ont
+        git_tag: 16.0.39
+        no_containerized: false
+        return_results: false
+        repository: daylily-omics-analysis
+        cost_center_required: true
+      inflection-bjuice-product-v0.9-slim-5x5x-validation:
+        command_id: inflection-bjuice-product-v0.9-slim-5x5x-validation
+        type: test
+        validated_version: unvalidated
+        test_data_profile: hg002_bjuice_verified_5x5x_fastq
+        manifest_dir_template: examples/staging/hg002_bjuice_verified_5x5x_fastq
+        display_name: Inflection BJuice HG002 Slim 5x+5x Product Shape Validation
+          v0.9
+        description: HG002 receipt-bound 5x Illumina plus 5x ONT slim-data validation
+          clone of inflection-bjuice-product-v0.9. It preserves the full product's
+          HIOMR2 kitchen-sink and analytical Inflection package targets, numeric chromosome
+          scope 1-25, analytical package mode, and delivery-batch binding while replacing
+          only the full-prevalence run-mount input contract with the verified packaged
+          slim fixture. This test validates package schema, required artifact roles,
+          Inflection report validation, and normalized delivery-tree shape against
+          the full-coverage v0.9 baseline; it does not claim identical calls, counts,
+          checksums, or customer-release eligibility.
+        datasource: Hybrid ILMN+ONT
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: six_manifest
+        requires_staging: true
+        requires_run_mount: false
+        staging_receipt_required: false
+        runtime_parameters:
+          direct_ilmn_coverage_receipt_required: 'true'
+        input_requirements:
+          accepted_source_column_sets:
+          - - ILMN_R1_FQ
+            - ILMN_R2_FQ
+            - ONT_R1_FQ
+        targets:
+        - produce_sentdhiomr2_slim_kitchensink_mega
+        - produce_sentdhiomr2_inflection_analytical_package
+        - bjuice_manifest
+        genome: hg38
+        jobs: 333
+        keep_going: true
+        restart_times: 1
+        aligners:
+        - sentmm2ont
+        dedupers:
+        - na
+        snv_callers:
+        - sentdhiomr2
+        sv_callers: []
+        dy_command: PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega
+          produce_sentdhiomr2_inflection_analytical_package bjuice_manifest --configfile
+          config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]'
+          'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}'
+          'sv_callers=[]' 'htd_callers=["smn12"]' 'hiomr2_inflection_package_mode=analytical'
+          "seqone_delivery_batch_id=$ANALYSIS_ID" -j 333 -T 0 -p --rerun-triggers
+          mtime
+        dryrun_dy_command: PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega
+          produce_sentdhiomr2_inflection_analytical_package bjuice_manifest --configfile
+          config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38' 'aligners=["sentmm2ont"]'
+          'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}'
+          'sv_callers=[]' 'htd_callers=["smn12"]' 'hiomr2_inflection_package_mode=analytical'
+          "seqone_delivery_batch_id=$ANALYSIS_ID" -j 333 -T 0 -p --rerun-triggers
+          mtime -n
+        compatible_platforms:
+        - ILMN
+        - ONT
+        compatible_cluster_types:
+        - sentieon-single
+        compatible_data_modes:
+        - hybrid_ilmn_ont
+        git_tag: 16.0.39
+        no_containerized: false
+        return_results: false
+        repository: daylily-omics-analysis
+        cost_center_required: true
+      inflection-bjuice-bundle1b-product-v0.9:
+        command_id: inflection-bjuice-bundle1b-product-v0.9
+        type: test
+        validated_version: unvalidated
+        test_data_profile: bundle1b_full_au_run_mounts
+        display_name: Bundle 1b Full-AU Bjuice Product + Analytical Inflection v0.9
+        description: Bundle 1b's supplied 32-analysis-unit, 64-sequencing-input Bjuice
+          manifest set. This test-only catalog row runs the HIOMR2 kitchen-sink mega
+          target and analytical Inflection packaging from the explicitly supplied
+          ILMN and ONT run mounts. Its runtime YAML is hash-bound and staged only
+          in the clone at config/dyec_runtime_config.yaml; it retains HG002 SNV and
+          SV truth configuration and does not infer truth data for other samples.
+        datasource: Hybrid ILMN+ONT
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: six_manifest
+        requires_staging: true
+        requires_run_mount: true
+        staging_receipt_required: false
+        cost_center_required: true
+        runtime_config_target: config/dyec_runtime_config.yaml
+        runtime_parameters:
+          ont_fastq_hour_window_mode: per_analysis_unit
+        input_requirements:
+          accepted_source_column_sets:
+          - - ILMN_R1_FQ
+            - ILMN_R2_FQ
+            - ONT_R1_FQ
+        targets:
+        - produce_sentdhiomr2_slim_kitchensink_mega
+        - produce_sentdhiomr2_inflection_analytical_package
+        genome: hg38
+        jobs: 456
+        keep_going: true
+        restart_times: 1
+        aligners:
+        - sentmm2ont
+        dedupers:
+        - na
+        snv_callers:
+        - sentdhiomr2
+        sv_callers: []
+        dy_command: PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega
+          produce_sentdhiomr2_inflection_analytical_package --configfile config/dyec_runtime_config.yaml
+          --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]'
+          'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}'
+          'sv_callers=[]' 'htd_callers=["smn12"]' 'ont_fastq_hour_window_mode=per_analysis_unit'
+          'hiomr2_inflection_package_mode=analytical' "seqone_delivery_batch_id=$ANALYSIS_ID"
+          -j 456 -T 1 -p -k --rerun-triggers mtime
+        dryrun_dy_command: PIP_NO_BUILD_ISOLATION=1 DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_slim_kitchensink_mega
+          produce_sentdhiomr2_inflection_analytical_package --configfile config/dyec_runtime_config.yaml
+          --config 'genome_build=hg38' 'aligners=["sentmm2ont"]' 'dedupers=["na"]'
+          'snv_callers=["sentdhiomr2"]' 'sentdhiomr2={"hg38_sentdhiomr2_chrms":"1-25"}'
+          'sv_callers=[]' 'htd_callers=["smn12"]' 'ont_fastq_hour_window_mode=per_analysis_unit'
+          'hiomr2_inflection_package_mode=analytical' "seqone_delivery_batch_id=$ANALYSIS_ID"
+          -j 456 -T 1 -p -k --rerun-triggers mtime -n
+        compatible_platforms:
+        - ILMN
+        - ONT
+        compatible_cluster_types:
+        - sentieon-single
+        compatible_data_modes:
+        - hybrid_ilmn_ont
+        git_tag: 16.0.39
+        no_containerized: false
+        return_results: false
+        repository: daylily-omics-analysis
+      sentdhiomr2_nicu_fastq_recoverability-hg002-z-hg002-analysis-unit-5x5x:
+        command_id: sentdhiomr2_nicu_fastq_recoverability-hg002-z-hg002-analysis-unit-5x5x
+        type: research
+        validated_version: 15.0.1
+        test_data_profile: hg002_bjuice_verified_5x5x_fastq
+        manifest_dir_template: examples/staging/hg002_bjuice_verified_5x5x_fastq
+        display_name: HIOMR2 NICU FASTQ Recoverability Research
+        description: Research-only producer for the HG002 HIOMR2 NICU FASTQ recoverability
+          evidence; it is deliberately excluded from production kitchen-sink and Inflection
+          commands.
+        datasource: Hybrid ILMN+ONT
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: six_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          accepted_source_column_sets:
+          - - ILMN_R1_FQ
+            - ILMN_R2_FQ
+            - ONT_R1_FQ
+        targets:
+        - produce_sentdhiomr2_nicu_fastq_recoverability
+        genome: hg38
+        jobs: 333
+        keep_going: true
+        restart_times: 1
+        aligners:
+        - sentmm2ont
+        dedupers:
+        - na
+        snv_callers:
+        - sentdhiomr2
+        sv_callers: []
+        dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_nicu_fastq_recoverability
+          --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38'
+          'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]'
+          'sentdhiomr2={"hg38_sentdhiomr2_chrms":"19-20"}' 'sv_callers=[]' 'htd_callers=["smn12"]'
+          -j 333 -T 0 -p --rerun-triggers mtime
+        dryrun_dy_command: DAY_CONTAINERIZED=true dy-r produce_sentdhiomr2_nicu_fastq_recoverability
+          --configfile config/hg002_bjuice_5x5x_hiomr2.yaml --config 'genome_build=hg38'
+          'aligners=["sentmm2ont"]' 'dedupers=["na"]' 'snv_callers=["sentdhiomr2"]'
+          'sentdhiomr2={"hg38_sentdhiomr2_chrms":"19-20"}' 'sv_callers=[]' 'htd_callers=["smn12"]'
+          -j 333 -T 0 -p --rerun-triggers mtime -n
+        compatible_platforms:
+        - ILMN
+        - ONT
+        compatible_cluster_types:
+        - sentieon-single
+        compatible_data_modes:
+        - hybrid_ilmn_ont
+        git_tag: 16.0.39
+        no_containerized: false
+        return_results: false
+        repository: daylily-omics-analysis
+      complete_genomics_cg_snv_concordance:
+        command_id: complete_genomics_cg_snv_concordance
+        type: prod
+        validated_version: 15.0.1
+        test_data_profile: default_reads_slim
+        manifest_dir_template: examples/staging/complete_genomics_solo_six_manifest_v1
+        display_name: Complete Genomics/CG SNV + Concordance
+        description: Complete Genomics/CG Sentieon sentcg/dmd/cgt7p launch profile.
+        datasource: Complete Genomics/CG
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: six_manifest
+        requires_staging: true
+        requires_run_mount: false
+        staging_receipt_required: true
+        runtime_parameters: {}
+        input_requirements:
+          required_source_columns:
+          - CG_R1_FQ
+          - CG_R2_FQ
+        targets:
+        - produce_sentcg_align
+        - produce_dmd_dedup_cram
+        - produce_cgt7p_snv_vcf
+        - produce_alignstats
+        - produce_snv_concordances
+        - produce_multiqc_all
+        - cg_solo_kitchensink_manifest
+        genome: hg38
+        jobs: 333
+        aligners:
+        - sentcg
+        dedupers:
+        - dmd
+        snv_callers:
+        - cgt7p
+        sv_callers: []
+        dy_command: dy-r produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf
+          produce_alignstats produce_snv_concordances produce_multiqc_all cg_solo_kitchensink_manifest
+          --config 'multiqc_qc={"enable_tools":["unmapped_metagenomics_ganon2"]}'
+          'cgt7p={"hg38_cgt7p_chrms":"1-25"}' -p -j 333 -T 0 --rerun-triggers mtime
+        dryrun_dy_command: dy-r produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf
+          produce_alignstats produce_snv_concordances produce_multiqc_all cg_solo_kitchensink_manifest
+          --config 'multiqc_qc={"enable_tools":["unmapped_metagenomics_ganon2"]}'
+          'cgt7p={"hg38_cgt7p_chrms":"1-25"}' -p -j 333 -T 0 --rerun-triggers mtime
+          -n
+        compatible_platforms:
+        - CG
+        compatible_cluster_types:
+        - daywgs
+        compatible_data_modes:
+        - complete_genomics_solo
+        git_tag: 16.0.39
+        no_containerized: false
+        validation_runs:
+        - run_id: tstver411b_dayoa_catalog_recipe_validation
+          generated_at: '2026-05-25T20:04:39Z'
+          report_path: docs/tstver411b_command_catalog_test_results.md
+          ledger_path: docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md
+          cluster: tstVer4-1-1b
+          region: us-west-2
+          region_az: us-west-2d
+          dayec_tag: 4.1.3
+          dayec_commit: 012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4
+          dayoa_tag: 1.0.21
+          dayoa_commit: c2ffe93f246ff19c346f0a99e04fddc9e2712ff3
+          tested_command: bin/day_run produce_sentcg_align produce_dmd_dedup_cram
+            produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j
+            20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete
+          status: blocked
+          dryrun_status: blocked
+          live_status: blocked
+          stage_or_context: docs/plans/20260525T063158Z_tstver411b_inputs/complete_genomics_mgi_hg003_candidate_blocked.tsv
+          failure_cause: 'Blocked before dry-run because the candidate mate pair was
+            not verified: _386_1 was 90,600,002,744 bytes, _386_2 was 10,794,018,984
+            bytes, and nearby _388_2 was 97,844,317,264 bytes.'
+        - run_id: prod-cand-1703-cg-slim-20260814-1032
+          generated_at: '2026-08-14T11:26:08Z'
+          report_path: s3://lsmc-ssf-sequencing-data/derived/prod-cand-1703/pc1703-cg-solo-ks-17014-20260814-1032/daylily-omics-analysis/results/day/hg38/reports/DAY_final_multiqc.html
+          ledger_path: docs/plans/20260814T085914Z_prod_cand_1703_three_platform_solo_kitchensink_execution_ledger.md
+          cluster: prod-cand-1703
+          region: us-west-2
+          region_az: us-west-2c
+          dayec_tag: 17.0.14
+          dayec_commit: 96cec5a45993e706e8e075853ac0f5fe27b812ac
+          dayoa_tag: 14.0.14
+          dayoa_commit: 8bbf0fe0b45918a65cb2c884c5b435bab0582cb1
+          tested_command: bin/day_run produce_sentcg_align produce_dmd_dedup_cram
+            produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances produce_multiqc_all
+            -p -j 333 -T 0 --rerun-triggers mtime
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: pc1703-cg-solo-ks-17014-20260814-1008-dry
+          live_analysis_id: pc1703-cg-solo-ks-17014-20260814-1032
+          stage_or_context: s3://lsmc-ssf-sequencing-data/derived/prod-cand-1703/pc1703-cg-solo-ks-17014-20260814-1032/
+          notes: Primary receipt-bound CG slim run exited rc=0. No-delete FSx DRA
+            task task-06adea4ad8e644e89 succeeded with 3616 files and 0 failures,
+            detached dra-00f1368711631e73d, and exported final MultiQC plus dayoa_evidence_manifest.json
+            were verified in S3.
+        repository: daylily-omics-analysis
+      illumina_run_qc:
+        command_id: illumina_run_qc
+        type: prod
+        validated_version: 15.0.9
+        validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pre-rel-18025/prerel18025_ilm_seq_qc_18026_15015_20260817T1427Z/daylily-omics-analysis/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/
+        test_data_profile: illumina_run_directory
+        display_name: Illumina Run QC
+        description: Illumina run-folder QC without BCLConvert execution from a mounted
+          or explicit S3 run context.
+        datasource: Illumina
+        launcher: workflow_launch
+        command_class: run_analysis
+        input_contract: run_context
+        requires_staging: false
+        requires_run_mount: true
+        runtime_parameters:
+          run_context_file: config/runs.tsv
+          run_context_only: 'true'
+        input_requirements:
+          required_run_context_values:
+            PLATFORM: ILMN
+        targets:
+        - produce_illumina_run_qc
+        - ilmn_seqqc_manifest
+        genome: hg38
+        jobs: 20
+        aligners: []
+        dedupers: []
+        snv_callers: []
+        sv_callers: []
+        dy_command: dy-r produce_illumina_run_qc ilmn_seqqc_manifest -p -j 20 -k
+        dryrun_dy_command: dy-r produce_illumina_run_qc ilmn_seqqc_manifest -p -j
+          20 -k -n
+        compatible_platforms:
+        - ILMN
+        compatible_cluster_types:
+        - daywgs
+        compatible_data_modes:
+        - run_directory_mount
+        git_tag: 16.0.39
+        no_containerized: false
+        artifact_registration:
+          enabled: true
+          manifest_source: s3_inventory
+          evidence_manifest_path: results/runs/{analysis_id}/dayoa_evidence_manifest.json
+          include_classifications:
+          - multiqc_html
+          - multiqc_data_json
+          - multiqc_general_stats
+          - multiqc_sources
+          - multiqc_log
+          - multiqc_data_file
+          include_paths:
+          - results/runs/**/run_qc/illumina/multiqc_report.html
+          - results/runs/**/run_qc/illumina/multiqc_report_data/**
+          - results/runs/**/run_qc/illumina/summary.html
+          - results/runs/**/run_qc/illumina/summary.tsv
+          - results/runs/**/run_qc/illumina/illumina_run_qc.json
+          require_existing: true
+          allow_s3_body_sha256: true
+          s3_body_sha256_max_bytes: 50000000
+          parser_family_hint: multiqc
+          multiqc_report_kind: run_qc_illumina
+          multiqc_version: '1.35'
+          multiqc_reports:
+          - report_kind: run_qc_illumina
+            html_path: results/runs/**/run_qc/illumina/multiqc_report.html
+            data_dir_path: results/runs/**/run_qc/illumina/multiqc_report_data/
+          identity:
+            analysis_euid: '{analysis_id}'
+            run_euid: '{analysis_id}'
+        validation_runs:
+        - run_id: preval_ilmn_run_qc_rnd_final_20260727T053100Z
+          generated_at: '2026-07-27T06:12:16Z'
+          report_path: s3://lsmc-ssf-sequencing-data/preval-hiomr2/preval_ilmn_run_qc_rnd_final_20260727T053100Z/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/multiqc_report.html
+          ledger_path: docs/plans/20260726T223402Z_preval_ilmn_run_qc_ursa_artifact_ledger.md
+          cluster: preval-hiomr2
+          region: us-west-2
+          region_az: us-west-2d
+          dayec_tag: 15.0.0
+          dayec_commit: a7e4998405f0d5b5e5ad96412b6882e18fe83aee
+          dayoa_tag: 13.0.53
+          dayoa_commit: 25d79b5ec0699a6ffe52242d78141a7310019ee5
+          tested_command: dy-r produce_illumina_run_qc -p -j 5 -k --config run_context_file=config/runs.tsv
+            run_context_only=true
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: preval_ilmn_run_qc_rnd_final_20260727T053100Z
+          live_analysis_id: preval_ilmn_run_qc_rnd_final_20260727T053100Z
+          stage_or_context: /fsx/run_dir_mounts/20260618_LH01106_0011_A23MFMCLT3/
+          notes: The validated run used -j 5; catalog concurrency was raised to -j
+            20 afterward per explicit operator instruction. The MultiQC rule used
+            four threads and read existing BCLConvert metric files without running
+            BCLConvert.
+        - run_id: pcand18015_ilmn_runqc_1509_live2_20260816T1404Z
+          generated_at: '2026-08-16T14:18:42Z'
+          report_path: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ilmn_runqc_1509_live2_20260816T1404Z/daylily-omics-analysis/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/multiqc_report.html
+          ledger_path: docs/plans/20260816T080946Z_pcan18013_three_platform_seq_qc_ledger.md
+          cluster: pcand-18015
+          region: us-west-2
+          region_az: us-west-2c
+          dayec_tag: 18.0.16
+          dayec_commit: 81d865e723803dcc35ecc8f49583232627328f9e
+          dayoa_tag: 15.0.9
+          dayoa_commit: 53071f0680cbe194e1f926fe801ecfb14683feaa
+          tested_command: bin/day_run produce_illumina_run_qc -p -j 20 -k --config
+            run_context_file=config/runs.tsv run_context_only=true
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: pcand18015_ilmn_runqc_1509_dry_20260816T1351Z
+          live_analysis_id: pcand18015_ilmn_runqc_1509_live2_20260816T1404Z
+          stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ilmn_runqc_1509_live2_20260816T1404Z/daylily-omics-analysis/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/
+          notes: Exact DayOA 15.0.9 dry-run exited rc=0 with zero Slurm submissions.
+            The live controller exited rc=0 after five jobs. No-delete DRA task task-0bcbd1dad1a9a53a2
+            succeeded, detached dra-032a2da68b14f742d, preserved the FSx source, and
+            the 4,039,466-byte MultiQC report plus its data were verified in S3.
+        - run_id: pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z
+          generated_at: '2026-08-17T09:09:51Z'
+          report_path: s3://lsmc-ssf-sequencing-data/derived/pre-rel-18025/prerel18025_ilm_seq_qc_18026_15015_20260817T1427Z/daylily-omics-analysis/results/runs/20260618_LH01106_0011_A23MFMCLT3/run_qc/illumina/multiqc_report.html
+          ledger_path: docs/plans/20260817T064326Z_pcand18022_bjuice_preval_three_platform_seq_qc_ledger.md
+          cluster: pcand-18022
+          region: us-west-2
+          region_az: unrecorded
+          dayec_tag: 18.0.22
+          dayec_commit: unrecorded
+          dayoa_tag: 15.0.11
+          dayoa_commit: unrecorded
+          tested_command: bin/day_run produce_illumina_run_qc -p -j 20 -k --config
+            run_context_file=config/runs.tsv run_context_only=true
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: pcand18022_ilmn_seq_qc_15011_dry_20260817T0709Z
+          live_analysis_id: pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z
+          stage_or_context: /fsx/run_dir_mounts/20260618_LH01106_0011_A23MFMCLT3/
+          notes: Exact DayOA 15.0.11 dry-run exited rc=0 with zero Slurm submissions;
+            live controller exited rc=0 without BCL Convert. Authorized deleting DRA
+            export task task-04314e6ad167c3da3 succeeded, detached dra-0eccda2383d501558,
+            and deleted only /fsx/analysis_results/pcand-18022/pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z
+            after export to s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ilmn_seq_qc_15011_live_20260817T0712Z/.
+        repository: daylily-omics-analysis
+      illumina_bclconvert:
+        command_id: illumina_bclconvert
+        type: research
+        validated_version: 15.0.1
+        test_data_profile: bclconvert_0_mm
+        display_name: Illumina nf-core BCL Convert
+        description: Illumina demultiplexing through the pinned nf-core/bclconvert
+          4.0.3 container from a mounted run directory, with generated units table,
+          demux metric TSVs, and focused BCL Convert MultiQC. This command does not
+          run FastQC.
+        datasource: Illumina
+        launcher: workflow_launch
+        command_class: run_analysis
+        input_contract: run_context
+        requires_staging: false
+        requires_run_mount: true
+        runtime_parameters:
+          run_context_file: config/runs.tsv
+          bootstrap_bclconvert: 'true'
+        input_requirements:
+          required_run_context_values:
+            PLATFORM: ILMN
+        targets:
+        - produce_bclconvert_fastqs_and_metrics
+        genome: hg38
+        jobs: 20
+        aligners: []
+        dedupers: []
+        snv_callers: []
+        sv_callers: []
+        dy_command: dy-r produce_bclconvert_fastqs_and_metrics -p -j 20 -k
+        dryrun_dy_command: dy-r produce_bclconvert_fastqs_and_metrics -p -j 20 -k
+          -n
+        compatible_platforms:
+        - ILMN
+        compatible_cluster_types:
+        - daywgs
+        compatible_data_modes:
+        - run_directory_mount
+        git_tag: 16.0.39
+        no_containerized: false
+        validation_runs:
+        - run_id: tstver411b_dayoa_catalog_recipe_validation
+          generated_at: '2026-05-25T20:04:39Z'
+          report_path: docs/tstver411b_command_catalog_test_results.md
+          ledger_path: docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md
+          cluster: tstVer4-1-1b
+          region: us-west-2
+          region_az: us-west-2d
+          dayec_tag: 4.1.3
+          dayec_commit: 012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4
+          dayoa_tag: 1.0.21
+          dayoa_commit: c2ffe93f246ff19c346f0a99e04fddc9e2712ff3
+          tested_command: bin/day_run produce_bclconvert_fastqs_and_metrics -p -j
+            20 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true
+          status: failed
+          dryrun_status: failed
+          live_status: not_run
+          dryrun_analysis_id: tvb_illumina_bclconvert_1021_dryrun
+          stage_or_context: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
+          failure_cause: 'Dry-run failed: WorkflowError reported no read pairs specified
+            for analysis unit 20260514_LH01106_0009_B23TVLGLT4.'
+        repository: daylily-omics-analysis
+      illumina_run_qc_bclconvert:
+        command_id: illumina_run_qc_bclconvert
+        type: research
+        validated_version: 15.0.1
+        test_data_profile: bclconvert_0_mm
+        display_name: Illumina Run QC + nf-core BCL Convert
+        description: Mounted Illumina run-folder QC plus demultiplexing through the
+          pinned nf-core/bclconvert 4.0.3 container, generated units, demux metric
+          TSVs, and focused BCL Convert MultiQC in one run-analysis output tree. This
+          command does not run FastQC.
+        datasource: Illumina
+        launcher: workflow_launch
+        command_class: run_analysis
+        input_contract: run_context
+        requires_staging: false
+        requires_run_mount: true
+        runtime_parameters:
+          run_context_file: config/runs.tsv
+          bootstrap_bclconvert: 'true'
+        input_requirements:
+          required_run_context_values:
+            PLATFORM: ILMN
+        targets:
+        - produce_illumina_run_qc_and_bclconvert
+        genome: hg38
+        jobs: 20
+        aligners: []
+        dedupers: []
+        snv_callers: []
+        sv_callers: []
+        dy_command: dy-r produce_illumina_run_qc_and_bclconvert -p -j 20 -k
+        dryrun_dy_command: dy-r produce_illumina_run_qc_and_bclconvert -p -j 20 -k
+          -n
+        compatible_platforms:
+        - ILMN
+        compatible_cluster_types:
+        - daywgs
+        compatible_data_modes:
+        - run_directory_mount
+        git_tag: 16.0.39
+        no_containerized: false
+        artifact_registration:
+          enabled: true
+          manifest_source: s3_inventory
+          evidence_manifest_path: results/runs/{analysis_id}/dayoa_evidence_manifest.json
+          include_classifications:
+          - multiqc_html
+          - multiqc_data_json
+          - multiqc_general_stats
+          - multiqc_sources
+          - multiqc_log
+          - multiqc_data_file
+          - samples_manifest
+          - units_manifest
+          include_paths:
+          - config/samples.tsv
+          - config/units.tsv
+          - results/runs/**/run_qc/illumina/multiqc_report.html
+          - results/runs/**/run_qc/illumina/multiqc_report_data/**
+          - results/runs/**/bclconvert/multiqc_report.html
+          - results/runs/**/bclconvert/multiqc_report_data/**
+          require_existing: true
+          parser_family_hint: multiqc
+          multiqc_report_kind: run_qc_bclconvert
+          multiqc_version: '1.35'
+          multiqc_reports:
+          - report_kind: run_qc_illumina
+            html_path: results/runs/**/run_qc/illumina/multiqc_report.html
+            data_dir_path: results/runs/**/run_qc/illumina/multiqc_report_data/
+          - report_kind: bclconvert
+            html_path: results/runs/**/bclconvert/multiqc_report.html
+            data_dir_path: results/runs/**/bclconvert/multiqc_report_data/
+          identity:
+            analysis_euid: '{analysis_id}'
+            run_euid: '{analysis_id}'
+        validation_runs: []
+        repository: daylily-omics-analysis
+      ont_run_qc:
+        command_id: ont_run_qc
+        type: prod
+        validated_version: 15.0.9
+        validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ont_seq_qc_15011_live_20260817T0752Z/daylily-omics-analysis/results/runs/20260615_ONT_Set4-FC1/run_qc/ont/
+        test_data_profile: ont_run_directory
+        display_name: ONT Run QC
+        description: ONT mounted run-folder QC plus demultiplexed FASTQ QC and focused
+          MultiQC reports in one run-analysis output tree.
+        datasource: ONT
+        launcher: workflow_launch
+        command_class: run_analysis
+        input_contract: run_context
+        requires_staging: false
+        requires_run_mount: true
+        runtime_parameters:
+          run_context_file: config/runs.tsv
+          run_context_only: 'true'
+        input_requirements:
+          required_run_context_values:
+            PLATFORM: ONT
+        targets:
+        - produce_ont_run_qc_and_demux_multiqc
+        - ont_seqqc_manifest
+        genome: hg38
+        jobs: 6
+        aligners: []
+        dedupers: []
+        snv_callers: []
+        sv_callers: []
+        dy_command: dy-r produce_ont_run_qc_and_demux_multiqc ont_seqqc_manifest -p
+          -j 6 -k
+        dryrun_dy_command: dy-r produce_ont_run_qc_and_demux_multiqc ont_seqqc_manifest
+          -p -j 6 -k -n
+        compatible_platforms:
+        - ONT
+        compatible_cluster_types:
+        - daywgs
+        compatible_data_modes:
+        - run_directory_mount
+        git_tag: 16.0.39
+        no_containerized: false
+        validation_runs:
+        - run_id: tstver411b_dayoa_catalog_recipe_validation
+          generated_at: '2026-05-25T20:04:39Z'
+          report_path: docs/tstver411b_command_catalog_test_results.md
+          ledger_path: docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md
+          cluster: tstVer4-1-1b
+          region: us-west-2
+          region_az: us-west-2d
+          dayec_tag: 4.1.3
+          dayec_commit: 012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4
+          dayoa_tag: 1.0.21
+          dayoa_commit: c2ffe93f246ff19c346f0a99e04fddc9e2712ff3
+          tested_command: bin/day_run produce_ont_run_qc -p -j 5 -k --config run_context_file=config/runs.tsv
+            samples_table=.test_data/data/samples.tsv units_table=.test_data/data/units.tsv
+          status: failed
+          dryrun_status: failed
+          live_status: not_run
+          dryrun_analysis_id: tvb_ont_run_qc_1021_dryrun
+          stage_or_context: /fsx/run_dir_mounts/20260513_ONT_HG003/
+          failure_cause: 'Dry-run failed: WorkflowError reported config/units.tsv
+            was not found and requested config/units.tsv or --config units_table=/path/to/units.tsv.'
+        - run_id: pc1703-ont-set4fc1-seqqc-17018-20260814
+          generated_at: '2026-08-14T11:12:39Z'
+          report_path: s3://lsmc-ssf-sequencing-data/derived/prod-cand-1703/pc1703-ont-set4fc1-seqqc-17018-20260814/daylily-omics-analysis/results/runs/20260615_ONT_Set4-FC1/run_qc/ont/multiqc_report.html
+          ledger_path: docs/plans/20260814T112116Z_ont_runqc_export_catalog_max_release_ledger.md
+          cluster: prod-cand-1703
+          region: us-west-2
+          region_az: us-west-2c
+          dayec_tag: 17.0.18
+          dayec_commit: 9199d7ddc87d227d0e6019f8325fc62fa2601870
+          dayoa_tag: 14.0.16
+          dayoa_commit: ab8a66afa65a62b4d447ce583c9e44855b6be6dc
+          tested_command: bin/day_run produce_ont_run_qc_and_demux_multiqc -p -j 6
+            -k --config run_context_file=config/runs.tsv run_context_only=true --produce-analysis-artifact-manifest
+            true --produce-rulegraph true --produce-filegraph false --produce-dag
+            false
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: pc1703-ont-set4fc1-seqqc-17018-dry-20260814
+          live_analysis_id: pc1703-ont-set4fc1-seqqc-17018-20260814
+          stage_or_context: s3://lsmc-ssf-sequencing-data/derived/prod-cand-1703/pc1703-ont-set4fc1-seqqc-17018-20260814/daylily-omics-analysis/results/runs/20260615_ONT_Set4-FC1/run_qc/ont/
+          notes: Mounted Set4-FC1 ONT RunQC completed without basecalling using the
+            immutable v0.5 environment. Controller exit was 0 with 10 of 10 Slurm
+            jobs successful. No-delete DRA task task-042fe3204b60a0f1e succeeded,
+            detached dra-0ff21138a9f0beac1, preserved the FSx source, and the native
+            and demultiplexed MultiQC reports were verified in S3.
+        - run_id: pcand18015_ont_runqc_1509_live_20260816T1422Z
+          generated_at: '2026-08-16T15:13:30Z'
+          report_path: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ont_runqc_1509_live_20260816T1422Z/daylily-omics-analysis/results/runs/20260615_ONT_Set4-FC1/run_qc/ont/multiqc_report.html
+          ledger_path: docs/plans/20260816T080946Z_pcan18013_three_platform_seq_qc_ledger.md
+          cluster: pcand-18015
+          region: us-west-2
+          region_az: us-west-2c
+          dayec_tag: 18.0.16
+          dayec_commit: 81d865e723803dcc35ecc8f49583232627328f9e
+          dayoa_tag: 15.0.9
+          dayoa_commit: 53071f0680cbe194e1f926fe801ecfb14683feaa
+          tested_command: bin/day_run produce_ont_run_qc_and_demux_multiqc -p -j 6
+            -k --config run_context_file=config/runs.tsv run_context_only=true --produce-analysis-artifact-manifest
+            true --produce-rulegraph true --produce-filegraph false --produce-dag
+            false
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: pcand18015_ont_runqc_1509_dry_20260816T1420Z
+          live_analysis_id: pcand18015_ont_runqc_1509_live_20260816T1422Z
+          stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ont_runqc_1509_live_20260816T1422Z/daylily-omics-analysis/results/runs/20260615_ONT_Set4-FC1/run_qc/ont/
+          notes: Exact DayOA 15.0.9 dry-run exited rc=0 with zero Slurm submissions.
+            The live controller exited rc=0 after all 10 workflow steps. No-delete
+            DRA task task-061399116a85f689b succeeded, detached dra-0186810753e344290,
+            preserved the FSx source, and the 2,845,229-byte native plus 3,406,609-byte
+            demultiplexed MultiQC reports were verified in S3.
+        - run_id: pcand18022_ont_seq_qc_15011_live_20260817T0752Z
+          generated_at: '2026-08-17T09:09:51Z'
+          report_path: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ont_seq_qc_15011_live_20260817T0752Z/daylily-omics-analysis/results/runs/20260615_ONT_Set4-FC1/run_qc/ont/multiqc_report.html
+          ledger_path: docs/plans/20260817T064326Z_pcand18022_bjuice_preval_three_platform_seq_qc_ledger.md
+          cluster: pcand-18022
+          region: us-west-2
+          region_az: unrecorded
+          dayec_tag: 18.0.22
+          dayec_commit: unrecorded
+          dayoa_tag: 15.0.11
+          dayoa_commit: unrecorded
+          tested_command: bin/day_run produce_ont_run_qc_and_demux_multiqc -p -j 6
+            -k --config run_context_file=config/runs.tsv run_context_only=true --produce-analysis-artifact-manifest
+            true --produce-rulegraph true --produce-filegraph false --produce-dag
+            false
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: pcand18022_ont_seq_qc_15011_dry_20260817T0750Z
+          live_analysis_id: pcand18022_ont_seq_qc_15011_live_20260817T0752Z
+          stage_or_context: /fsx/run_dir_mounts/pca100-2026/20260615_ONT_Set4-FC1/
+          notes: Exact DayOA 15.0.11 dry-run exited rc=0 with zero Slurm submissions;
+            live controller exited rc=0 without basecalling. Authorized deleting DRA
+            export task task-0ab635bdaf6de0351 succeeded, detached dra-07a7629ad6d148601,
+            and deleted only /fsx/analysis_results/pcand-18022/pcand18022_ont_seq_qc_15011_live_20260817T0752Z
+            after export to s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ont_seq_qc_15011_live_20260817T0752Z/.
+        repository: daylily-omics-analysis
+      ultima_run_qc:
+        command_id: ultima_run_qc
+        type: prod
+        validated_version: 15.0.9
+        validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ultima_seq_qc_15011_live_20260817T0734Z/daylily-omics-analysis/results/runs/604834-20260717_2309/run_qc/ultima/
+        test_data_profile: ultima_run_directory
+        display_name: Ultima Run QC
+        description: Ultima run-folder QC from a mounted run context.
+        datasource: Ultima
+        launcher: workflow_launch
+        command_class: run_analysis
+        input_contract: run_context
+        requires_staging: false
+        requires_run_mount: true
+        runtime_parameters:
+          run_context_file: config/runs.tsv
+          run_context_only: 'true'
+        input_requirements:
+          required_run_context_values:
+            PLATFORM: ULTIMA
+        targets:
+        - produce_ultima_run_qc
+        - ultima_seqqc_manifest
+        genome: hg38
+        jobs: 5
+        aligners: []
+        dedupers: []
+        snv_callers: []
+        sv_callers: []
+        dy_command: dy-r produce_ultima_run_qc ultima_seqqc_manifest -p -j 5 -k
+        dryrun_dy_command: dy-r produce_ultima_run_qc ultima_seqqc_manifest -p -j
+          5 -k -n
+        compatible_platforms:
+        - ULTIMA
+        compatible_cluster_types:
+        - daywgs
+        compatible_data_modes:
+        - run_directory_mount
+        git_tag: 16.0.39
+        no_containerized: false
+        validation_runs:
+        - run_id: tstver411b_dayoa_catalog_recipe_validation
+          generated_at: '2026-05-25T20:04:39Z'
+          report_path: docs/tstver411b_command_catalog_test_results.md
+          ledger_path: docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md
+          cluster: tstVer4-1-1b
+          region: us-west-2
+          region_az: us-west-2d
+          dayec_tag: 4.1.3
+          dayec_commit: 012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4
+          dayoa_tag: 1.0.21
+          dayoa_commit: c2ffe93f246ff19c346f0a99e04fddc9e2712ff3
+          tested_command: bin/day_run produce_ultima_run_qc -p -j 5 -k --config run_context_file=config/runs.tsv
+            samples_table=.test_data/data/samples.tsv units_table=.test_data/data/units.tsv
+          status: failed
+          dryrun_status: failed
+          live_status: not_run
+          dryrun_analysis_id: tvb_ultima_run_qc_1021_dryrun
+          stage_or_context: /fsx/run_dir_mounts/602221-20260417_2346/
+          failure_cause: 'Dry-run failed: WorkflowError reported config/units.tsv
+            was not found and requested config/units.tsv or --config units_table=/path/to/units.tsv.'
+        - run_id: 604395-20260717_2011
+          generated_at: '2026-07-27T01:31:42Z'
+          report_path: docs/plans/20260726T231553Z_ursa_ultima_604395_seq_qc_ledger.md
+          ledger_path: docs/plans/20260726T231553Z_ursa_ultima_604395_seq_qc_ledger.md
+          cluster: ursa-m-rgx-fssq
+          region: us-west-2
+          region_az: unrecorded
+          dayec_tag: unrecorded
+          dayec_commit: unrecorded
+          dayoa_tag: codex/ultima-run-qc-standalone
+          dayoa_commit: 44d326f9f4efe95be20d1027ff008b85e9bbadb1
+          tested_command: dy-r produce_ultima_run_qc -p -j 5 -k --config run_context_only=true
+          status: success
+          dryrun_status: not_run
+          live_status: success
+          live_analysis_id: dyec_ultima_604395_20260717_2011_artifactlive_20260727T012253Z
+          stage_or_context: /fsx/run_dir_mounts/604395-20260717_2011/
+          notes: Live direct-DYEC controller reached rc=0; catalog 13.0.59 is the
+            subsequent merged release pin.
+        - run_id: pcand18015_ultima_runqc_1509_live_20260816T1513Z
+          generated_at: '2026-08-16T15:31:11Z'
+          report_path: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ultima_runqc_1509_live_20260816T1513Z/daylily-omics-analysis/results/runs/604834-20260717_2309/run_qc/ultima/ultima_native.multiqc.html
+          ledger_path: docs/plans/20260816T080946Z_pcan18013_three_platform_seq_qc_ledger.md
+          cluster: pcand-18015
+          region: us-west-2
+          region_az: us-west-2c
+          dayec_tag: 18.0.16
+          dayec_commit: 81d865e723803dcc35ecc8f49583232627328f9e
+          dayoa_tag: 15.0.9
+          dayoa_commit: 53071f0680cbe194e1f926fe801ecfb14683feaa
+          tested_command: bin/day_run produce_ultima_run_qc -p -j 5 -k --config run_context_file=config/runs.tsv
+            run_context_only=true
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: pcand18015_ultima_runqc_1509_dry_20260816T1456Z
+          live_analysis_id: pcand18015_ultima_runqc_1509_live_20260816T1513Z
+          stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pcand-18015/pcand18015_ultima_runqc_1509_live_20260816T1513Z/daylily-omics-analysis/results/runs/604834-20260717_2309/run_qc/ultima/
+          notes: Exact DayOA 15.0.9 dry-run exited rc=0 with zero Slurm submissions.
+            The live controller exited rc=0 after four Slurm jobs. No-delete DRA task
+            task-0ab47c24639346b61 succeeded, detached dra-049aa949551c8d1be, preserved
+            the FSx source, and the 3,645,480-byte native MultiQC report was verified
+            in S3.
+        - run_id: pcand18022_ultima_seq_qc_15011_live_20260817T0734Z
+          generated_at: '2026-08-17T09:09:51Z'
+          report_path: s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ultima_seq_qc_15011_live_20260817T0734Z/daylily-omics-analysis/results/runs/604834-20260717_2309/run_qc/ultima/ultima_native.multiqc.html
+          ledger_path: docs/plans/20260817T064326Z_pcand18022_bjuice_preval_three_platform_seq_qc_ledger.md
+          cluster: pcand-18022
+          region: us-west-2
+          region_az: unrecorded
+          dayec_tag: 18.0.22
+          dayec_commit: unrecorded
+          dayoa_tag: 15.0.11
+          dayoa_commit: unrecorded
+          tested_command: bin/day_run produce_ultima_run_qc -p -j 5 -k --config run_context_file=config/runs.tsv
+            run_context_only=true
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: pcand18022_ultima_seq_qc_15011_dry_20260817T0732Z
+          live_analysis_id: pcand18022_ultima_seq_qc_15011_live_20260817T0734Z
+          stage_or_context: /fsx/run_dir_mounts/ultima-604834-20260717/
+          notes: Exact DayOA 15.0.11 dry-run and live controller each exited rc=0
+            without basecalling. Authorized deleting DRA export task task-0764f6ed0d480690c
+            succeeded, detached dra-0392265fb9f0f8aa9, and deleted only /fsx/analysis_results/pcand-18022/pcand18022_ultima_seq_qc_15011_live_20260817T0734Z
+            after export to s3://lsmc-ssf-sequencing-data/derived/pcand-18022/pcand18022_ultima_seq_qc_15011_live_20260817T0734Z/.
+        repository: daylily-omics-analysis
+      illumina_sentieon_pangenome_kitchensink:
+        command_id: illumina_sentieon_pangenome_kitchensink
+        type: prod
+        validated_version: unvalidated
+        validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pclu-18045/pclu18045_rc0_18053_pangenomeilmn_20260819T033638Z/
+        test_data_profile: default_reads_slim
+        manifest_dir_template: ''
+        display_name: Illumina Sentieon Pangenome Kitchen Sink
+        description: Production Illumina Sentieon kitchen sink with its standard sent/dmd
+          lane and the graph pangenome_sr/spmd/sentpg lane. The workflow remains activated
+          as hg38; graph assets are selected by the pangenome_sr aligner.
+        datasource: Illumina
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: six_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          required_source_columns:
+          - ILMN_R1_FQ
+          - ILMN_R2_FQ
+        targets:
+        - produce_sent_align
+        - produce_dmd_dedup_cram
+        - produce_sentd_snv_vcf
+        - produce_sentpg_sr_snv_vcf
+        - produce_alignstats
+        - produce_snv_concordances
+        - produce_relatedness
+        - produce_gatk_contam_estimate
+        - produce_site_mix_contam_estimate
+        - produce_vep
+        - produce_expansionhunter
+        - produce_htd_calls
+        - produce_metagenomics
+        - produce_multiqc_all
+        - results/day/hg38/reports/DAY_final_multiqc.html
+        - results/day/hg38/reports/dayoa_evidence_manifest.json
+        genome: hg38
+        jobs: 333
+        aligners:
+        - sent
+        - pangenome_sr
+        dedupers:
+        - dmd
+        snv_callers:
+        - sentd
+        - sentpg
+        sv_callers: []
+        dy_command: dy-r produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf
+          produce_sentpg_sr_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness
+          produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep
+          produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all
+          results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json
+          --config 'genome_build=hg38' 'aligners=["sent","pangenome_sr"]' 'dedupers=["dmd"]'
+          'snv_callers=["sentd","sentpg"]' 'sv_callers=[]' 'htd_callers=["cyrius"]'
+          'multiqc_qc={"enable_tools":["vep","metagenomics","unmapped_metagenomics_ganon2"]}'
+          'sentD={"hg38_sentD_chrms":"1-25"}' -j 333 -T 0 -p --rerun-triggers mtime
+        dryrun_dy_command: dy-r produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf
+          produce_sentpg_sr_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness
+          produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_vep
+          produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all
+          results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json
+          --config 'genome_build=hg38' 'aligners=["sent","pangenome_sr"]' 'dedupers=["dmd"]'
+          'snv_callers=["sentd","sentpg"]' 'sv_callers=[]' 'htd_callers=["cyrius"]'
+          'multiqc_qc={"enable_tools":["vep","metagenomics","unmapped_metagenomics_ganon2"]}'
+          'sentD={"hg38_sentD_chrms":"1-25"}' -j 333 -T 0 -p --rerun-triggers mtime
+          -n
+        compatible_platforms:
+        - ILMN
+        compatible_cluster_types:
+        - daywgs
+        compatible_data_modes:
+        - ilmn_solo
+        git_tag: 16.0.39
+        no_containerized: false
+        return_results: false
+        validation_runs:
+        - run_id: pclu18045_rc0_18053_pangenomeilmn_20260819T033638Z
+          generated_at: '2026-08-19T08:06:11Z'
+          report_path: s3://lsmc-ssf-sequencing-data/derived/pclu-18045/pclu18045_rc0_18053_pangenomeilmn_20260819T033638Z/daylily-omics-analysis/status.json
+          ledger_path: docs/plans/20260819T070143Z_pclu_18045_rc0_export_and_evidence_ledger.md
+          cluster: pclu-18045
+          region: us-west-2
+          region_az: unrecorded
+          dayec_tag: 18.0.53
+          dayec_commit: 3f41a6b4842d55e9eef7942816daa48e85cb2ba0
+          dayoa_tag: 15.0.30
+          dayoa_commit: 65c45c74e922c276eeb676ed6ed24bfae7fbe859
+          tested_command: bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf
+            produce_sentpg_sr_snv_vcf produce_alignstats produce_snv_concordances
+            produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate
+            produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics
+            produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json
+            --config genome_build=hg38 'aligners=["sent","pangenome_sr"]' 'dedupers=["dmd"]'
+            'snv_callers=["sentd","sentpg"]' 'sv_callers=[]' 'htd_callers=["cyrius"]'
+            'multiqc_qc={"enable_tools":["vep","metagenomics"]}' 'sentD={"hg38_sentD_chrms":"1-25"}'
+            -j 333 -T 0 -p --rerun-triggers mtime --produce-analysis-artifact-manifest
+            true --produce-rulegraph true --produce-filegraph false --produce-dag
+            false
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: pclu18045_rc0_18053_pangenomeilmn_20260819T033638Z
+          live_analysis_id: pclu18045_rc0_18053_pangenomeilmn_20260819T033638Z
+          stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pclu-18045/pclu18045_rc0_18053_pangenomeilmn_20260819T033638Z/
+          failure_cause: ''
+          notes: 'Fresh pclu-18045 same-root dry/live controller evidence: dry controller/day-run
+            rc=0; live controller/day-run/Snakemake rc=0. Full-root export task task-0a564cfaa7a78831b
+            succeeded, detached dra-0399a694ff79bf48a, preserved FSx, and clone-status-v2
+            status evidence was re-HEADed. Direct delivery provenance only; the actual
+            execution DayOA tag is retained and does not assert execution at the current
+            15.0.37 catalog pin.'
+        repository: daylily-omics-analysis
+      ultima_sentieon_pangenome_kitchensink:
+        command_id: ultima_sentieon_pangenome_kitchensink
+        type: prod
+        validated_version: unvalidated
+        validation_evidence_s3_uri_prefix: s3://lsmc-ssf-sequencing-data/derived/pclu-18045/pclu18045_rc0_18055_pangenomeultima_20260819T051914Z/
+        test_data_profile: default_reads_slim
+        manifest_dir_template: ''
+        display_name: Ultima Sentieon Pangenome Kitchen Sink
+        description: Production Ultima Sentieon kitchen sink with its standard ug/na
+          lane and the graph pangenome_ug/spmd/sentpg lane. It requires an explicit
+          ug-aligned Ultima CRAM input; FASTQ-only input is not eligible. Optional
+          analysis_units.tsv ULTIMA_SUBSAMPLE_PCT values strictly inside (0,1) deterministically
+          downsample the required input CRAM with fixed samtools seed 33; every other
+          value runs full depth. The workflow remains activated as hg38.
+        datasource: Ultima
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: six_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          required_source_columns:
+          - ULTIMA_CRAM
+          - ULTIMA_CRAM_ALIGNER
+        targets:
+        - produce_alignstats
+        - produce_na_dedup_cram
+        - produce_sentdug_snv_vcf
+        - produce_sentpg_ug_snv_vcf
+        - produce_snv_concordances
+        - produce_relatedness
+        - produce_vep
+        - produce_metagenomics
+        - produce_multiqc_all
+        - results/day/hg38/reports/DAY_final_multiqc.html
+        - results/day/hg38/reports/dayoa_evidence_manifest.json
+        genome: hg38
+        jobs: 333
+        aligners:
+        - ug
+        - pangenome_ug
+        dedupers:
+        - na
+        snv_callers:
+        - sentdug
+        - sentpg
+        sv_callers: []
+        dy_command: dy-r produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf
+          produce_sentpg_ug_snv_vcf produce_snv_concordances produce_relatedness produce_vep
+          produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html
+          results/day/hg38/reports/dayoa_evidence_manifest.json --config 'genome_build=hg38'
+          'aligners=["ug","pangenome_ug"]' 'dedupers=["na"]' 'snv_callers=["sentdug","sentpg"]'
+          'sv_callers=[]' 'multiqc_qc={"enable_tools":["vep","metagenomics","unmapped_metagenomics_ganon2"]}'
+          'sentdug={"hg38_sentdug_chrms":"1-25"}' -j 333 -T 0 -p --rerun-triggers
+          mtime
+        dryrun_dy_command: dy-r produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf
+          produce_sentpg_ug_snv_vcf produce_snv_concordances produce_relatedness produce_vep
+          produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html
+          results/day/hg38/reports/dayoa_evidence_manifest.json --config 'genome_build=hg38'
+          'aligners=["ug","pangenome_ug"]' 'dedupers=["na"]' 'snv_callers=["sentdug","sentpg"]'
+          'sv_callers=[]' 'multiqc_qc={"enable_tools":["vep","metagenomics","unmapped_metagenomics_ganon2"]}'
+          'sentdug={"hg38_sentdug_chrms":"1-25"}' -j 333 -T 0 -p --rerun-triggers
+          mtime -n
+        compatible_platforms:
+        - ULTIMA
+        compatible_cluster_types:
+        - daywgs
+        compatible_data_modes:
+        - ultima_solo
+        git_tag: 16.0.39
+        no_containerized: false
+        return_results: false
+        validation_runs:
+        - run_id: pclu18045_rc0_18055_pangenomeultima_20260819T051914Z
+          generated_at: '2026-08-19T08:06:11Z'
+          report_path: s3://lsmc-ssf-sequencing-data/derived/pclu-18045/pclu18045_rc0_18055_pangenomeultima_20260819T051914Z/daylily-omics-analysis/status.json
+          ledger_path: docs/plans/20260819T070143Z_pclu_18045_rc0_export_and_evidence_ledger.md
+          cluster: pclu-18045
+          region: us-west-2
+          region_az: unrecorded
+          dayec_tag: 18.0.55
+          dayec_commit: 1358b349edb6f7a6fc88d2ff87c8ce79197ed89c
+          dayoa_tag: 15.0.35
+          dayoa_commit: 24edfc39895e9dddfcd26738930a863ba938921f
+          tested_command: bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf
+            produce_sentpg_ug_snv_vcf produce_snv_concordances produce_relatedness
+            produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html
+            results/day/hg38/reports/dayoa_evidence_manifest.json --config genome_build=hg38
+            'aligners=["ug","pangenome_ug"]' 'dedupers=["na"]' 'snv_callers=["sentdug","sentpg"]'
+            'sv_callers=[]' 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' 'sentdug={"hg38_sentdug_chrms":"1-25"}'
+            -j 333 -T 0 -p --rerun-triggers mtime --produce-analysis-artifact-manifest
+            true --produce-rulegraph true --produce-filegraph false --produce-dag
+            false
+          status: success
+          dryrun_status: success
+          live_status: success
+          dryrun_analysis_id: pclu18045_rc0_18055_pangenomeultima_20260819T051914Z
+          live_analysis_id: pclu18045_rc0_18055_pangenomeultima_20260819T051914Z
+          stage_or_context: s3://lsmc-ssf-sequencing-data/derived/pclu-18045/pclu18045_rc0_18055_pangenomeultima_20260819T051914Z/
+          failure_cause: ''
+          notes: 'Fresh pclu-18045 same-root dry/live controller evidence: dry controller/day-run
+            rc=0; live controller/day-run/Snakemake rc=0. Full-root export task task-078777327e77d1b96
+            succeeded, detached dra-05be422bf08c53c66, preserved FSx, and clone-status-v2
+            status evidence was re-HEADed. Direct delivery provenance only; the actual
+            execution DayOA tag is retained and does not assert execution at the current
+            15.0.37 catalog pin.'
+        - run_id: pclu18045_u075_pang_18059_15038_20260819t130742z
+          generated_at: '2026-08-19T13:21:23Z'
+          report_path: docs/plans/20260819T114344Z_ultima_cram_downsampling_catalog_artifacts/pangenome_terminal_status.json
+          ledger_path: docs/plans/20260819T114344Z_ultima_cram_downsampling_catalog_ledger.md
+          cluster: pclu-18045
+          region: us-west-2
+          region_az: unrecorded
+          dayec_tag: 18.0.59
+          dayec_commit: 20325e84014fabe666c1d5b7f381374444597949
+          dayoa_tag: 15.0.38
+          dayoa_commit: 95cabdbfd35e57bd8974ec0b6583f3f2dd4b3202
+          tested_command: bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf
+            produce_sentpg_ug_snv_vcf produce_snv_concordances produce_relatedness
+            produce_vep produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html
+            results/day/hg38/reports/dayoa_evidence_manifest.json --config genome_build=hg38
+            'aligners=["ug","pangenome_ug"]' 'dedupers=["na"]' 'snv_callers=["sentdug","sentpg"]'
+            'sv_callers=[]' 'multiqc_qc={"enable_tools":["vep","metagenomics"]}' 'sentdug={"hg38_sentdug_chrms":"1-25"}'
+            -j 333 -T 0 -p --rerun-triggers mtime -n --produce-analysis-artifact-manifest
+            true --produce-rulegraph true --produce-filegraph false --produce-dag
+            false
+          status: success
+          dryrun_status: success
+          live_status: not_run
+          dryrun_analysis_id: pclu18045_u075_pang_18059_15038_20260819t130742z
+          live_analysis_id: ''
+          stage_or_context: docs/plans/20260819T114344Z_ultima_cram_downsampling_catalog_artifacts/manifest
+          failure_cause: ''
+          notes: 'Fresh dry-only catalog candidate proof: controller/day-run/Snakemake
+            rc=0, submitted jobs=0, and exactly one threaded pre_prep_ultima_cram
+            command used seed 33.75; canonicalize_pangenome_ug_input_cram consumed
+            the prepared CRAM and sentieon_pangenome_ug consumed the canonicalized
+            CRAM. The executing local version was 18.0.59.dev1+g20325e840.d20260819
+            with reviewed dirty catalog content subsequently frozen in candidate commit
+            8fd55dbd31bbf161869e014e3b7743d20154a02d; dayec_commit records that executable
+            base honestly. Live status remains not_run; no read-count, performance,
+            export, or live-workflow claim is made.'
+        repository: daylily-omics-analysis
+    aliases: {}
