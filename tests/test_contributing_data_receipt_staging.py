@@ -32,25 +32,12 @@ runner = CliRunner()
 
 
 def _declared_command() -> AnalysisCommand:
-    """Return a validated declaration for the new unreleased catalog capability."""
+    """Return the released catalog declaration for contributing-data staging."""
 
-    base = load_repository_catalog(SOURCE_CATALOG).get_command_for_dyec_build(COMMAND_ID, "19.0.54")
-    payload = base.model_dump()
-    payload.update(
-        {
-            "runtime_config_target": "config/dyec_runtime_config.yaml",
-            "contributing_data_receipt_required": True,
-            "dy_command": base.dy_command.replace(
-                "config/hg002_bjuice_5x5x_hiomr2.yaml",
-                "config/dyec_runtime_config.yaml",
-            ),
-            "dryrun_dy_command": base.dryrun_dy_command.replace(
-                "config/hg002_bjuice_5x5x_hiomr2.yaml",
-                "config/dyec_runtime_config.yaml",
-            ),
-        }
+    return load_repository_catalog(SOURCE_CATALOG).get_command_for_dyec_build(
+        COMMAND_ID,
+        "19.0.55",
     )
-    return AnalysisCommand.model_validate(payload)
 
 
 def _write_receipt(path: Path, *, schema: str = "dayoa.contributing_data.v1") -> Path:
@@ -228,7 +215,7 @@ def test_public_workflow_launch_forwards_only_a_valid_explicit_receipt(
             "--executing-entity",
             "bjuiceval-19024",
             "--git-tag",
-            "16.0.37",
+            "16.0.38",
             "--manifest-dir",
             str(manifest_dir),
             "--runtime-config-file",
@@ -257,7 +244,7 @@ def test_public_workflow_launch_forwards_only_a_valid_explicit_receipt(
             "--analysis-id",
             "receipt-contract",
             "--git-tag",
-            "16.0.37",
+            "16.0.38",
             "--manifest-dir",
             str(manifest_dir),
             "--contributing-data-receipt-file",
@@ -288,7 +275,7 @@ def test_low_level_launch_rejects_missing_or_wrong_receipt_schema(
                 "--analysis-id",
                 "low-level-contract",
                 "--git-tag",
-                "16.0.37",
+                "16.0.38",
                 "--manifest-dir",
                 str(tmp_path / "manifests"),
                 "--runtime-config-file",
@@ -371,7 +358,7 @@ def test_low_level_launch_stages_receipt_at_fixed_target_with_sha256_verificatio
                 "--analysis-id",
                 "low-level-contract",
                 "--git-tag",
-                "16.0.37",
+                "16.0.38",
                 "--manifest-dir",
                 str(manifest_dir),
                 "--runtime-config-file",
@@ -413,7 +400,7 @@ def test_payload_staging_binds_receipt_content_and_hash(
     args = SimpleNamespace(
         payload_staging_s3_uri="s3://bucket/prefix",
         repository="daylily-omics-analysis",
-        git_tag="16.0.37",
+        git_tag="16.0.38",
         input_contract="six_manifest",
         dy_command="dy-r help -n",
         profile="lsmc",
