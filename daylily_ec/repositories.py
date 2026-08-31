@@ -574,6 +574,7 @@ class AnalysisCommand(BaseModel):
     staging_receipt_required: bool = False
     cost_center_required: bool = False
     runtime_config_target: str = ""
+    contributing_data_receipt_required: bool = False
     artifact_recovery_required: bool = False
     runtime_parameters: Dict[str, Any] = Field(default_factory=dict)
     input_requirements: CommandInputRequirements = Field(default_factory=CommandInputRequirements)
@@ -722,6 +723,15 @@ class AnalysisCommand(BaseModel):
                 raise ValueError(
                     "runtime_config_target must be the exact --configfile path in both commands"
                 )
+        if self.contributing_data_receipt_required:
+            if self.input_contract != "six_manifest" or not self.requires_staging:
+                raise ValueError(
+                    "contributing_data_receipt_required requires a staged six_manifest command"
+                )
+            if not self.runtime_config_target:
+                raise ValueError(
+                    "contributing_data_receipt_required requires an explicit in-clone runtime config"
+                )
         if self.artifact_recovery_required:
             if self.input_contract != "six_manifest" or not self.requires_staging:
                 raise ValueError(
@@ -834,6 +844,7 @@ class AnalysisCommand(BaseModel):
         libraries_file: Optional[str] = None,
         units_file: Optional[str] = None,
         runtime_config_file: Optional[str] = None,
+        contributing_data_receipt_file: Optional[str] = None,
         artifact_recovery_manifest: Optional[str] = None,
         dry_run: bool = False,
         skip_project_check: bool = True,
@@ -896,6 +907,20 @@ class AnalysisCommand(BaseModel):
                     f"{self.command_id} requires runtime_config_file for "
                     f"{self.runtime_config_target}"
                 )
+            if (
+                self.contributing_data_receipt_required
+                and not contributing_data_receipt_file
+            ):
+                raise ValueError(
+                    f"{self.command_id} requires contributing_data_receipt_file"
+                )
+            if (
+                contributing_data_receipt_file
+                and not self.contributing_data_receipt_required
+            ):
+                raise ValueError(
+                    f"{self.command_id} does not declare a contributing-data receipt"
+                )
             if self.artifact_recovery_required and not artifact_recovery_manifest:
                 raise ValueError(
                     f"{self.command_id} requires artifact_recovery_manifest"
@@ -908,6 +933,10 @@ class AnalysisCommand(BaseModel):
             raise ValueError("manifest_dir requires the six_manifest input contract")
         elif runtime_config_file:
             raise ValueError("runtime_config_file requires the six_manifest input contract")
+        elif contributing_data_receipt_file:
+            raise ValueError(
+                "contributing_data_receipt_file requires the six_manifest input contract"
+            )
         elif artifact_recovery_manifest:
             raise ValueError(
                 "artifact_recovery_manifest requires the six_manifest input contract"
@@ -976,6 +1005,10 @@ class AnalysisCommand(BaseModel):
             argv.append("--no-containerized")
         if runtime_config_file:
             argv.extend(["--runtime-config-file", runtime_config_file])
+        if contributing_data_receipt_file:
+            argv.extend(
+                ["--contributing-data-receipt-file", contributing_data_receipt_file]
+            )
         if artifact_recovery_manifest:
             if replace_existing_analysis_dir:
                 raise ValueError(

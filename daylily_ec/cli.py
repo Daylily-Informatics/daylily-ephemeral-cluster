@@ -7707,6 +7707,14 @@ def workflow_launch(
             "a six-manifest launch."
         ),
     ),
+    contributing_data_receipt_file: Optional[Path] = typer.Option(
+        None,
+        "--contributing-data-receipt-file",
+        help=(
+            "Explicit dayoa.contributing_data.v1 JSON staged only as "
+            "config/contributing_data_receipt.v1.json with a six-manifest runtime config."
+        ),
+    ),
     artifact_recovery_manifest: Optional[Path] = typer.Option(
         None,
         "--artifact-recovery-manifest",
@@ -7992,6 +8000,7 @@ def workflow_launch(
                 stage_dir,
                 manifest_dir,
                 runtime_config_file,
+                contributing_data_receipt_file,
                 artifact_recovery_manifest,
                 run_context_file,
                 specimens_file,
@@ -8100,6 +8109,23 @@ def workflow_launch(
                 "--runtime-config-file requires staged --input-contract six_manifest",
                 param_hint="--runtime-config-file",
             )
+    if contributing_data_receipt_file is not None:
+        if (
+            input_contract != "six_manifest"
+            or not input_staging
+            or runtime_config_file is None
+        ):
+            raise typer.BadParameter(
+                "--contributing-data-receipt-file requires staged --input-contract "
+                "six_manifest and --runtime-config-file",
+                param_hint="--contributing-data-receipt-file",
+            )
+        if not contributing_data_receipt_file.expanduser().is_file():
+            raise typer.BadParameter(
+                "Contributing-data receipt file not found: "
+                f"{contributing_data_receipt_file.expanduser()}",
+                param_hint="--contributing-data-receipt-file",
+            )
         if not runtime_config_file.expanduser().is_file():
             raise typer.BadParameter(
                 f"Runtime config file not found: {runtime_config_file.expanduser()}",
@@ -8167,6 +8193,12 @@ def workflow_launch(
         (
             "--runtime-config-file",
             str(runtime_config_file.expanduser()) if runtime_config_file else None,
+        ),
+        (
+            "--contributing-data-receipt-file",
+            str(contributing_data_receipt_file.expanduser())
+            if contributing_data_receipt_file
+            else None,
         ),
         (
             "--artifact-recovery-manifest",
@@ -8387,6 +8419,7 @@ def _catalog_command_summary(command: Any) -> dict[str, Any]:
         "requires_staging": command.requires_staging,
         "requires_run_mount": command.requires_run_mount,
         "runtime_config_target": command.runtime_config_target,
+        "contributing_data_receipt_required": command.contributing_data_receipt_required,
         "artifact_recovery_required": command.artifact_recovery_required,
         "test_data_profile": command.test_data_profile,
         "compatible_platforms": list(command.compatible_platforms),
@@ -8542,6 +8575,7 @@ def _catalog_render_payload(
     stage_dir: Optional[str],
     manifest_dir: Optional[Path],
     runtime_config_file: Optional[Path],
+    contributing_data_receipt_file: Optional[Path],
     artifact_recovery_manifest: Optional[Path],
     payload_staging_s3_uri: Optional[str],
     remote_user: str,
@@ -8588,6 +8622,11 @@ def _catalog_render_payload(
     runtime_config_file_text = (
         str(runtime_config_file.expanduser()) if runtime_config_file else None
     )
+    contributing_data_receipt_file_text = (
+        str(contributing_data_receipt_file.expanduser())
+        if contributing_data_receipt_file
+        else None
+    )
     artifact_recovery_manifest_text = (
         str(artifact_recovery_manifest.expanduser())
         if artifact_recovery_manifest
@@ -8619,6 +8658,20 @@ def _catalog_render_payload(
         raise ValueError(
             f"{command.command_id} does not declare a runtime config staging target"
         )
+    if (
+        command.contributing_data_receipt_required
+        and not contributing_data_receipt_file_text
+    ):
+        raise ValueError(
+            f"{command.command_id} requires --contributing-data-receipt-file"
+        )
+    if (
+        contributing_data_receipt_file_text
+        and not command.contributing_data_receipt_required
+    ):
+        raise ValueError(
+            f"{command.command_id} does not declare a contributing-data receipt"
+        )
     if command.artifact_recovery_required and not artifact_recovery_manifest_text:
         raise ValueError(
             f"{command.command_id} requires --artifact-recovery-manifest"
@@ -8638,6 +8691,7 @@ def _catalog_render_payload(
         stage_dir=stage_dir,
         manifest_dir=manifest_dir_text,
         runtime_config_file=runtime_config_file_text,
+        contributing_data_receipt_file=contributing_data_receipt_file_text,
         artifact_recovery_manifest=artifact_recovery_manifest_text,
         run_context_file=run_context_file_text,
         specimens_file=specimens_file_text,
@@ -8923,6 +8977,72 @@ def catalog_config_bjuice_preval(
         _exit_headnode_error(exc)
 
 
+def catalog_config_bjuice_crosswalk_run(
+    run_number: str = typer.Option(
+        ..., "--run-number", help="Exact ILMN run number: 13, 14, 15, or 16."
+    ),
+    attachment: Path = typer.Option(
+        ..., "--attachment", help="Reviewed hybrid attachment TSV with exact ont_chips membership."
+    ),
+    internal_crosswalk: Path = typer.Option(
+        ..., "--internal-crosswalk", help="Reviewed internal Bjuice crosswalk TSV."
+    ),
+    source_inventory: Path = typer.Option(
+        ...,
+        "--source-inventory",
+        help="Reviewed source-inventory JSON containing explicitly selected FASTQs.",
+    ),
+    ilmn_mount: str = typer.Option(
+        ..., "--ilmn-mount", help="Exact mounted FSx root for the ILMN run hierarchy."
+    ),
+    ont_mount: str = typer.Option(
+        ..., "--ont-mount", help="Exact mounted FSx root for pca100 year/run hierarchies."
+    ),
+    output_dir: Path = typer.Option(
+        ...,
+        "--output-dir",
+        help="Empty output directory where six DayOA manifests will be written.",
+    ),
+) -> None:
+    """Generate one strict attachment-selected crosswalk-run Bjuice manifest capsule."""
+
+    try:
+        from daylily_ec.bjuice_crosswalk_run_config import materialize_bjuice_crosswalk_run
+
+        result = materialize_bjuice_crosswalk_run(
+            run_number=run_number,
+            attachment=attachment.expanduser(),
+            internal_crosswalk=internal_crosswalk.expanduser(),
+            source_inventory=source_inventory.expanduser(),
+            ilmn_mount=ilmn_mount,
+            ont_mount=ont_mount,
+            output_dir=output_dir.expanduser(),
+        )
+        receipt = result["receipt"]
+        payload = {
+            "ok": True,
+            "output_dir": str(result["output_dir"]),
+            "receipt_path": str(result["receipt_path"]),
+            "manifest_hashes": receipt["topology"]["manifest_hashes"],
+            "analysis_unit_count": receipt["topology"]["analysis_unit_count"],
+            "analysis_unit_input_count": receipt["topology"]["analysis_unit_input_count"],
+            "contributing_data_receipt": receipt["contributing_data_receipt"],
+            "contributing_data_receipt_path": str(
+                result["output_dir"] / receipt["contributing_data_receipt"]
+            ),
+            "runtime_config_path": str(
+                result["output_dir"] / receipt["runtime_yaml"]
+            ),
+            "ilmn_run_number": int(run_number),
+        }
+        if _json_mode():
+            output.emit_json(payload)
+            return
+        typer.echo(json.dumps(payload, indent=2, sort_keys=True))
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
 def catalog_config_bjuice_v2_hg002_multi_au(
     output_dir: Path = typer.Option(
         ...,
@@ -9085,6 +9205,14 @@ def catalog_render(
         "--runtime-config-file",
         help="Explicit YAML staged to the catalog command's declared in-clone runtime path.",
     ),
+    contributing_data_receipt_file: Optional[Path] = typer.Option(
+        None,
+        "--contributing-data-receipt-file",
+        help=(
+            "Explicit dayoa.contributing_data.v1 receipt staged to the catalog "
+            "command's declared in-clone path."
+        ),
+    ),
     artifact_recovery_manifest: Optional[Path] = typer.Option(
         None,
         "--artifact-recovery-manifest",
@@ -9157,6 +9285,7 @@ def catalog_render(
             stage_dir=stage_dir,
             manifest_dir=manifest_dir,
             runtime_config_file=runtime_config_file,
+            contributing_data_receipt_file=contributing_data_receipt_file,
             artifact_recovery_manifest=artifact_recovery_manifest,
             payload_staging_s3_uri=payload_staging_s3_uri,
             remote_user=remote_user,
@@ -9227,6 +9356,10 @@ def catalog_launch(
     stage_dir: Optional[str] = typer.Option(None, "--stage-dir"),
     manifest_dir: Optional[Path] = typer.Option(None, "--manifest-dir"),
     runtime_config_file: Optional[Path] = typer.Option(None, "--runtime-config-file"),
+    contributing_data_receipt_file: Optional[Path] = typer.Option(
+        None,
+        "--contributing-data-receipt-file",
+    ),
     artifact_recovery_manifest: Optional[Path] = typer.Option(
         None,
         "--artifact-recovery-manifest",
@@ -9295,6 +9428,7 @@ def catalog_launch(
             stage_dir=stage_dir,
             manifest_dir=manifest_dir,
             runtime_config_file=runtime_config_file,
+            contributing_data_receipt_file=contributing_data_receipt_file,
             artifact_recovery_manifest=artifact_recovery_manifest,
             payload_staging_s3_uri=payload_staging_s3_uri,
             remote_user=remote_user,
@@ -13122,6 +13256,11 @@ def register(registry, cli_spec) -> None:
             (
                 "config-bjuice-preval",
                 catalog_config_bjuice_preval,
+                required_policy(supports_json=True, long_running=True),
+            ),
+            (
+                "config-bjuice-crosswalk-run",
+                catalog_config_bjuice_crosswalk_run,
                 required_policy(supports_json=True, long_running=True),
             ),
             (

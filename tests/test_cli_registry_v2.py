@@ -135,6 +135,7 @@ EXPECTED_COMMANDS = {
     ("catalog", "show"),
     ("catalog", "validation-compare"),
     ("catalog", "config-bjuice-preval"),
+    ("catalog", "config-bjuice-crosswalk-run"),
     ("catalog", "config-bjuice-v2-hg002-multi-au"),
     ("catalog", "render"),
     ("catalog", "launch"),
@@ -478,6 +479,9 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     catalog_show_cmd = registry.get_command(("catalog", "show"))
     catalog_validation_compare_cmd = registry.get_command(("catalog", "validation-compare"))
     catalog_config_bjuice_preval_cmd = registry.get_command(("catalog", "config-bjuice-preval"))
+    catalog_config_bjuice_crosswalk_run_cmd = registry.get_command(
+        ("catalog", "config-bjuice-crosswalk-run")
+    )
     catalog_config_bjuice_v2_hg002_multi_au_cmd = registry.get_command(
         ("catalog", "config-bjuice-v2-hg002-multi-au")
     )
@@ -758,6 +762,10 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert catalog_config_bjuice_preval_cmd is not None
     assert catalog_config_bjuice_preval_cmd.policy.supports_json is True
     assert catalog_config_bjuice_preval_cmd.policy.long_running is True
+
+    assert catalog_config_bjuice_crosswalk_run_cmd is not None
+    assert catalog_config_bjuice_crosswalk_run_cmd.policy.supports_json is True
+    assert catalog_config_bjuice_crosswalk_run_cmd.policy.long_running is True
 
     assert catalog_config_bjuice_v2_hg002_multi_au_cmd is not None
     assert catalog_config_bjuice_v2_hg002_multi_au_cmd.policy.supports_json is True
@@ -6074,3 +6082,24 @@ def test_bjuice_v2_multi_au_manifest_cli_requires_direct_coverage_contract() -> 
         "direct_ilmn_coverage_evidence",
         "retarget_plan_json",
     }.issubset(inspect.signature(cli_module.catalog_config_bjuice_v2_hg002_multi_au).parameters)
+
+
+def test_bjuice_crosswalk_run_manifest_cli_requires_explicit_attachment_and_mounts() -> None:
+    result = runner.invoke(app, ["catalog", "config-bjuice-crosswalk-run", "--help"])
+
+    assert result.exit_code == 0
+    assert {
+        "--attachment",
+        "--internal-crosswalk",
+        "--source-inventory",
+        "--ilmn-mount",
+        "--ont-mount",
+    }.issubset(result.stdout.split())
+    assert {
+        "run_number",
+        "attachment",
+        "internal_crosswalk",
+        "source_inventory",
+        "ilmn_mount",
+        "ont_mount",
+    }.issubset(inspect.signature(cli_module.catalog_config_bjuice_crosswalk_run).parameters)
